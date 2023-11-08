@@ -1,4 +1,4 @@
-rootProject.name = "MyApplication"
+rootProject.name = "SDUI ComposeApplication"
 
 include(":androidApp")
 include(":shared")

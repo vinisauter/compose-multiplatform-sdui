@@ -1,0 +1,25 @@
+{
+  "id": "login",
+  "component": "layout:column",
+  "state": [
+
+  ],
+  "properties": {
+    "modifier": {
+      "fillMaxWidth": ""
+    },
+    "horizontalAlignment": "CenterHorizontally"
+  },
+  "childrem": [
+    {
+      "id": "login",
+      "component": "layout:column",
+      "properties": {
+        "modifier": {
+          "fillMaxWidth": "::::"
+        },
+        "horizontalAlignment": "CenterHorizontally"
+      }
+    }
+  ]
+}

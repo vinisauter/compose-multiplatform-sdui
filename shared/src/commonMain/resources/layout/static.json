@@ -1,0 +1,31 @@
+{
+  "id": "template",
+  "component": "layout:column",
+  "properties": {
+    "modifier": {
+      "fillMaxWidth": ""
+    },
+    "horizontalAlignment": "CenterHorizontally"
+  },
+  "children": [
+    {
+      "component": "layout:text",
+      "properties": {
+        "text": "TITLE"
+      }
+    },
+    {
+      "component": "layout:image",
+      "properties": {
+        "painterResource": "compose-multiplatform.xml",
+        "contentDescription": null
+      }
+    },
+    {
+      "component": "layout:text",
+      "properties": {
+        "text": "description"
+      }
+    }
+  ]
+}

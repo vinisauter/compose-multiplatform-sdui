@@ -1,0 +1,72 @@
+{
+  "id": "template",
+  "component": "layout:column",
+  "states": [
+    {
+      "id": "greetingText",
+      "component": "state:string",
+      "properties": {
+        "value": "Hello, World!"
+      }
+    },
+    {
+      "id": "showImage",
+      "component": "state:boolean",
+      "properties": {
+        "value": "false"
+      }
+    }
+  ],
+  "properties": {
+    "modifier": {
+      "fillMaxWidth": ""
+    },
+    "horizontalAlignment": "CenterHorizontally"
+  },
+  "children": [
+    {
+      "component": "layout:button",
+      "properties": {
+        "onClick": [
+          {
+            "component": "state:update",
+            "properties": {
+              "id": "greetingText",
+              "value": "Hello, #{platformName}"
+            }
+          },
+          {
+            "component": "state:update",
+            "properties": {
+              "id": "showImage",
+              "value": "true"
+            }
+          }
+        ]
+      },
+      "children": [
+        {
+          "component": "layout:text",
+          "properties": {
+            "text": "#{greetingText}"
+          }
+        }
+      ]
+    },
+    {
+      "component": "layout:animated_visibility",
+      "properties": {
+        "visible": "#{showImage}"
+      },
+      "children": [
+        {
+          "component": "layout:image",
+          "properties": {
+            "painterResource": "compose-multiplatform.xml",
+            "contentDescription": null
+          }
+        }
+      ]
+    }
+  ]
+}
