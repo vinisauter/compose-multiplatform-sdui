@@ -18,12 +18,6 @@
         "painterResource": "compose-multiplatform.xml",
         "contentDescription": "LOGO"
       }
-    },
-    {
-      "component": "layout:text",
-      "properties": {
-        "text": "STATIC"
-      }
     }
   ]
 }

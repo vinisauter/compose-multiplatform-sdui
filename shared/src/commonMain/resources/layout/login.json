@@ -15,9 +15,7 @@
       "id": "login",
       "component": "layout:column",
       "properties": {
-        "modifier": {
-          "fillMaxWidth": "::::"
-        },
+        "fillMaxWidth": "1.0",
         "horizontalAlignment": "CenterHorizontally"
       }
     }

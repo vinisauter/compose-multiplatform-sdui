@@ -18,9 +18,7 @@
     }
   ],
   "properties": {
-    "modifier": {
-      "fillMaxWidth": ""
-    },
+    "fillMaxWidth": "1.0",
     "horizontalAlignment": "CenterHorizontally"
   },
   "children": [
