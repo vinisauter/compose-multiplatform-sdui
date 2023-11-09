@@ -10,6 +10,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import me.next.serverdriven.core.library.ComponentHandler
+import me.next.serverdriven.core.library.SDLayout
 import me.next.serverdriven.core.library.SDLibrary
 import me.next.serverdriven.core.tree.ServerDrivenNode
 
@@ -17,7 +18,14 @@ import me.next.serverdriven.core.tree.ServerDrivenNode
 fun SDCLibrary(
     vararg libraries: SDLibrary, block: @Composable (SDCLibrary) -> Unit
 ) {
+    val defaultLibraries = listOf(
+        SDLayout()
+    )
+
     block.invoke(SDCLibrary.instance.apply {
+        for (library in defaultLibraries) {
+            addLibrary(library)
+        }
         for (library in libraries) {
             addLibrary(library)
         }
