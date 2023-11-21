@@ -19,9 +19,25 @@
   ],
   "properties": {
     "fillMaxWidth": "1.0",
-    "horizontalAlignment": "CenterHorizontally"
+    "horizontalAlignment": "CenterHorizontally",
+    "fillMaxHeight": "1"
   },
   "children": [
+    {
+      "component": "layout:textField",
+      "properties": {
+        "text": "Ana",
+        "onChangeUpdateState": "name"
+      },
+      "children": [
+        {
+          "component": "layout:text",
+          "properties": {
+            "text": "Name"
+          }
+        }
+      ]
+    },
     {
       "component": "layout:button",
       "properties": {
@@ -46,19 +62,19 @@
         {
           "component": "layout:text",
           "properties": {
-            "text": "#{greetingText}"
+            "text": "Hello #{name}"
           }
         }
       ]
     },
     {
-      "component": "layout:animated_visibility",
+      "component": "layout:animatedVisibility",
       "properties": {
         "visible": "#{showImage}"
       },
       "children": [
         {
-          "component": "layout:image",
+          "component": "layout:imageFile",
           "properties": {
             "painterResource": "compose-multiplatform.xml",
             "contentDescription": null

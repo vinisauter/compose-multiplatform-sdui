@@ -36,16 +36,16 @@ kotlin {
                 implementation(libs.kotlinx.datetime)
                 implementation(libs.ktor.core)
 
-//                implementation(libs.libres)
-//                implementation(libs.voyager.navigator)
-//                implementation(libs.composeImageLoader)
-//                implementation(libs.napier)
+                implementation(libs.libres)
+                implementation(libs.voyager.navigator)
+                implementation(libs.composeImageLoader)
+                implementation(libs.napier)
+                implementation(libs.multiplatformSettings)
+                implementation(libs.kstore)
+//                implementation(libs.koin.core)
+//                implementation(libs.apollo.runtime)
 //                implementation(libs.moko.mvvm)
 //                implementation(libs.composeIcons.featherIcons)
-//                implementation(libs.multiplatformSettings)
-//                implementation(libs.koin.core)
-//                implementation(libs.kstore)
-//                implementation(libs.apollo.runtime)
             }
         }
         val androidMain by getting {

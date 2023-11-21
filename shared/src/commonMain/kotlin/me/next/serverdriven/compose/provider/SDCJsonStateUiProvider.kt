@@ -5,7 +5,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
-import me.next.serverdriven.compose.loadComponent
 import me.next.serverdriven.compose.produceUiState
 import me.next.serverdriven.core.library.defaultError
 import me.next.serverdriven.core.library.defaultLoading
@@ -23,6 +22,6 @@ fun SDCJsonStateUiProvider(
         node.toNode()
     }
     SDCStateUiProvider(state = state, loading = loading, error = error) {
-        loadComponent(node = it)
+        SDCStateLayout(modifier,it)
     }
 }

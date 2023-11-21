@@ -9,7 +9,7 @@ import me.next.serverdriven.compose.loadComponent
 import me.next.serverdriven.core.tree.ServerDrivenNode
 
 @Composable
-fun SDCRow(node: ServerDrivenNode): Unit {
+fun SDCRow(node: ServerDrivenNode, dataState: MutableMap<String, String>) {
     val horizontalArrangement: Arrangement.Horizontal =
         when (node.properties?.get("horizontalArrangement")) {
             "Start" -> Arrangement.Start
@@ -34,7 +34,7 @@ fun SDCRow(node: ServerDrivenNode): Unit {
     ) {
         node.children?.let {
             for (serverDrivenNode in it) {
-                loadComponent(node = serverDrivenNode)
+                loadComponent(node = serverDrivenNode, dataState = dataState)
             }
         }
     }

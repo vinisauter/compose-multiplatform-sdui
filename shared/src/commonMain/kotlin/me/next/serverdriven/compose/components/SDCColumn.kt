@@ -9,7 +9,7 @@ import me.next.serverdriven.compose.loadComponent
 import me.next.serverdriven.core.tree.ServerDrivenNode
 
 @Composable
-fun SDCColumn(node: ServerDrivenNode): Unit {
+fun SDCColumn(node: ServerDrivenNode, dataState: MutableMap<String, String>): Unit {
     val verticalArrangement: Arrangement.Vertical =
         when (node.properties?.get("verticalArrangement")) {
             "Top" -> Arrangement.Top
@@ -34,7 +34,7 @@ fun SDCColumn(node: ServerDrivenNode): Unit {
     ) {
         node.children?.let {
             for (serverDrivenNode in it) {
-                loadComponent(node = serverDrivenNode)
+                loadComponent(node = serverDrivenNode, dataState = dataState)
             }
         }
     }

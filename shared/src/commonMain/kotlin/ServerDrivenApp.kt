@@ -9,7 +9,7 @@ import me.next.serverdriven.core.library.SDLibrary
 
 @Composable
 fun ServerDrivenApp() {
-    var layout by remember { mutableStateOf("layout/static.json") }
+    var layout by remember { mutableStateOf("layout/template.json") }
     // TODO: ACTIONS
     SDCLibrary() {
         SDCJsonFileStateUiProvider(res = layout)
@@ -21,13 +21,13 @@ fun SCNavigation() {
     var destination by remember { mutableStateOf("layout/static.json") }
 
     val navigationLib = SDLibrary("navigation")
-        .addComponent("graph") { node ->
+        .addComponent("graph") { node, _ ->
 
         }
-        .addComponent("node") { node ->
+        .addComponent("node") { node, _  ->
 
         }
-        .addComponent("goTo") { node ->
+        .addComponent("goTo") { node, _  ->
             val type = node.properties?.get("type")!!.toString()
             val destiny = node.properties?.get("destiny")!!
             when (type) {
