@@ -7,6 +7,6 @@ class MainApplication : Application() {
 
     override fun onCreate() {
         super.onCreate()
-        AndroidApp.INSTANCE = this
+        AndroidApp.init(this)
     }
 }

@@ -1,5 +1,6 @@
 package me.next.serverdriven.utils
 
+import cafe.adriel.voyager.core.concurrent.AtomicInt32
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
@@ -13,16 +14,24 @@ import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.longOrNull
 import me.next.serverdriven.core.tree.ServerDrivenNode
 
-var atomicLong = 0L
+var atomicLong = AtomicInt32(0)
 fun JsonObject.toNode(): ServerDrivenNode {
     val json = this
     return object : ServerDrivenNode {
         override val id: String
-            get() = json["id"]?.jsonPrimitive?.content ?: "${atomicLong++}"
+            get() = json["id"]?.jsonPrimitive?.content ?: "${atomicLong.getAndIncrement()}"
         override val component: String
             get() = json["component"]?.jsonPrimitive?.content!!
-        override val properties: MutableMap<String, Any?>?
-            get() = json["properties"]?.let { transformJsonObjectToMap(it.jsonObject) }
+        override val properties: MutableMap<String, String?>?
+            get() = json["properties"]?.let { properties ->
+                mapValuesToMutableMap(properties.jsonObject) {
+                    when (it.value) {
+                        is JsonArray -> it.value.jsonArray.toString()
+                        is JsonObject -> it.value.jsonObject.toString()
+                        else -> it.value.jsonPrimitive.content
+                    }
+                }
+            }
         override val children: MutableList<ServerDrivenNode>?
             get() = json["children"]?.jsonArray?.let { jsonArray ->
                 mapValuesToMutableList(jsonArray) {
@@ -103,7 +112,7 @@ fun <K, V, T> mapValuesToMutableMap(
  * Note: this method is important for performance reasons, please don't replace it for less code, but higher cost.
  *
  * @param list the list to map.
- * @param iteratee the function to map each item of "list".
+ * @param iterate the function to map each item of "list".
  * @return a mutable list with every item of "list" mapped to the result of "iteratee(item)".
  */
 fun <T, U> mapValuesToMutableList(list: List<T>, iterate: (item: T) -> U): MutableList<U> {

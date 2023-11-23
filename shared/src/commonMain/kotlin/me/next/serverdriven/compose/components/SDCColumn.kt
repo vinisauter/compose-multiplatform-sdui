@@ -11,7 +11,7 @@ import me.next.serverdriven.core.tree.ServerDrivenNode
 @Composable
 fun SDCColumn(node: ServerDrivenNode, dataState: MutableMap<String, String>): Unit {
     val verticalArrangement: Arrangement.Vertical =
-        when (node.properties?.get("verticalArrangement")) {
+        when (node.property("verticalArrangement")) {
             "Top" -> Arrangement.Top
             "Center" -> Arrangement.Center
             "Bottom" -> Arrangement.Bottom
@@ -21,14 +21,14 @@ fun SDCColumn(node: ServerDrivenNode, dataState: MutableMap<String, String>): Un
             else -> Arrangement.Top
         }
     val horizontalAlignment: Alignment.Horizontal =
-        when (node.properties?.get("horizontalAlignment")) {
+        when (node.property("horizontalAlignment")) {
             "Start" -> Alignment.Start
             "Center" -> Alignment.CenterHorizontally
             "End" -> Alignment.End
             else -> Alignment.Start
         }
     Column(
-        modifier = Modifier.fromNode(node.properties),
+        modifier = Modifier.fromNode(node),
         verticalArrangement = verticalArrangement,
         horizontalAlignment = horizontalAlignment
     ) {

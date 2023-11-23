@@ -11,7 +11,7 @@ import me.next.serverdriven.core.tree.ServerDrivenNode
 @Composable
 fun SDCRow(node: ServerDrivenNode, dataState: MutableMap<String, String>) {
     val horizontalArrangement: Arrangement.Horizontal =
-        when (node.properties?.get("horizontalArrangement")) {
+        when (node.property("horizontalArrangement")) {
             "Start" -> Arrangement.Start
             "Center" -> Arrangement.Center
             "End" -> Arrangement.End
@@ -21,14 +21,14 @@ fun SDCRow(node: ServerDrivenNode, dataState: MutableMap<String, String>) {
             else -> Arrangement.Start
         }
     val verticalAlignment: Alignment.Vertical =
-        when (node.properties?.get("verticalAlignment")) {
+        when (node.property("verticalAlignment")) {
             "Top" -> Alignment.Top
             "Center" -> Alignment.CenterVertically
             "Bottom" -> Alignment.Bottom
             else -> Alignment.Top
         }
     Row(
-        modifier = Modifier.fromNode(node.properties),
+        modifier = Modifier.fromNode(node),
         horizontalArrangement = horizontalArrangement,
         verticalAlignment = verticalAlignment
     ) {

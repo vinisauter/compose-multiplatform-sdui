@@ -7,11 +7,9 @@ import me.next.serverdriven.compose.produceUiState
 import me.next.serverdriven.compose.provider.SDCStateUiProvider
 import me.next.serverdriven.core.tree.ServerDrivenNode
 
-typealias ComponentHandler =
-        @Composable (ServerDrivenNode, MutableMap<String, String>) -> Unit
+typealias ComponentHandler = @Composable (ServerDrivenNode, MutableMap<String, String>) -> Unit
 
-typealias ActionHandler =
-        ((String, MutableMap<String, String>) -> Unit)
+typealias ActionHandler = (ServerDrivenNode, MutableMap<String, String>) -> Unit
 
 open class SDLibrary(val namespace: String = "") {
     private val components = HashMap<String, ComponentHandler>()
@@ -31,26 +29,15 @@ open class SDLibrary(val namespace: String = "") {
         return components[name]
     }
 
-    fun addAction(name: String, className: String, action: ActionHandler): SDLibrary {
-        actions["$name-$className"] = action
+    fun addAction(name: String, action: ActionHandler): SDLibrary {
+        actions[name] = action
         return this
     }
 
     fun getAction(
-        name: String,
-        className: String
+        name: String
     ): ActionHandler? {
-        return actions["$name-$className"]
-    }
-
-    inline fun <reified T> addAction(name: String, noinline action: ActionHandler): SDLibrary {
-        return addAction(name, T::class.qualifiedName!!, action)
-    }
-
-    inline fun <reified T> getAction(
-        name: String,
-    ): ActionHandler? {
-        return getAction(name, T::class.qualifiedName!!)
+        return actions[name]
     }
 
     fun merge(other: SDLibrary): SDLibrary {

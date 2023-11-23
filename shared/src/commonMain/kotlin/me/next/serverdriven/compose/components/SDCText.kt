@@ -10,7 +10,7 @@ import me.next.serverdriven.core.tree.ServerDrivenNode
 fun SDCText(node: ServerDrivenNode, state: MutableMap<String, String>) {
     val text by node.propertyState("text", state) { it ?: "" }
     Text(
-        modifier = Modifier.fromNode(node.properties),
+        modifier = Modifier.fromNode(node),
         text = text
     )
 }

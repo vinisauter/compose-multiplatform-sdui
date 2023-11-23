@@ -45,15 +45,23 @@
           {
             "component": "state:update",
             "properties": {
-              "id": "greetingText",
+              "state": "platformName",
+              "method": "getPlatformName"
+            }
+          },
+          {
+            "component": "state:update",
+            "properties": {
+              "state": "greetingText",
               "value": "Hello, #{platformName}"
             }
           },
           {
             "component": "state:update",
             "properties": {
-              "id": "showImage",
-              "value": "true"
+              "state": "showImage",
+              "method": "not",
+              "param1": "#{showImage}"
             }
           }
         ]
@@ -62,7 +70,27 @@
         {
           "component": "layout:text",
           "properties": {
-            "text": "Hello #{name}"
+            "text": "Hello, #{name} from #{platformName}"
+          }
+        }
+      ]
+    },
+    {
+      "component": "layout:button",
+      "properties": {
+        "onClick": {
+          "component": "action:method",
+          "properties": {
+            "method": "openUrl",
+            "url": "https://www.google.com.br/"
+          }
+        }
+      },
+      "children": [
+        {
+          "component": "layout:text",
+          "properties": {
+            "text": "Open Google"
           }
         }
       ]

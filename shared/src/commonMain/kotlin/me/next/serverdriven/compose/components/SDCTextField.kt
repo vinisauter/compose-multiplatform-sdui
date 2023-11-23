@@ -8,9 +8,9 @@ import me.next.serverdriven.core.tree.ServerDrivenNode
 @Composable
 fun SDCTextField(node: ServerDrivenNode, state: MutableMap<String, String>) {
     val onChangeUpdateState =
-        node.propertyString("onChangeUpdateState") ?: "TextField_${node.id}"
+        node.property("onChangeUpdateState") ?: "TextField_${node.id}"
     if (state[onChangeUpdateState] == null) {
-        node.propertyString("text")?.run {
+        node.property("text")?.run {
             state[onChangeUpdateState] = this
         }
     }

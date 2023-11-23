@@ -4,14 +4,23 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import me.next.serverdriven.compose.SDCLibrary
+import me.next.serverdriven.compose.SDCLibrary.Companion.registerMethod
 import me.next.serverdriven.compose.provider.SDCJsonFileStateUiProvider
 import me.next.serverdriven.core.library.SDLibrary
 
 @Composable
 fun ServerDrivenApp() {
     var layout by remember { mutableStateOf("layout/template.json") }
-    // TODO: ACTIONS
-    SDCLibrary() {
+
+    SDCLibrary {
+        registerMethod("getPlatformName") { _, _ ->
+            getPlatformName()
+        }
+        registerMethod("openUrl") { node, map ->
+            val url = node.propertyState("url", map)
+            openUrl(url)
+            return@registerMethod ""
+        }
         SDCJsonFileStateUiProvider(res = layout)
     }
 }
@@ -21,18 +30,18 @@ fun SCNavigation() {
     var destination by remember { mutableStateOf("layout/static.json") }
 
     val navigationLib = SDLibrary("navigation")
-        .addComponent("graph") { node, _ ->
+        .addAction("graph") { node, map ->
 
         }
-        .addComponent("node") { node, _  ->
+        .addAction("node") { node, _ ->
 
         }
-        .addComponent("goTo") { node, _  ->
-            val type = node.properties?.get("type")!!.toString()
-            val destiny = node.properties?.get("destiny")!!
+        .addAction("goTo") { node, _ ->
+            val type = node.property("type")!!
+            val destiny = node.property("destiny")!!
             when (type) {
-                "file" -> destination = destiny.toString()
-                "link" -> openUrl(destiny.toString())
+                "file" -> destination = destiny
+                "link" -> openUrl(destiny)
                 "node" -> {}
             }
         }

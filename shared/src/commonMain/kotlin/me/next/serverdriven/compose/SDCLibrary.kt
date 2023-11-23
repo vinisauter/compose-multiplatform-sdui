@@ -1,7 +1,7 @@
 package me.next.serverdriven.compose
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.staticCompositionLocalOf
@@ -14,6 +14,7 @@ import me.next.serverdriven.core.library.ActionHandler
 import me.next.serverdriven.core.library.ComponentHandler
 import me.next.serverdriven.core.library.SDLayout
 import me.next.serverdriven.core.library.SDLibrary
+import me.next.serverdriven.core.method.registerBooleanMethods
 import me.next.serverdriven.core.tree.ServerDrivenNode
 
 val logger = Napier
@@ -27,6 +28,8 @@ fun SDCLibrary(
     )
 
     block.invoke(SDCLibrary.instance.apply {
+        registerBooleanMethods()
+
         for (library in defaultLibraries) {
             addLibrary(library)
         }
@@ -35,6 +38,7 @@ fun SDCLibrary(
         }
     })
 }
+typealias MethodHandler = (ServerDrivenNode, MutableMap<String, String>) -> String
 
 class SDCLibrary private constructor() {
     private val libraries: HashMap<String, SDLibrary> = HashMap()
@@ -48,14 +52,13 @@ class SDCLibrary private constructor() {
     }
 
     fun getAction(
-        nodeAction: String,
-        className: String
+        nodeAction: String
     ): ActionHandler? {
         val split = nodeAction.split(':')
         val libraryNamespace = split[0]
         val componentNamespace = split[1]
         val library = libraries[libraryNamespace]
-        return library?.getAction(componentNamespace, className)
+        return library?.getAction(componentNamespace)
     }
 
     fun getComponent(nodeComponent: String): ComponentHandler? {
@@ -67,12 +70,24 @@ class SDCLibrary private constructor() {
     }
 
     companion object {
+        private val methods: HashMap<String, MethodHandler> = HashMap()
         private val LocalLib = staticCompositionLocalOf {
             SDCLibrary()
         }
         val instance: SDCLibrary
             @Composable
             get() = LocalLib.current
+
+        fun registerMethod(
+            method: String,
+            handler: MethodHandler
+        ) {
+            methods[method] = handler
+        }
+
+        fun loadMethod(method: String): MethodHandler? {
+            return methods[method]
+        }
     }
 
 
@@ -94,16 +109,15 @@ fun loadComponent(
             textAlign = TextAlign.Center,
             modifier = Modifier
                 .background(Color.Red)
-                .fillMaxSize()
+                .wrapContentSize()
         )
     }
 }
 
 @Composable
-inline fun <reified T> loadAction(node: ServerDrivenNode?):
-        ActionHandler {
+fun loadAction(node: ServerDrivenNode?): ActionHandler {
     val nodeComponent = node?.component ?: return { _, _ -> }
-    val action = SDCLibrary.instance.getAction(nodeComponent, T::class.qualifiedName!!)
+    val action = SDCLibrary.instance.getAction(nodeComponent)
     if (action != null) {
         return action
     } else {
@@ -113,10 +127,21 @@ inline fun <reified T> loadAction(node: ServerDrivenNode?):
             textAlign = TextAlign.Center,
             modifier = Modifier
                 .background(Color.Red)
-                .fillMaxSize()
+                .wrapContentSize()
         )
         return { _, _ -> }
     }
 }
 
-
+@Composable
+fun loadActions(nodes: ArrayList<ServerDrivenNode>): ActionHandler {
+    val actions = ArrayList<Pair<ServerDrivenNode, ActionHandler>>()
+    for (node in nodes) {
+        actions.add(Pair(node, loadAction(node)))
+    }
+    return { _, map ->
+        for (action in actions) {
+            action.second.invoke(action.first, map)
+        }
+    }
+}
