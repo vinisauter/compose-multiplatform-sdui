@@ -7,10 +7,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import me.next.serverdriven.compose.SDCLibrary
 import me.next.serverdriven.core.tree.ServerDrivenNode
+import me.next.serverdriven.interfaces.Layout
 
-@Composable
-fun SDCColumn(node: ServerDrivenNode, dataState: MutableMap<String, String>): Unit {
-    val verticalArrangement: Arrangement.Vertical =
+class SDCColumn(node: ServerDrivenNode, state: MutableMap<String, String>) : Layout {
+    private val modifier = Modifier.fromNode(node)
+    private val verticalArrangement: Arrangement.Vertical =
         when (node.property("verticalArrangement")) {
             "Top" -> Arrangement.Top
             "Center" -> Arrangement.Center
@@ -20,22 +21,29 @@ fun SDCColumn(node: ServerDrivenNode, dataState: MutableMap<String, String>): Un
             "SpaceEvenly" -> Arrangement.SpaceEvenly
             else -> Arrangement.Top
         }
-    val horizontalAlignment: Alignment.Horizontal =
+    private val horizontalAlignment: Alignment.Horizontal =
         when (node.property("horizontalAlignment")) {
             "Start" -> Alignment.Start
             "Center" -> Alignment.CenterHorizontally
             "End" -> Alignment.End
             else -> Alignment.Start
         }
-    Column(
-        modifier = Modifier.fromNode(node),
-        verticalArrangement = verticalArrangement,
-        horizontalAlignment = horizontalAlignment
-    ) {
+    private val loadChildren: @Composable () -> Unit? = {
         node.children?.let {
             for (serverDrivenNode in it) {
-                SDCLibrary.loadComponent(node = serverDrivenNode, dataState = dataState)
+                SDCLibrary.loadComponent(node = serverDrivenNode, dataState = state)
             }
+        }
+    }
+
+    @Composable
+    override fun Content() {
+        Column(
+            modifier = modifier,
+            verticalArrangement = verticalArrangement,
+            horizontalAlignment = horizontalAlignment
+        ) {
+            loadChildren.invoke()
         }
     }
 }

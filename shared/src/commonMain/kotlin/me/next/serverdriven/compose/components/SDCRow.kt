@@ -7,10 +7,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import me.next.serverdriven.compose.SDCLibrary
 import me.next.serverdriven.core.tree.ServerDrivenNode
+import me.next.serverdriven.interfaces.Layout
 
-@Composable
-fun SDCRow(node: ServerDrivenNode, dataState: MutableMap<String, String>) {
-    val horizontalArrangement: Arrangement.Horizontal =
+class SDCRow(node: ServerDrivenNode, dataState: MutableMap<String, String>) : Layout {
+    private val modifier = Modifier.fromNode(node)
+    private val horizontalArrangement: Arrangement.Horizontal =
         when (node.property("horizontalArrangement")) {
             "Start" -> Arrangement.Start
             "Center" -> Arrangement.Center
@@ -20,22 +21,29 @@ fun SDCRow(node: ServerDrivenNode, dataState: MutableMap<String, String>) {
             "SpaceEvenly" -> Arrangement.SpaceEvenly
             else -> Arrangement.Start
         }
-    val verticalAlignment: Alignment.Vertical =
+    private val verticalAlignment: Alignment.Vertical =
         when (node.property("verticalAlignment")) {
             "Top" -> Alignment.Top
             "Center" -> Alignment.CenterVertically
             "Bottom" -> Alignment.Bottom
             else -> Alignment.Top
         }
-    Row(
-        modifier = Modifier.fromNode(node),
-        horizontalArrangement = horizontalArrangement,
-        verticalAlignment = verticalAlignment
-    ) {
+    private val loadChildren: @Composable () -> Unit? = {
         node.children?.let {
             for (serverDrivenNode in it) {
                 SDCLibrary.loadComponent(node = serverDrivenNode, dataState = dataState)
             }
+        }
+    }
+
+    @Composable
+    override fun Content() {
+        Row(
+            modifier = modifier,
+            horizontalArrangement = horizontalArrangement,
+            verticalAlignment = verticalAlignment
+        ) {
+            loadChildren.invoke()
         }
     }
 }

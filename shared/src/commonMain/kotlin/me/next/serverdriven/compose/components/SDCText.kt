@@ -5,12 +5,17 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import me.next.serverdriven.core.tree.ServerDrivenNode
+import me.next.serverdriven.interfaces.Layout
 
-@Composable
-fun SDCText(node: ServerDrivenNode, state: MutableMap<String, String>) {
+class SDCText(node: ServerDrivenNode, state: MutableMap<String, String>) : Layout {
+    private val modifier = Modifier.fromNode(node)
     val text by node.propertyState("text", state) { it ?: "" }
-    Text(
-        modifier = Modifier.fromNode(node),
-        text = text
-    )
+
+    @Composable
+    override fun Content() {
+        Text(
+            modifier = modifier,
+            text = text
+        )
+    }
 }

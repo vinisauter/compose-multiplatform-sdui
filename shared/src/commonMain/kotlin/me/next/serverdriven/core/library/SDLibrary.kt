@@ -2,10 +2,10 @@ package me.next.serverdriven.core.library
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Modifier
 import me.next.serverdriven.compose.produceUiState
 import me.next.serverdriven.compose.provider.SDCLoaderLayout
 import me.next.serverdriven.core.tree.ServerDrivenNode
+import me.next.serverdriven.interfaces.Layout
 
 typealias ComponentHandler = @Composable (ServerDrivenNode, MutableMap<String, String>) -> Unit
 
@@ -15,9 +15,18 @@ open class SDLibrary(val namespace: String = "") {
     private val components = HashMap<String, ComponentHandler>()
     private val actions = HashMap<String, ActionHandler>()
 
-    fun addComponent(name: String, component: SDComponent): SDLibrary {
-        components[name] = component.handler
-        return this
+    fun addComponentLayout(
+        name: String,
+        load: suspend (ServerDrivenNode, MutableMap<String, String>) -> Layout
+    ): SDLibrary {
+        return addComponent(name) { node, state ->
+            val uiState by produceUiState {
+                load.invoke(node, state)
+            }
+            SDCLoaderLayout(state = uiState) {
+                it.Content()
+            }
+        }
     }
 
     fun addComponent(name: String, handler: ComponentHandler): SDLibrary {
@@ -44,25 +53,4 @@ open class SDLibrary(val namespace: String = "") {
         components.putAll(other.components)
         return this
     }
-}
-
-interface SDComponent {
-    val handler: ComponentHandler
-}
-
-open class SDComponentLoader<T>(
-    private val load: suspend (ServerDrivenNode, MutableMap<String, String>) -> T,
-    private val loading: @Composable (Modifier) -> Unit = defaultLoading,
-    private val error: @Composable (modifier: Modifier, throwable: Throwable) -> Unit = defaultError,
-    private val into: @Composable (T) -> Unit,
-) : SDComponent {
-    override val handler: ComponentHandler
-        get() = { node, dataState ->
-            val uiState by produceUiState {
-                load.invoke(node, dataState)
-            }
-            SDCLoaderLayout(state = uiState, loading = loading, error = error) {
-                into.invoke(it)
-            }
-        }
 }
