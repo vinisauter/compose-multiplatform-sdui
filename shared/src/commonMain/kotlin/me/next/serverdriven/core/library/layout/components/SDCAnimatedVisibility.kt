@@ -1,12 +1,12 @@
-package me.next.serverdriven.compose.components
+package me.next.serverdriven.core.library.layout.components
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import me.next.serverdriven.compose.SDCLibrary
+import me.next.serverdriven.core.library.interfaces.Layout
 import me.next.serverdriven.core.tree.ServerDrivenNode
-import me.next.serverdriven.interfaces.Layout
 
 
 class SDCAnimatedVisibility(node: ServerDrivenNode, state: MutableMap<String, String>) : Layout {

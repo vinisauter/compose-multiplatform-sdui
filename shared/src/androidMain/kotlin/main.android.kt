@@ -4,7 +4,7 @@ import android.net.Uri
 import androidx.compose.runtime.Composable
 import io.github.aakira.napier.DebugAntilog
 import io.github.aakira.napier.Napier
-import me.next.serverdriven.compose.navigation.LocalNavigator
+import me.next.serverdriven.core.library.navigation.components.LocalNavigator
 import java.util.UUID
 
 object AndroidApp {

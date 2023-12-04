@@ -1,4 +1,4 @@
-package me.next.serverdriven.compose.components
+package me.next.serverdriven.core.library.layout.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.defaultMinSize

@@ -1,4 +1,4 @@
-package me.next.serverdriven.compose.components
+package me.next.serverdriven.core.library.layout.components
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
@@ -6,8 +6,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import me.next.serverdriven.compose.SDCLibrary
+import me.next.serverdriven.core.library.interfaces.Layout
 import me.next.serverdriven.core.tree.ServerDrivenNode
-import me.next.serverdriven.interfaces.Layout
 
 class SDCRow(node: ServerDrivenNode, dataState: MutableMap<String, String>) : Layout {
     private val modifier = Modifier.fromNode(node)

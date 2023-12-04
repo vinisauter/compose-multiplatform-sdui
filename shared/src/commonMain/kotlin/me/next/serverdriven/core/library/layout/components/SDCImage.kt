@@ -1,11 +1,11 @@
-package me.next.serverdriven.compose.components
+package me.next.serverdriven.core.library.layout.components
 
 import androidx.compose.foundation.Image
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import kotlinx.coroutines.runBlocking
+import me.next.serverdriven.core.library.interfaces.Layout
 import me.next.serverdriven.core.tree.ServerDrivenNode
-import me.next.serverdriven.interfaces.Layout
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.resource

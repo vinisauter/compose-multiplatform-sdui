@@ -1,11 +1,16 @@
-package me.next.serverdriven.compose.provider
+package me.next.serverdriven.compose
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import me.next.serverdriven.compose.SDCLibrary
+import androidx.compose.ui.graphics.Color
 import me.next.serverdriven.core.library.SDLibrary
 import me.next.serverdriven.core.tree.ServerDrivenNode
 
@@ -44,16 +49,16 @@ fun SDCStateLayout(
 //        https://medium.com/androiddevelopers/jetpack-compose-when-should-i-use-derivedstateof-63ce7954c11b
 
 //      TODO: remove states log
-//        Column(
-//            Modifier.fillMaxSize(),
-//            verticalArrangement = Arrangement.Bottom
-//        ) {
-//            for (entry in stateMap) {
-//                Text(
-//                    modifier = Modifier.fillMaxWidth().background(color = Color.Yellow),
-//                    text = "key: ${entry.key}, value: ${entry.value}"
-//                )
-//            }
-//        }
+        Column(
+            Modifier.fillMaxSize(),
+            verticalArrangement = Arrangement.Bottom
+        ) {
+            for (entry in stateMap) {
+                Text(
+                    modifier = Modifier.fillMaxWidth().background(color = Color.Yellow),
+                    text = "key: ${entry.key}, value: ${entry.value}"
+                )
+            }
+        }
     }
 }

@@ -1,4 +1,4 @@
-package me.next.serverdriven.compose.navigation
+package me.next.serverdriven.core.library.navigation.components
 
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.slideInHorizontally
@@ -24,13 +24,12 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import me.next.serverdriven.compose.SDCLibrary
+import me.next.serverdriven.compose.SDCLoaderLayout
 import me.next.serverdriven.compose.produceUiState
-import me.next.serverdriven.compose.provider.SDCLoaderLayout
-import me.next.serverdriven.core.library.SDCNavigationScreen
 import me.next.serverdriven.core.tree.IgnoredNode
 import me.next.serverdriven.core.tree.ServerDrivenNode
 
-var LocalNavigator: Navigator? = null
+var LocalNavigator: SDCNavigator? = null
 
 typealias Route = String
 
@@ -38,7 +37,7 @@ val LocalDestinationId: ProvidableCompositionLocal<String> = staticCompositionLo
     generateUUID()
 }
 
-class Navigator(
+class SDCNavigator(
     graphNode: ServerDrivenNode
 ) {
     private lateinit var startNode: Route
@@ -119,18 +118,8 @@ class Navigator(
 }
 
 @Composable
-fun NavigationDestination(
-    content: @Composable () -> Unit
-) {
-    val destinationId: String = rememberSaveable { generateUUID() }
-    CompositionLocalProvider(LocalDestinationId provides destinationId) {
-        content()
-    }
-}
-
-@Composable
 fun NavigationHost(
-    navigator: Navigator
+    navigator: SDCNavigator
 ) {
     val backStack: List<Route> by navigator.backStack.collectAsState()
     val previousBackStackSize: Int by remember { mutableStateOf(backStack.size) }
@@ -158,5 +147,15 @@ fun NavigationHost(
                 it.Content()
             }
         }
+    }
+}
+
+@Composable
+fun NavigationDestination(
+    content: @Composable () -> Unit
+) {
+    val destinationId: String = rememberSaveable { generateUUID() }
+    CompositionLocalProvider(LocalDestinationId provides destinationId) {
+        content()
     }
 }

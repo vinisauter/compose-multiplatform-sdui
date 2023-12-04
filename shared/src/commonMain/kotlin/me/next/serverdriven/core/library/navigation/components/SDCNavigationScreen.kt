@@ -1,9 +1,9 @@
-package me.next.serverdriven.core.library
+package me.next.serverdriven.core.library.navigation.components
 
 import androidx.compose.runtime.Composable
-import me.next.serverdriven.compose.provider.SDCStateLayout
+import me.next.serverdriven.compose.SDCStateLayout
+import me.next.serverdriven.core.library.interfaces.Screen
 import me.next.serverdriven.core.tree.ServerDrivenNode
-import me.next.serverdriven.interfaces.Screen
 
 class SDCNavigationScreen(
     val screenNode: ServerDrivenNode,

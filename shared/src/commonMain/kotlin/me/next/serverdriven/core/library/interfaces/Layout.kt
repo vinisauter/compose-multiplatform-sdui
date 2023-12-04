@@ -1,4 +1,4 @@
-package me.next.serverdriven.interfaces
+package me.next.serverdriven.core.library.interfaces
 
 import androidx.compose.runtime.Composable
 import generateUUID

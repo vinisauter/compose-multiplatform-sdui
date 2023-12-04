@@ -1,13 +1,14 @@
-package me.next.serverdriven.core.library
+package me.next.serverdriven.core.library.layout
 
-import me.next.serverdriven.compose.components.SDCAnimatedVisibility
-import me.next.serverdriven.compose.components.SDCButton
-import me.next.serverdriven.compose.components.SDCButtonText
-import me.next.serverdriven.compose.components.SDCColumn
-import me.next.serverdriven.compose.components.SDCImage
-import me.next.serverdriven.compose.components.SDCRow
-import me.next.serverdriven.compose.components.SDCText
-import me.next.serverdriven.compose.components.SDCTextField
+import me.next.serverdriven.core.library.SDLibrary
+import me.next.serverdriven.core.library.layout.components.SDCAnimatedVisibility
+import me.next.serverdriven.core.library.layout.components.SDCButton
+import me.next.serverdriven.core.library.layout.components.SDCButtonText
+import me.next.serverdriven.core.library.layout.components.SDCColumn
+import me.next.serverdriven.core.library.layout.components.SDCImage
+import me.next.serverdriven.core.library.layout.components.SDCRow
+import me.next.serverdriven.core.library.layout.components.SDCText
+import me.next.serverdriven.core.library.layout.components.SDCTextField
 
 class SDLayout : SDLibrary("layout") {
     init {

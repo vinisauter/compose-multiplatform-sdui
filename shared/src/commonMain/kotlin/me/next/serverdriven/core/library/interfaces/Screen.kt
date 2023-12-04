@@ -1,4 +1,4 @@
-package me.next.serverdriven.interfaces
+package me.next.serverdriven.core.library.interfaces
 
 import androidx.compose.runtime.Composable
 import generateUUID
@@ -14,5 +14,5 @@ interface Screen {
 
 typealias ScreenKey = String
 
-public val Screen.uniqueScreenKey: ScreenKey
+val Screen.uniqueScreenKey: ScreenKey
     get() = "Screen#${generateUUID()}"

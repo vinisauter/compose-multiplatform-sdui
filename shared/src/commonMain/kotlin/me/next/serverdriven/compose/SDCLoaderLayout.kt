@@ -1,8 +1,7 @@
-package me.next.serverdriven.compose.provider
+package me.next.serverdriven.compose
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import me.next.serverdriven.compose.UIResult
 import me.next.serverdriven.core.library.defaultError
 import me.next.serverdriven.core.library.defaultLoading
 

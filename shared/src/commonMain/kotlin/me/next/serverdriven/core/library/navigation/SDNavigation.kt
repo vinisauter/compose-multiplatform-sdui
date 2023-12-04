@@ -1,13 +1,14 @@
-package me.next.serverdriven.core.library
+package me.next.serverdriven.core.library.navigation
 
-import me.next.serverdriven.compose.navigation.LocalNavigator
-import me.next.serverdriven.compose.navigation.NavigationHost
-import me.next.serverdriven.compose.navigation.Navigator
+import me.next.serverdriven.core.library.SDLibrary
+import me.next.serverdriven.core.library.navigation.components.LocalNavigator
+import me.next.serverdriven.core.library.navigation.components.NavigationHost
+import me.next.serverdriven.core.library.navigation.components.SDCNavigator
 
 class SDNavigation : SDLibrary("navigation") {
     init {
         addComponent("graph") { graphNode, _ ->
-            val navigator = Navigator(graphNode)
+            val navigator = SDCNavigator(graphNode)
             NavigationHost(navigator)
         }
         addAction("goBack") { _, _ ->

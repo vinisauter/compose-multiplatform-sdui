@@ -14,9 +14,9 @@ import me.next.serverdriven.compose.provider.JsonFileNodeTypeProvider
 import me.next.serverdriven.compose.provider.JsonNodeTypeProvider
 import me.next.serverdriven.core.library.ActionHandler
 import me.next.serverdriven.core.library.ComponentHandler
-import me.next.serverdriven.core.library.SDLayout
 import me.next.serverdriven.core.library.SDLibrary
-import me.next.serverdriven.core.library.SDNavigation
+import me.next.serverdriven.core.library.layout.SDLayout
+import me.next.serverdriven.core.library.navigation.SDNavigation
 import me.next.serverdriven.core.method.registerBooleanMethods
 import me.next.serverdriven.core.tree.IgnoredNode
 import me.next.serverdriven.core.tree.ServerDrivenNode

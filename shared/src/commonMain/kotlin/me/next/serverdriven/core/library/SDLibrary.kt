@@ -2,13 +2,12 @@ package me.next.serverdriven.core.library
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import me.next.serverdriven.compose.SDCLoaderLayout
 import me.next.serverdriven.compose.produceUiState
-import me.next.serverdriven.compose.provider.SDCLoaderLayout
+import me.next.serverdriven.core.library.interfaces.Layout
 import me.next.serverdriven.core.tree.ServerDrivenNode
-import me.next.serverdriven.interfaces.Layout
 
 typealias ComponentHandler = @Composable (ServerDrivenNode, MutableMap<String, String>) -> Unit
-
 typealias ActionHandler = (ServerDrivenNode, MutableMap<String, String>) -> Unit
 
 open class SDLibrary(val namespace: String = "") {
