@@ -4,6 +4,8 @@ import android.net.Uri
 import androidx.compose.runtime.Composable
 import io.github.aakira.napier.DebugAntilog
 import io.github.aakira.napier.Napier
+import me.next.serverdriven.compose.navigation.LocalNavigator
+import java.util.UUID
 
 object AndroidApp {
     lateinit var INSTANCE: Application
@@ -24,5 +26,12 @@ internal actual fun openUrl(url: String?) {
     AndroidApp.INSTANCE.startActivity(intent)
 }
 
+actual fun generateUUID() = UUID.randomUUID().toString()
+
 @Composable
-fun MainView() = App()
+fun MainView() {
+    BackPressHandler {
+        LocalNavigator?.navigateBack()
+    }
+    App()
+}

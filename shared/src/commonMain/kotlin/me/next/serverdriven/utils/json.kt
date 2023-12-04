@@ -24,13 +24,7 @@ fun JsonObject.toNode(): ServerDrivenNode {
             get() = json["component"]?.jsonPrimitive?.content!!
         override val properties: MutableMap<String, String?>?
             get() = json["properties"]?.let { properties ->
-                mapValuesToMutableMap(properties.jsonObject) {
-                    when (it.value) {
-                        is JsonArray -> it.value.jsonArray.toString()
-                        is JsonObject -> it.value.jsonObject.toString()
-                        else -> it.value.jsonPrimitive.content
-                    }
-                }
+                transformJsonObjectToMapOfString(properties.jsonObject)
             }
         override val children: MutableList<ServerDrivenNode>?
             get() = json["children"]?.jsonArray?.let { jsonArray ->
@@ -38,6 +32,16 @@ fun JsonObject.toNode(): ServerDrivenNode {
                     it.jsonObject.toNode()
                 }
             }
+    }
+}
+
+fun transformJsonObjectToMapOfString(json: JsonObject): MutableMap<String, String?> {
+    return mapValuesToMutableMap(json) {
+        when (it.value) {
+            is JsonArray -> it.value.jsonArray.toString()
+            is JsonObject -> it.value.jsonObject.toString()
+            else -> it.value.jsonPrimitive.content
+        }
     }
 }
 

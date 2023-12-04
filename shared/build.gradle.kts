@@ -37,11 +37,11 @@ kotlin {
                 implementation(libs.ktor.core)
 
                 implementation(libs.libres)
-                implementation(libs.voyager.navigator)
                 implementation(libs.composeImageLoader)
                 implementation(libs.napier)
                 implementation(libs.multiplatformSettings)
                 implementation(libs.kstore)
+                implementation(libs.voyager.navigator)
 //                implementation(libs.koin.core)
 //                implementation(libs.apollo.runtime)
 //                implementation(libs.moko.mvvm)
@@ -52,7 +52,7 @@ kotlin {
             dependencies {
                 api(libs.androidx.activityCompose)
                 api(libs.androidx.appcompat)
-                api("androidx.core:core-ktx:1.12.0")
+                api(libs.androidx.core.ktx)
             }
         }
         val iosX64Main by getting

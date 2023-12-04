@@ -1,23 +1,89 @@
 {
   "id": "login",
   "component": "layout:column",
-  "state": [
-
-  ],
   "properties": {
-    "modifier": {
-      "fillMaxWidth": ""
-    },
-    "horizontalAlignment": "CenterHorizontally"
+    "fillMaxWidth": "1.0",
+    "horizontalAlignment": "CenterHorizontally",
+    "fillMaxHeight": "1"
   },
-  "childrem": [
+  "children": [
     {
-      "id": "login",
-      "component": "layout:column",
+      "component": "layout:imageFile",
       "properties": {
-        "fillMaxWidth": "1.0",
-        "horizontalAlignment": "CenterHorizontally"
+        "painterResource": "compose-multiplatform.xml",
+        "contentDescription": null
       }
+    },
+    {
+      "id": "tfNickname",
+      "component": "layout:textField",
+      "properties": {
+        "onChangeUpdateState": "nickname"
+      },
+      "children": [
+        {
+          "component": "layout:text",
+          "properties": {
+            "text": "Nickname"
+          }
+        }
+      ]
+    },
+    {
+      "id": "tfPassword",
+      "component": "layout:textField",
+      "properties": {
+        "onChangeUpdateState": "password"
+      },
+      "children": [
+        {
+          "component": "layout:text",
+          "properties": {
+            "text": "Password"
+          }
+        }
+      ]
+    },
+    {
+      "component": "layout:button",
+      "properties": {
+        "onClick": [
+          {
+            "component": "navigation:goTo",
+            "properties": {
+              "destiny": "menu"
+            }
+          }
+        ]
+      },
+      "children": [
+        {
+          "component": "layout:text",
+          "properties": {
+            "text": "Login"
+          }
+        }
+      ]
+    },
+    {
+      "id": "btGoogle",
+      "component": "layout:button",
+      "properties": {
+        "onClick": {
+          "component": "navigation:goTo",
+          "properties": {
+            "destiny": "google"
+          }
+        }
+      },
+      "children": [
+        {
+          "component": "layout:text",
+          "properties": {
+            "text": "Open Google"
+          }
+        }
+      ]
     }
   ]
 }

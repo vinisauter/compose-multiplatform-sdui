@@ -4,7 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import me.next.serverdriven.compose.produceUiState
-import me.next.serverdriven.compose.provider.SDCStateUiProvider
+import me.next.serverdriven.compose.provider.SDCLoaderLayout
 import me.next.serverdriven.core.tree.ServerDrivenNode
 
 typealias ComponentHandler = @Composable (ServerDrivenNode, MutableMap<String, String>) -> Unit
@@ -61,7 +61,7 @@ open class SDComponentLoader<T>(
             val uiState by produceUiState {
                 load.invoke(node, dataState)
             }
-            SDCStateUiProvider(state = uiState, loading = loading, error = error) {
+            SDCLoaderLayout(state = uiState, loading = loading, error = error) {
                 into.invoke(it)
             }
         }

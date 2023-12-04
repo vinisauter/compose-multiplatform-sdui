@@ -2,7 +2,7 @@ package me.next.serverdriven.compose.components
 
 import androidx.compose.material.TextField
 import androidx.compose.runtime.Composable
-import me.next.serverdriven.compose.loadComponent
+import me.next.serverdriven.compose.SDCLibrary
 import me.next.serverdriven.core.tree.ServerDrivenNode
 
 @Composable
@@ -20,7 +20,7 @@ fun SDCTextField(node: ServerDrivenNode, state: MutableMap<String, String>) {
         label = {
             node.children?.let {
                 for (serverDrivenNode in it) {
-                    loadComponent(node = serverDrivenNode, dataState = state)
+                    SDCLibrary.loadComponent(node = serverDrivenNode, dataState = state)
                 }
             }
         }

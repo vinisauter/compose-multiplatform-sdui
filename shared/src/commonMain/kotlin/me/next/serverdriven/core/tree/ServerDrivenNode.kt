@@ -5,9 +5,9 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.snapshots.StateFactoryMarker
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
-import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
 import me.next.serverdriven.utils.toNode
+import me.next.serverdriven.utils.transformJsonObjectToMapOfString
 
 interface ServerDrivenNode {
     val id: String
@@ -45,12 +45,14 @@ interface ServerDrivenNode {
         return text
     }
 
-    fun propertyJson(key: String): JsonElement? {
+    fun propertyJsonObject(key: String): JsonObject? {
         val json = property(key) ?: return null
-        return if (json.startsWith("["))
-            Json.decodeFromString<JsonArray>(json)
-        else
-            Json.decodeFromString<JsonObject>(json)
+        return Json.decodeFromString<JsonObject>(json)
+    }
+
+    fun propertyJsonArray(key: String): JsonArray? {
+        val json = property(key) ?: return null
+        return Json.decodeFromString<JsonArray>(json)
     }
 
     fun propertyNode(key: String): ServerDrivenNode? {
@@ -69,5 +71,10 @@ interface ServerDrivenNode {
             nodes.add(Json.decodeFromString<JsonObject>(json).toNode())
         }
         return nodes
+    }
+
+    fun propertyMap(key: String): MutableMap<String, String?> {
+        val json = propertyJsonObject(key) ?: return mutableMapOf()
+        return transformJsonObjectToMapOfString(json)
     }
 }

@@ -2,49 +2,37 @@
   "id": "template",
   "component": "navigation:graph",
   "properties": {
-    "startDestination": "static"
+    "startDestination": "login",
+    "states": {
+      "name": "João da Silva",
+      "nickname": "silva_apenas"
+    }
   },
   "children": [
     {
       "component": "navigation:node",
       "properties": {
-        "name": "static",
+        "name": "login",
         "type": "file",
-        "layout": "layout/static.json",
-        "link": "../static"
+        "destiny": "layout/login.json",
+        "link": "../login"
       }
     },
     {
       "component": "navigation:node",
       "properties": {
-        "name": "hello",
+        "name": "google",
+        "type": "link",
+        "destiny": "https://www.google.com.br/"
+      }
+    },
+    {
+      "component": "navigation:node",
+      "properties": {
+        "name": "menu",
         "type": "file",
-        "layout": "layout/hello-world-static.json"
-      },
-      "children": [
-        {
-          "component": "navigation:goTo",
-          "properties": {
-            "type": "node",
-            "destiny": "static"
-          }
-        },
-        {
-          "component": "navigation:goTo",
-          "properties": {
-            "type": "file",
-            "destiny": "layout/static.json"
-          }
-        },
-        {
-          "component": "navigation:goTo",
-          "properties": {
-            "name": "google",
-            "type": "link",
-            "destiny": "https://www.google.com/"
-          }
-        }
-      ]
+        "destiny": "layout/menu.json"
+      }
     }
   ]
 }

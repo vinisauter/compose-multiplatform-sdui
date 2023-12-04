@@ -6,16 +6,15 @@ import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import me.next.serverdriven.compose.SDCLibrary
-import me.next.serverdriven.compose.loadComponent
 import me.next.serverdriven.core.library.SDLibrary
 import me.next.serverdriven.core.tree.ServerDrivenNode
 
 @Composable
 fun SDCStateLayout(
     modifier: Modifier = Modifier,
-    node: ServerDrivenNode
+    node: ServerDrivenNode,
+    stateMap: MutableMap<String, String> = remember { mutableStateMapOf() }
 ) {
-    val stateMap = remember { mutableStateMapOf<String, String>() }
     SDCLibrary.instance.let { lib ->
         lib.addLibrary(SDLibrary("state")
             .addAction("update") { node, state ->
@@ -40,10 +39,11 @@ fun SDCStateLayout(
         )
     }
     Column(modifier) {
-        loadComponent(node = node, dataState = stateMap)
-//      TODO: remove states log
+        SDCLibrary.loadComponent(node = node, dataState = stateMap)
 //      TODO: verify derivedStateOf for node.properties
 //        https://medium.com/androiddevelopers/jetpack-compose-when-should-i-use-derivedstateof-63ce7954c11b
+
+//      TODO: remove states log
 //        Column(
 //            Modifier.fillMaxSize(),
 //            verticalArrangement = Arrangement.Bottom

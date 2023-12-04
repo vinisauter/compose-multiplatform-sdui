@@ -5,7 +5,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import me.next.serverdriven.compose.loadComponent
+import me.next.serverdriven.compose.SDCLibrary
 import me.next.serverdriven.core.tree.ServerDrivenNode
 
 @Composable
@@ -34,7 +34,7 @@ fun SDCRow(node: ServerDrivenNode, dataState: MutableMap<String, String>) {
     ) {
         node.children?.let {
             for (serverDrivenNode in it) {
-                loadComponent(node = serverDrivenNode, dataState = dataState)
+                SDCLibrary.loadComponent(node = serverDrivenNode, dataState = dataState)
             }
         }
     }

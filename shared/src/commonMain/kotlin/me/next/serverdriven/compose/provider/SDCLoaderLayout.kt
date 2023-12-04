@@ -7,7 +7,7 @@ import me.next.serverdriven.core.library.defaultError
 import me.next.serverdriven.core.library.defaultLoading
 
 @Composable
-fun <T> SDCStateUiProvider(
+fun <T> SDCLoaderLayout(
     modifier: Modifier = Modifier,
     state: UIResult<T>,
     loading: @Composable (Modifier) -> Unit = defaultLoading,

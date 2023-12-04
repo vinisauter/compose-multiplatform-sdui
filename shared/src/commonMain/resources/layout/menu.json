@@ -1,0 +1,29 @@
+{
+  "id": "template",
+  "component": "layout:column",
+  "properties": {
+    "fillMaxWidth": "1.0",
+    "horizontalAlignment": "Center"
+  },
+  "children": [
+    {
+      "component": "layout:text",
+      "properties": {
+        "text": "Hello, World!"
+      }
+    },
+    {
+      "component": "layout:imageFile",
+      "properties": {
+        "painterResource": "compose-multiplatform.xml",
+        "contentDescription": "LOGO"
+      }
+    },
+    {
+      "component": "layout:text",
+      "properties": {
+        "text": "STATIC"
+      }
+    }
+  ]
+}
