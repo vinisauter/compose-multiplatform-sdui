@@ -2,22 +2,26 @@
   "id": "login",
   "component": "layout:column",
   "properties": {
-    "fillMaxWidth": "1.0",
-    "horizontalAlignment": "CenterHorizontally",
-    "fillMaxHeight": "1"
+    "horizontalAlignment": "Center",
+    "verticalScroll": ""
   },
   "children": [
     {
       "component": "layout:imageFile",
       "properties": {
         "painterResource": "compose-multiplatform.xml",
-        "contentDescription": null
+        "contentDescription": null,
+        "width": "200",
+        "height": "200"
       }
     },
     {
       "id": "tfNickname",
       "component": "layout:textField",
       "properties": {
+        "fillMaxWidth": "1",
+        "paddingTop": "10",
+        "paddingHorizontal": "10",
         "onChangeUpdateState": "nickname"
       },
       "children": [
@@ -33,6 +37,9 @@
       "id": "tfPassword",
       "component": "layout:textField",
       "properties": {
+        "fillMaxWidth": "1",
+        "paddingTop": "10",
+        "paddingHorizontal": "10",
         "onChangeUpdateState": "password"
       },
       "children": [
@@ -47,6 +54,8 @@
     {
       "component": "layout:button",
       "properties": {
+        "paddingTop": "10",
+        "paddingHorizontal": "10",
         "onClick": [
           {
             "component": "navigation:goTo",
@@ -69,6 +78,8 @@
       "id": "btGoogle",
       "component": "layout:button",
       "properties": {
+        "paddingTop": "10",
+        "paddingHorizontal": "10",
         "onClick": {
           "component": "navigation:goTo",
           "properties": {
@@ -84,6 +95,13 @@
           }
         }
       ]
+    },
+    {
+      "component": "layout:imageFile",
+      "properties": {
+        "painterResource": "compose-multiplatform.xml",
+        "contentDescription": null
+      }
     }
   ]
 }

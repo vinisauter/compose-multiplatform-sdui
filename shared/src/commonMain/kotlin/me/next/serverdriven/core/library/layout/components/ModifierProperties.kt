@@ -11,34 +11,21 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.composed
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import me.next.serverdriven.core.tree.ServerDrivenNode
 
-fun Modifier.conditional(condition: Boolean?, modifier: Modifier.() -> Modifier): Modifier {
-    return if (condition == true) {
-        then(modifier(Modifier))
-    } else {
-        this
-    }
-}
-
 fun Modifier.fromNode(
     node: ServerDrivenNode,
     state: MutableMap<String, String> = mutableMapOf()
-): Modifier = ModifierProperties(node, this, state).get()
-
-fun Modifier.fromNodeProperties(
-    node: ServerDrivenNode,
-    state: MutableMap<String, String> = mutableMapOf()
-): ModifierProperties = ModifierProperties(node, this, state)
+): Modifier = ModifierProperties(node, this, state).modifier
 
 class ModifierProperties(
     node: ServerDrivenNode,
-    private var modifier: Modifier = Modifier,
+    modifier: Modifier = Modifier,
     state: MutableMap<String, String> = mutableMapOf()
 ) {
     private val width = node.propertyState("width", state)?.dp
@@ -58,25 +45,29 @@ class ModifierProperties(
     private val backgroundColor = node.property("backgroundColor")?.let { Color(it.toLong()) }
     private val verticalScroll = node.property("verticalScroll")?.let { true }
     private val horizontalScroll = node.property("horizontalScroll")?.let { true }
-
-    init {
-        width?.let { modifier = modifier.width(it) }
-        height?.let { modifier = modifier.height(it) }
-        if (minWidth != null || minHeight != null) {
+    val modifier = modifier
+        .ifNotNullThen(width) {
+            width(it)
+        }.ifNotNullThen(height) {
+            height(it)
+        }.conditional(minWidth != null || minHeight != null) {
             val width = minWidth ?: Dp.Unspecified
             val height = minHeight ?: Dp.Unspecified
-            modifier = modifier.defaultMinSize(minWidth = width, minHeight = height)
-        }
-        fillMaxSize?.let { modifier = modifier.fillMaxSize(it) }
-        fillMaxWidth?.let { modifier = modifier.fillMaxWidth(it) }
-        fillMaxHeight?.let { modifier = modifier.fillMaxHeight(it) }
-        if (paddingAll != null ||
-            paddingHorizontal != null ||
-            paddingVertical != null ||
-            paddingStart != null ||
-            paddingTop != null ||
-            paddingEnd != null ||
-            paddingBottom != null
+            defaultMinSize(minWidth = width, minHeight = height)
+        }.ifNotNullThen(fillMaxSize) {
+            fillMaxSize(it)
+        }.ifNotNullThen(fillMaxWidth) {
+            fillMaxWidth(it)
+        }.ifNotNullThen(fillMaxHeight) {
+            fillMaxHeight(it)
+        }.conditional(
+            paddingAll != null ||
+                    paddingHorizontal != null ||
+                    paddingVertical != null ||
+                    paddingStart != null ||
+                    paddingTop != null ||
+                    paddingEnd != null ||
+                    paddingBottom != null
         ) {
             val all = paddingAll ?: 0.dp
             val horizontal = paddingHorizontal ?: all
@@ -85,35 +76,25 @@ class ModifierProperties(
             val top = paddingTop ?: vertical
             val end = paddingEnd ?: horizontal
             val bottom = paddingBottom ?: vertical
-            modifier = modifier.padding(
+            padding(
                 start = start,
                 top = top,
                 end = end,
                 bottom = bottom
             )
-        }
-        backgroundColor?.let { modifier.background(color = it) }
-    }
-
-    fun get(): Modifier {
-        return modifier.conditional(width != null) {
-            width(width!!)
-        }.conditional(height != null) {
-            height(height!!)
-        }
-    }
-
-    @Composable
-    fun getComposable(): Modifier {
-        val vScroll = rememberScrollState()
-        val hScroll = rememberScrollState()
-        return get()
-            .conditional(verticalScroll) {
+        }.ifNotNullThen(backgroundColor) {
+            background(color = it)
+        }.conditional(verticalScroll) {
+            composed {
+                val vScroll = rememberScrollState()
                 verticalScroll(vScroll)
-            }.conditional(horizontalScroll) {
+            }
+        }.conditional(horizontalScroll) {
+            composed {
+                val hScroll = rememberScrollState()
                 horizontalScroll(hScroll)
             }
-    }
+        }
 
     // ------------ Modifier Utils ------------
     private fun String.tryFloat(default: Float): Float = try {
@@ -124,4 +105,20 @@ class ModifierProperties(
 
     private val String.dp: Dp
         get() = this.toFloat().dp
+}
+
+fun Modifier.conditional(condition: Boolean?, modifier: Modifier.() -> Modifier): Modifier {
+    return if (condition == true) {
+        then(modifier(Modifier))
+    } else {
+        this
+    }
+}
+
+fun <T> Modifier.ifNotNullThen(value: T?, modifier: Modifier.(T) -> Modifier): Modifier {
+    return if (value != null) {
+        then(modifier.invoke(Modifier, value))
+    } else {
+        this
+    }
 }

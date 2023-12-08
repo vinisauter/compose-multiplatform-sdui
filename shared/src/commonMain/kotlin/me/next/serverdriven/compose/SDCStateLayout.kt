@@ -1,10 +1,9 @@
 package me.next.serverdriven.compose
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateMapOf
@@ -16,8 +15,8 @@ import me.next.serverdriven.core.tree.ServerDrivenNode
 
 @Composable
 fun SDCStateLayout(
-    modifier: Modifier = Modifier,
     node: ServerDrivenNode,
+    modifier: Modifier = Modifier,
     stateMap: MutableMap<String, String> = remember { mutableStateMapOf() }
 ) {
     SDCLibrary.instance.let { lib ->
@@ -43,22 +42,23 @@ fun SDCStateLayout(
             }
         )
     }
-    Column(modifier) {
-        SDCLibrary.loadComponent(node = node, dataState = stateMap)
-//      TODO: verify derivedStateOf for node.properties
-//        https://medium.com/androiddevelopers/jetpack-compose-when-should-i-use-derivedstateof-63ce7954c11b
-
+    Box(Modifier.fillMaxSize()) {
 //      TODO: remove states log
         Column(
-            Modifier.fillMaxSize(),
-            verticalArrangement = Arrangement.Bottom
+            modifier = Modifier.background(color = Color.Yellow)
         ) {
             for (entry in stateMap) {
                 Text(
-                    modifier = Modifier.fillMaxWidth().background(color = Color.Yellow),
+                    modifier = Modifier,
                     text = "key: ${entry.key}, value: ${entry.value}"
                 )
             }
+        }
+        Column(modifier = modifier) {
+//      TODO: verify derivedStateOf for node.properties
+//        https://medium.com/androiddevelopers/jetpack-compose-when-should-i-use-derivedstateof-63ce7954c11b
+
+            SDCLibrary.loadComponent(node = node, dataState = stateMap)
         }
     }
 }

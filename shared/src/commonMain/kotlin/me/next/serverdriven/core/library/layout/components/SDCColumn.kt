@@ -13,20 +13,22 @@ class SDCColumn(node: ServerDrivenNode, state: MutableMap<String, String>) : Lay
     private val modifier = Modifier.fromNode(node)
     private val verticalArrangement: Arrangement.Vertical =
         when (node.property("verticalArrangement")) {
+            null -> Arrangement.Top
             "Top" -> Arrangement.Top
             "Center" -> Arrangement.Center
             "Bottom" -> Arrangement.Bottom
             "SpaceAround" -> Arrangement.SpaceAround
             "SpaceBetween" -> Arrangement.SpaceBetween
             "SpaceEvenly" -> Arrangement.SpaceEvenly
-            else -> Arrangement.Top
+            else -> error("Unknown value for verticalArrangement ${node.property("verticalArrangement")}")
         }
     private val horizontalAlignment: Alignment.Horizontal =
         when (node.property("horizontalAlignment")) {
+            null -> Alignment.Start
             "Start" -> Alignment.Start
             "Center" -> Alignment.CenterHorizontally
             "End" -> Alignment.End
-            else -> Alignment.Start
+            else -> error("Unknown value for horizontalAlignment ${node.property("horizontalAlignment")}")
         }
     private val loadChildren: @Composable () -> Unit? = {
         node.children?.let {
