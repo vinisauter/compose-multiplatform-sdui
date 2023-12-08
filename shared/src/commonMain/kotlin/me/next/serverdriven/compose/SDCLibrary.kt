@@ -24,14 +24,19 @@ import openUrl
 
 @Composable
 fun SDCLibrary(
-    vararg libraries: SDLibrary, block: @Composable (SDCLibrary) -> Unit
+    vararg libraries: SDLibrary,
+    debug: Boolean = false,
+    block: @Composable (SDCLibrary) -> Unit
 ) {
+    show_states = debug
     block.invoke(SDCLibrary.instance.apply {
         for (library in libraries) {
             addLibrary(library)
         }
     })
 }
+
+var show_states: Boolean = false
 val logger = Napier
 typealias MethodHandler = (ServerDrivenNode, MutableMap<String, String>) -> String
 typealias NodeProvider = (String) -> ServerDrivenNode
@@ -99,7 +104,7 @@ class SDCLibrary private constructor() {
         ) {
             if (node is IgnoredNode) return
             val nodeComponent = node.component
-            val component = SDCLibrary.instance.getComponent(nodeComponent)
+            val component = instance.getComponent(nodeComponent)
             if (component != null) {
                 component.invoke(node, dataState)
             } else {
@@ -117,7 +122,7 @@ class SDCLibrary private constructor() {
         @Composable
         fun loadAction(node: ServerDrivenNode?): ActionHandler {
             val nodeComponent = node?.component ?: return { _, _ -> }
-            val action = SDCLibrary.instance.getAction(nodeComponent)
+            val action = instance.getAction(nodeComponent)
             if (action != null) {
                 return action
             } else {

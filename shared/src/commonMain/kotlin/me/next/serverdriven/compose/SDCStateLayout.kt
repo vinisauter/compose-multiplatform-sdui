@@ -1,7 +1,6 @@
 package me.next.serverdriven.compose
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.Text
@@ -42,16 +41,17 @@ fun SDCStateLayout(
             }
         )
     }
-    Box(Modifier.fillMaxSize()) {
-//      TODO: remove states log
-        Column(
-            modifier = Modifier.background(color = Color.Yellow)
-        ) {
-            for (entry in stateMap) {
-                Text(
-                    modifier = Modifier,
-                    text = "key: ${entry.key}, value: ${entry.value}"
-                )
+    Column(Modifier.fillMaxSize()) {
+        if (show_states) {
+            Column(
+                modifier = Modifier.background(color = Color.Yellow)
+            ) {
+                for (entry in stateMap) {
+                    Text(
+                        modifier = Modifier,
+                        text = "key: ${entry.key}, value: ${entry.value}"
+                    )
+                }
             }
         }
         Column(modifier = modifier) {

@@ -1,6 +1,6 @@
 package me.next.serverdriven.utils
 
-import cafe.adriel.voyager.core.concurrent.AtomicInt32
+import generateUUID
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
@@ -14,12 +14,11 @@ import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.longOrNull
 import me.next.serverdriven.core.tree.ServerDrivenNode
 
-var atomicLong = AtomicInt32(0)
 fun JsonObject.toNode(): ServerDrivenNode {
     val json = this
     return object : ServerDrivenNode {
         override val id: String
-            get() = json["id"]?.jsonPrimitive?.content ?: "${atomicLong.getAndIncrement()}"
+            get() = json["id"]?.jsonPrimitive?.content ?: "$component:${generateUUID()}"
         override val component: String
             get() = json["component"]?.jsonPrimitive?.content!!
         override val properties: MutableMap<String, String?>?

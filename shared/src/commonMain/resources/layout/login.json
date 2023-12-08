@@ -21,16 +21,16 @@
         "fillMaxWidth": "1",
         "paddingTop": "10",
         "paddingHorizontal": "10",
-        "onChangeUpdateState": "nickname"
-      },
-      "children": [
-        {
-          "component": "layout:text",
-          "properties": {
-            "text": "Nickname"
+        "onChangeUpdateState": "nickname",
+        "label": [
+          {
+            "component": "layout:text",
+            "properties": {
+              "text": "Nickname"
+            }
           }
-        }
-      ]
+        ]
+      }
     },
     {
       "id": "tfPassword",
@@ -39,16 +39,17 @@
         "fillMaxWidth": "1",
         "paddingTop": "10",
         "paddingHorizontal": "10",
-        "onChangeUpdateState": "password"
-      },
-      "children": [
-        {
-          "component": "layout:text",
-          "properties": {
-            "text": "Password"
+        "keyboardType": "NumberPassword",
+        "onChangeUpdateState": "password",
+        "label": [
+          {
+            "component": "layout:text",
+            "properties": {
+              "text": "Password"
+            }
           }
-        }
-      ]
+        ]
+      }
     },
     {
       "component": "layout:row",

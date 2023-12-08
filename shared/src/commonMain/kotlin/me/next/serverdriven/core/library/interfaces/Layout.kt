@@ -13,5 +13,5 @@ interface Layout {
 
 typealias LayoutKey = String
 
-public val Layout.uniqueLayoutKey: LayoutKey
+val Layout.uniqueLayoutKey: LayoutKey
     get() = "Layout#${generateUUID()}"

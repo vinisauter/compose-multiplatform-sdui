@@ -7,7 +7,7 @@ import me.next.serverdriven.compose.SDCLibrary.Companion.registerMethod
 
 @Composable
 fun ServerDrivenApp() {
-    SDCLibrary {
+    SDCLibrary(debug = true) {
         registerMethod("getPlatformName") { _, _ -> getPlatformName() }
         registerMethod("openUrl") { node, map ->
             val url = node.propertyState("url", map)
@@ -18,6 +18,6 @@ fun ServerDrivenApp() {
 
     val graph = "navigation/app-navigation.json"
     val stateMap: MutableMap<String, String> = remember { mutableStateMapOf() }
-    val node = loadNodeTypeProvider("file").invoke(graph)!!
+    val node = loadNodeTypeProvider("file").invoke(graph)
     SDCLibrary.loadComponent(node, stateMap)
 }
