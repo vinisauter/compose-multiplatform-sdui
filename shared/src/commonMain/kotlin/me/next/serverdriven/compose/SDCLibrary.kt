@@ -24,14 +24,19 @@ import openUrl
 
 @Composable
 fun SDCLibrary(
-    vararg libraries: SDLibrary, block: @Composable (SDCLibrary) -> Unit
+    vararg libraries: SDLibrary,
+    debug: Boolean = false,
+    block: @Composable (SDCLibrary) -> Unit
 ) {
+    DEBUG = debug
     block.invoke(SDCLibrary.instance.apply {
         for (library in libraries) {
             addLibrary(library)
         }
     })
 }
+
+var DEBUG: Boolean = false
 val logger = Napier
 typealias MethodHandler = (ServerDrivenNode, MutableMap<String, String>) -> String
 typealias NodeProvider = (String) -> ServerDrivenNode

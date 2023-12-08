@@ -42,7 +42,9 @@ kotlin {
                 implementation(libs.multiplatformSettings)
                 implementation(libs.kstore)
                 implementation(libs.voyager.navigator)
-                implementation(libs.composeIcons.featherIcons)
+                implementation(libs.composeIcons.feather)
+                implementation(libs.composeIcons.fontAwesome)
+
 //                implementation(libs.koin.core)
 //                implementation(libs.apollo.runtime)
 //                implementation(libs.moko.mvvm)

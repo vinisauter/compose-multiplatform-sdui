@@ -27,16 +27,16 @@
       "component": "layout:textField",
       "properties": {
         "text": "Ana",
-        "onChangeUpdateState": "name"
-      },
-      "children": [
-        {
-          "component": "layout:text",
-          "properties": {
-            "text": "Name"
+        "onChangeUpdateState": "name",
+        "label": [
+          {
+            "component": "layout:text",
+            "properties": {
+              "text": "Name"
+            }
           }
-        }
-      ]
+        ]
+      }
     },
     {
       "component": "layout:button",

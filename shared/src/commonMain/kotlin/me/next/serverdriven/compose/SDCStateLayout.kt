@@ -43,15 +43,16 @@ fun SDCStateLayout(
         )
     }
     Box(Modifier.fillMaxSize()) {
-//      TODO: remove states log
-        Column(
-            modifier = Modifier.background(color = Color.Yellow)
-        ) {
-            for (entry in stateMap) {
-                Text(
-                    modifier = Modifier,
-                    text = "key: ${entry.key}, value: ${entry.value}"
-                )
+        if (DEBUG) {
+            Column(
+                modifier = Modifier.background(color = Color.Yellow)
+            ) {
+                for (entry in stateMap) {
+                    Text(
+                        modifier = Modifier,
+                        text = "key: ${entry.key}, value: ${entry.value}"
+                    )
+                }
             }
         }
         Column(modifier = modifier) {
