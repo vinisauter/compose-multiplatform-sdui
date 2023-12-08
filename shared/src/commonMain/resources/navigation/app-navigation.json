@@ -33,6 +33,22 @@
         "type": "file",
         "destiny": "layout/menu.json"
       }
+    },
+    {
+      "component": "navigation:node",
+      "properties": {
+        "name": "static",
+        "type": "file",
+        "destiny": "layout/static.json"
+      }
+    },
+    {
+      "component": "navigation:node",
+      "properties": {
+        "name": "template",
+        "type": "file",
+        "destiny": "layout/template.json"
+      }
     }
   ]
 }

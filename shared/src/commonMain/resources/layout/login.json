@@ -2,8 +2,7 @@
   "id": "login",
   "component": "layout:column",
   "properties": {
-    "horizontalAlignment": "Center",
-    "verticalScroll": ""
+    "horizontalAlignment": "Center"
   },
   "children": [
     {
@@ -52,56 +51,96 @@
       ]
     },
     {
-      "component": "layout:button",
+      "component": "layout:row",
       "properties": {
-        "paddingTop": "10",
-        "paddingHorizontal": "10",
-        "onClick": [
-          {
-            "component": "navigation:goTo",
-            "properties": {
-              "destiny": "menu"
+        "fillMaxWidth": "",
+        "horizontalArrangement": "End",
+        "paddingAll": "5"
+      },
+      "children": [
+        {
+          "component": "layout:button",
+          "properties": {
+            "paddingHorizontal": "5",
+            "onClick": [
+              {
+                "component": "navigation:goTo",
+                "properties": {
+                  "destiny": "menu"
+                }
+              }
+            ]
+          },
+          "children": [
+            {
+              "component": "layout:text",
+              "properties": {
+                "text": "Login"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "component": "layout:row",
+      "properties": {
+        "verticalAlignment": "Bottom",
+        "horizontalArrangement": "Center",
+        "fillMaxSize": "",
+        "paddingAll": "20"
+      },
+      "children": [
+        {
+          "id": "btPhone",
+          "component": "layout:iconButton",
+          "properties": {
+            "paddingHorizontal": "5",
+            "imageVector": "Phone",
+            "text": "Phone",
+            "onClick": [
+              {
+                "component": "navigation:goTo",
+                "properties": {
+                  "destiny": "static"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "btFace",
+          "component": "layout:iconButton",
+          "properties": {
+            "paddingHorizontal": "5",
+            "imageVector": "Face",
+            "text": "Face",
+            "onClick": [
+              {
+                "component": "navigation:goTo",
+                "properties": {
+                  "destiny": "template"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "btPlace",
+          "component": "layout:iconButton",
+          "properties": {
+            "paddingHorizontal": "5",
+            "imageVector": "Place",
+            "text": "Place",
+            "onClick": {
+              "component": "navigation:goTo",
+              "properties": {
+                "destiny": "google"
+              }
             }
           }
-        ]
-      },
-      "children": [
-        {
-          "component": "layout:text",
-          "properties": {
-            "text": "Login"
-          }
         }
       ]
-    },
-    {
-      "id": "btGoogle",
-      "component": "layout:button",
-      "properties": {
-        "paddingTop": "10",
-        "paddingHorizontal": "10",
-        "onClick": {
-          "component": "navigation:goTo",
-          "properties": {
-            "destiny": "google"
-          }
-        }
-      },
-      "children": [
-        {
-          "component": "layout:text",
-          "properties": {
-            "text": "Open Google"
-          }
-        }
-      ]
-    },
-    {
-      "component": "layout:imageFile",
-      "properties": {
-        "painterResource": "compose-multiplatform.xml",
-        "contentDescription": null
-      }
     }
   ]
 }

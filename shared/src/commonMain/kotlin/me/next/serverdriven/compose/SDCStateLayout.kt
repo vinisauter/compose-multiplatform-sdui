@@ -27,7 +27,7 @@ fun SDCStateLayout(
                     state[stateName] = this
                 }
                 node.propertyState("method", state)?.run {
-                    SDCLibrary.loadMethod(this)?.invoke(node, state)?.run {
+                    SDCLibrary.loadMethod(this).invoke(node, state).run {
                         state[stateName] = this
                     }
                 }
@@ -37,7 +37,7 @@ fun SDCStateLayout(
         lib.addLibrary(SDLibrary("action")
             .addAction("method") { node, state ->
                 node.propertyState("method", state)?.run {
-                    SDCLibrary.loadMethod(this)?.invoke(node, state)
+                    SDCLibrary.loadMethod(this).invoke(node, state)
                 }
             }
         )

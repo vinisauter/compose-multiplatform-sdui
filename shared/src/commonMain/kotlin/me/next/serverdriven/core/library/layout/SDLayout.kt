@@ -4,6 +4,7 @@ import me.next.serverdriven.core.library.SDLibrary
 import me.next.serverdriven.core.library.layout.components.SDCAnimatedVisibility
 import me.next.serverdriven.core.library.layout.components.SDCBox
 import me.next.serverdriven.core.library.layout.components.SDCButton
+import me.next.serverdriven.core.library.layout.components.SDCButtonIcon
 import me.next.serverdriven.core.library.layout.components.SDCButtonText
 import me.next.serverdriven.core.library.layout.components.SDCColumn
 import me.next.serverdriven.core.library.layout.components.SDCImage
@@ -22,5 +23,6 @@ class SDLayout : SDLibrary("layout") {
         addComponentLayout("imageFile") { node, state -> SDCImage(node, state) }
         addComponentLayout("button") { node, state -> SDCButton(node, state) }
         addComponentLayout("textButton") { node, state -> SDCButtonText(node, state) }
+        addComponentLayout("iconButton") { node, state -> SDCButtonIcon(node, state) }
     }
 }

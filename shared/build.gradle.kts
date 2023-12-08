@@ -42,10 +42,10 @@ kotlin {
                 implementation(libs.multiplatformSettings)
                 implementation(libs.kstore)
                 implementation(libs.voyager.navigator)
+                implementation(libs.composeIcons.featherIcons)
 //                implementation(libs.koin.core)
 //                implementation(libs.apollo.runtime)
 //                implementation(libs.moko.mvvm)
-//                implementation(libs.composeIcons.featherIcons)
             }
         }
         val androidMain by getting {

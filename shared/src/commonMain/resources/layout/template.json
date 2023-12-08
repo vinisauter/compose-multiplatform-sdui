@@ -19,7 +19,7 @@
   ],
   "properties": {
     "fillMaxWidth": "1.0",
-    "horizontalAlignment": "CenterHorizontally",
+    "horizontalAlignment": "Center",
     "fillMaxHeight": "1"
   },
   "children": [
