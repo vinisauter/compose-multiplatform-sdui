@@ -109,6 +109,18 @@
           }
         }
       ]
+    },
+    {
+      "id": "btGoBack",
+      "component": "layout:iconButton",
+      "properties": {
+        "paddingHorizontal": "5",
+        "imageVector": "ArrowBack",
+        "text": "Back",
+        "onClick": {
+          "component": "navigation:goBack"
+        }
+      }
     }
   ]
 }

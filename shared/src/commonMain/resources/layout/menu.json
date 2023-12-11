@@ -24,6 +24,17 @@
       "properties": {
         "text": "STATIC"
       }
+    },
+    {
+      "id": "btGoBack",
+      "component": "layout:iconButton",
+      "properties": {
+        "paddingHorizontal": "5",
+        "imageVector": "ArrowBack",
+        "onClick": {
+          "component": "navigation:goBack"
+        }
+      }
     }
   ]
 }
