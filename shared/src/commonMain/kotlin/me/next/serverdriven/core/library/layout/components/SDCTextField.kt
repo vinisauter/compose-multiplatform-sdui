@@ -38,7 +38,6 @@ class SDCTextField(val node: ServerDrivenNode, val state: MutableMap<String, Str
     private val singleLine = node.property("singleLine")?.toBoolean()
     private val maxLines = node.property("maxLines")?.toInt()
     private val minLines = node.property("minLines")?.toInt()
-    private val visualMask = node.property("visualMask")
     private val capitalization = node.property("capitalization")?.let {
         when (it) {
             "None" -> KeyboardCapitalization.None
@@ -116,6 +115,13 @@ class SDCTextField(val node: ServerDrivenNode, val state: MutableMap<String, Str
             }
         }
     }
+    private val visualMask = node.property("visualMask")
+    private val visualTransformation = visualMask?.let {
+        MaskVisualTransformation(it)
+    } ?: VisualTransformation.None
+    private val maxLength = node.property("maxLength")?.toInt() ?: visualMask?.count { it == '#' }
+    private val isPassword =
+        keyboardType == KeyboardType.Password || keyboardType == KeyboardType.NumberPassword
 
     @Composable
     override fun Content() {
@@ -130,11 +136,6 @@ class SDCTextField(val node: ServerDrivenNode, val state: MutableMap<String, Str
         val onSend = SDCLibrary.loadActions(onSend)
 
         var passwordVisibility by remember { mutableStateOf(false) }
-        val isPassword = keyboardType == KeyboardType.Password ||
-                keyboardType == KeyboardType.NumberPassword
-        val visualTransformation =
-            visualMask?.let { MaskVisualTransformation(it) } ?: VisualTransformation.None
-        val maxLength = visualMask?.count { it == '#' }
         TextField(
             value = state[onChangeUpdateState] ?: "",
             onValueChange = {

@@ -1,22 +1,6 @@
 {
   "id": "template",
   "component": "layout:column",
-  "states": [
-    {
-      "id": "greetingText",
-      "component": "state:string",
-      "properties": {
-        "value": "Hello, World!"
-      }
-    },
-    {
-      "id": "showImage",
-      "component": "state:boolean",
-      "properties": {
-        "value": "false"
-      }
-    }
-  ],
   "properties": {
     "fillMaxWidth": "1.0",
     "horizontalAlignment": "Center",
@@ -43,21 +27,21 @@
       "properties": {
         "onClick": [
           {
-            "component": "state:update",
+            "component": "action:update",
             "properties": {
               "state": "platformName",
               "method": "getPlatformName"
             }
           },
           {
-            "component": "state:update",
+            "component": "action:update",
             "properties": {
               "state": "greetingText",
               "value": "Hello, #{platformName}"
             }
           },
           {
-            "component": "state:update",
+            "component": "action:update",
             "properties": {
               "state": "showImage",
               "method": "not",

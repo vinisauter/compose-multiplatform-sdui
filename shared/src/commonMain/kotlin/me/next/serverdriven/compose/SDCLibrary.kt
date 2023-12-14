@@ -9,15 +9,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import io.github.aakira.napier.Napier
+import io.ktor.util.logging.KtorSimpleLogger
 import me.next.serverdriven.compose.provider.JsonFileNodeTypeProvider
 import me.next.serverdriven.compose.provider.JsonNodeTypeProvider
 import me.next.serverdriven.core.library.ActionHandler
 import me.next.serverdriven.core.library.ComponentHandler
 import me.next.serverdriven.core.library.SDLibrary
+import me.next.serverdriven.core.library.action.SDAction
 import me.next.serverdriven.core.library.layout.SDLayout
 import me.next.serverdriven.core.library.navigation.SDNavigation
-import me.next.serverdriven.core.method.registerBooleanMethods
 import me.next.serverdriven.core.tree.IgnoredNode
 import me.next.serverdriven.core.tree.ServerDrivenNode
 import openUrl
@@ -26,7 +26,7 @@ import openUrl
 fun SDCLibrary(
     vararg libraries: SDLibrary,
     debug: Boolean = false,
-    block: @Composable (SDCLibrary) -> Unit
+    block: @Composable SDCLibrary.() -> Unit = {}
 ) {
     show_states = debug
     block.invoke(SDCLibrary.instance.apply {
@@ -37,23 +37,21 @@ fun SDCLibrary(
 }
 
 var show_states: Boolean = false
-val logger = Napier
-typealias MethodHandler = (ServerDrivenNode, MutableMap<String, String>) -> String
+val logger = KtorSimpleLogger("server-driven")
 typealias NodeProvider = (String) -> ServerDrivenNode
 
 class SDCLibrary private constructor() {
     private val libraries: HashMap<String, SDLibrary> = HashMap()
 
     companion object {
-        private val LocalMethods: HashMap<String, MethodHandler> = HashMap()
         private val LocalNodeTypeProviders: HashMap<String, NodeProvider> = HashMap()
         private val LocalLib = staticCompositionLocalOf {
             val defaultLibraries = listOf(
                 SDLayout(),
+                SDAction(),
                 SDNavigation()
             )
             SDCLibrary().apply {
-                registerBooleanMethods()
                 registerNodeTypeProvider("json") { json ->
                     JsonNodeTypeProvider(json).node
                 }
@@ -72,17 +70,6 @@ class SDCLibrary private constructor() {
         val instance: SDCLibrary
             @Composable
             get() = LocalLib.current
-
-        fun registerMethod(
-            method: String,
-            handler: MethodHandler
-        ) {
-            LocalMethods[method] = handler
-        }
-
-        fun loadMethod(method: String): MethodHandler {
-            return LocalMethods[method] ?: error("No MethodHandler for method: $method")
-        }
 
         fun registerNodeTypeProvider(
             nodeType: String,

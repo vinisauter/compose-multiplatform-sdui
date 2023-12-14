@@ -9,7 +9,6 @@ import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import me.next.serverdriven.core.library.SDLibrary
 import me.next.serverdriven.core.tree.ServerDrivenNode
 
 @Composable
@@ -18,29 +17,6 @@ fun SDCStateLayout(
     modifier: Modifier = Modifier,
     stateMap: MutableMap<String, String> = remember { mutableStateMapOf() }
 ) {
-    SDCLibrary.instance.let { lib ->
-        lib.addLibrary(SDLibrary("state")
-            .addAction("update") { node, state ->
-                val stateName = node.property("state")!!
-                node.propertyState("value", state)?.run {
-                    state[stateName] = this
-                }
-                node.propertyState("method", state)?.run {
-                    SDCLibrary.loadMethod(this).invoke(node, state).run {
-                        state[stateName] = this
-                    }
-                }
-            }
-        )
-
-        lib.addLibrary(SDLibrary("action")
-            .addAction("method") { node, state ->
-                node.propertyState("method", state)?.run {
-                    SDCLibrary.loadMethod(this).invoke(node, state)
-                }
-            }
-        )
-    }
     Column(Modifier.fillMaxSize()) {
         if (show_states) {
             Column(
