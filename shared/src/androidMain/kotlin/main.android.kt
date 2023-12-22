@@ -2,8 +2,6 @@ import android.app.Application
 import android.content.Intent
 import android.net.Uri
 import androidx.compose.runtime.Composable
-import io.github.aakira.napier.DebugAntilog
-import io.github.aakira.napier.Napier
 import me.next.serverdriven.core.library.navigation.components.LocalNavigator
 import java.util.UUID
 
@@ -11,7 +9,6 @@ object AndroidApp {
     lateinit var INSTANCE: Application
     fun init(application: Application) {
         INSTANCE = application
-        Napier.base(DebugAntilog())
     }
 }
 

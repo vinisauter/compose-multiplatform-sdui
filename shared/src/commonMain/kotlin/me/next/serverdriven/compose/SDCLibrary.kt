@@ -9,7 +9,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import io.ktor.util.logging.KtorSimpleLogger
 import me.next.serverdriven.compose.provider.JsonFileNodeTypeProvider
 import me.next.serverdriven.compose.provider.JsonNodeTypeProvider
 import me.next.serverdriven.core.library.ActionHandler
@@ -20,6 +19,7 @@ import me.next.serverdriven.core.library.layout.SDLayout
 import me.next.serverdriven.core.library.navigation.SDNavigation
 import me.next.serverdriven.core.tree.IgnoredNode
 import me.next.serverdriven.core.tree.ServerDrivenNode
+import me.next.serverdriven.utils.logger.SimpleLogger
 import openUrl
 
 @Composable
@@ -37,7 +37,7 @@ fun SDCLibrary(
 }
 
 var show_states: Boolean = false
-val logger = KtorSimpleLogger("server-driven")
+val logger = SimpleLogger("server-driven")
 typealias NodeProvider = (String) -> ServerDrivenNode
 
 class SDCLibrary private constructor() {

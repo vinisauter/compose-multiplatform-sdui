@@ -1,11 +1,9 @@
 import org.jetbrains.kotlin.gradle.targets.js.dsl.ExperimentalWasmDsl
 
 plugins {
-//    alias(libs.plugins.kotlinMultiplatform)
-//    alias(libs.plugins.androidLibrary)
-    kotlin("multiplatform")
-    id("com.android.library")
-    id("org.jetbrains.compose")
+    alias(libs.plugins.kotlin.multiplatform)
+    alias(libs.plugins.android.library)
+    alias(libs.plugins.compose)
     alias(libs.plugins.buildConfig)
     alias(libs.plugins.kotlinx.serialization)
 }
