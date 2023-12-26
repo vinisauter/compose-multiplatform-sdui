@@ -1,5 +1,5 @@
 {
-  "id": "template",
+  "id": "hello-world",
   "component": "layout:column",
   "properties": {
     "fillMaxWidth": "1.0",
