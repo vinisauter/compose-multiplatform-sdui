@@ -1,19 +1,25 @@
+@file:Suppress("unused", "MemberVisibilityCanBePrivate")
+
 package me.next.serverdriven.core.tree
 
 import androidx.compose.runtime.State
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.snapshots.StateFactoryMarker
+import generateUUID
+import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
 import me.next.serverdriven.utils.toNode
 import me.next.serverdriven.utils.transformJsonObjectToMapOfString
 
-interface ServerDrivenNode {
-    val id: String
-    val component: String
-    val properties: MutableMap<String, String?>?
-    val children: MutableList<ServerDrivenNode>?
+@Serializable
+open class ServerDrivenNode(
+    val component: String,
+    val id: String = "$component:${generateUUID()}",
+    val properties: MutableMap<String, String?>? = null,
+    val children: MutableList<ServerDrivenNode>? = null
+) {
     fun property(key: String): String? {
         return properties?.get(key)
     }

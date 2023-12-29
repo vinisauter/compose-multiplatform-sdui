@@ -1,10 +1,10 @@
 rootProject.name = "SDUI-ComposeApplication"
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 
-include(":androidApp")
 include(":shared")
-include(":desktopApp")
 include(":iosApp")
+include(":androidApp")
+include(":desktopApp")
 
 pluginManagement {
     repositories {

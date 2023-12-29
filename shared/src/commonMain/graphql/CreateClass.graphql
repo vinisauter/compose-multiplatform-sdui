@@ -1,0 +1,23 @@
+mutation CreateClass {
+    createClass(input:{
+        name: "Node"
+        schemaFields: {
+            addStrings: [
+                {name: "name"}
+                {name: "component"}
+            ]
+            addArrays: [
+                {name: "properties" }
+                {name: "children"}
+            ]
+        }
+    }){
+        class{
+            schemaFields{
+                name
+                __typename
+            }
+        }
+    }
+}
+

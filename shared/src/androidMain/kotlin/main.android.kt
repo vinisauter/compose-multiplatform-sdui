@@ -2,6 +2,8 @@ import android.app.Application
 import android.content.Intent
 import android.net.Uri
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.rememberCoroutineScope
+import me.next.serverdriven.compose.SDCLibrary.Companion.launchHandling
 import me.next.serverdriven.core.library.navigation.components.LocalNavigator
 import java.util.UUID
 
@@ -27,8 +29,11 @@ actual fun generateUUID() = UUID.randomUUID().toString()
 
 @Composable
 fun MainView() {
+    val scope = rememberCoroutineScope()
     BackPressHandler {
-        LocalNavigator?.navigateBack()
+        scope.launchHandling {
+            LocalNavigator?.navigateBack()
+        }
     }
     App()
 }

@@ -1,14 +1,35 @@
 package me.next.serverdriven.compose
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.Button
+import androidx.compose.material.CircularProgressIndicator
+import androidx.compose.material.MaterialTheme
+import androidx.compose.material.Surface
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.staticCompositionLocalOf
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CoroutineStart
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 import me.next.serverdriven.compose.provider.JsonFileNodeTypeProvider
 import me.next.serverdriven.compose.provider.JsonNodeTypeProvider
 import me.next.serverdriven.core.library.ActionHandler
@@ -16,17 +37,20 @@ import me.next.serverdriven.core.library.ComponentHandler
 import me.next.serverdriven.core.library.SDLibrary
 import me.next.serverdriven.core.library.action.SDAction
 import me.next.serverdriven.core.library.layout.SDLayout
+import me.next.serverdriven.core.library.layout.components.AnimatedDialog
 import me.next.serverdriven.core.library.navigation.SDNavigation
 import me.next.serverdriven.core.tree.IgnoredNode
 import me.next.serverdriven.core.tree.ServerDrivenNode
 import me.next.serverdriven.utils.logger.SimpleLogger
 import openUrl
+import kotlin.coroutines.CoroutineContext
+import kotlin.coroutines.EmptyCoroutineContext
 
 @Composable
 fun SDCLibrary(
     vararg libraries: SDLibrary,
     debug: Boolean = false,
-    block: @Composable SDCLibrary.() -> Unit = {}
+    block: @Composable SDCLibrary.() -> Unit
 ) {
     show_states = debug
     block.invoke(SDCLibrary.instance.apply {
@@ -34,16 +58,34 @@ fun SDCLibrary(
             addLibrary(library)
         }
     })
+
+    val loading by SDCLibrary.isLoading.collectAsState()
+    val error by SDCLibrary.hasError.collectAsState()
+    val hasError by derivedStateOf { error != null }
+
+    if (loading) {
+        LoadingDialog()
+    }
+    if (hasError) {
+        error?.let { ErrorDialog(it) }
+    }
 }
 
 var show_states: Boolean = false
 val logger = SimpleLogger("server-driven")
-typealias NodeProvider = (String) -> ServerDrivenNode
+typealias NodeProvider = suspend (String) -> ServerDrivenNode
 
 class SDCLibrary private constructor() {
     private val libraries: HashMap<String, SDLibrary> = HashMap()
 
     companion object {
+        private val _isLoading: MutableStateFlow<Boolean> =
+            MutableStateFlow(false)
+        val isLoading = _isLoading.asStateFlow()
+
+        private val _hasError: MutableStateFlow<Throwable?> = MutableStateFlow(null)
+        val hasError = _hasError.asStateFlow()
+
         private val LocalNodeTypeProviders: HashMap<String, NodeProvider> = HashMap()
         private val LocalLib = staticCompositionLocalOf {
             val defaultLibraries = listOf(
@@ -137,6 +179,37 @@ class SDCLibrary private constructor() {
                 }
             }
         }
+
+        fun onErrorHandled() = _hasError.update { null }
+        fun onError(error: Throwable) {
+            _hasError.update {
+                error
+            }
+        }
+
+        fun onLoading(isLoading: Boolean) {
+            _isLoading.update {
+                isLoading
+            }
+        }
+
+        fun CoroutineScope.launchHandling(
+            context: CoroutineContext = EmptyCoroutineContext,
+            start: CoroutineStart = CoroutineStart.DEFAULT,
+            after: suspend CoroutineScope.() -> Unit = {},
+            block: suspend CoroutineScope.() -> Unit
+        ): Job = launch(context, start) {
+            onLoading(true)
+            try {
+                block.invoke(this)
+            } catch (error: Throwable) {
+                logger.e("LaunchHandling", error)
+                onError(error)
+            } finally {
+                onLoading(false)
+                after()
+            }
+        }
     }
 
     fun addLibrary(library: SDLibrary): SDCLibrary {
@@ -167,3 +240,50 @@ class SDCLibrary private constructor() {
     }
 }
 
+@Composable
+internal fun LoadingDialog() {
+    AnimatedDialog(
+        onDismissRequest = {},
+        dismissOnBackPress = true,
+        dismissOnClickOutside = true,
+    ) { _ ->
+        CircularProgressIndicator(color = MaterialTheme.colors.background)
+    }
+}
+
+@Composable
+fun ErrorDialog(
+    error: Throwable
+) {
+    AnimatedDialog(
+        onDismissRequest = {
+            SDCLibrary.onErrorHandled()
+        },
+        dismissOnBackPress = true,
+        dismissOnClickOutside = true,
+    ) { transitionDialogHelper ->
+        val scope = rememberCoroutineScope()
+        Surface(
+            shape = RoundedCornerShape(10.dp),
+            color = MaterialTheme.colors.surface,
+            modifier = Modifier
+        ) {
+            Column(
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier.padding(16.dp)
+            ) {
+                Text(
+                    "Error: ${
+                        error.message ?: error.cause?.message ?: error::class.qualifiedName
+                    }"
+                )
+                Button(onClick = {
+                    transitionDialogHelper.triggerAnimatedDismiss()
+                }) {
+                    Text("Close")
+                }
+            }
+        }
+    }
+}

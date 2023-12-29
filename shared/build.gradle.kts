@@ -1,11 +1,12 @@
-import org.jetbrains.kotlin.gradle.targets.js.dsl.ExperimentalWasmDsl
-
 plugins {
     alias(libs.plugins.kotlin.multiplatform)
     alias(libs.plugins.android.library)
     alias(libs.plugins.compose)
     alias(libs.plugins.buildConfig)
     alias(libs.plugins.kotlinx.serialization)
+    alias(libs.plugins.libres)
+    alias(libs.plugins.sqlDelight)
+    alias(libs.plugins.apollo)
 }
 
 kotlin {
@@ -33,22 +34,23 @@ kotlin {
                 @OptIn(org.jetbrains.compose.ExperimentalComposeLibrary::class)
                 implementation(compose.components.resources)
 
+                implementation(libs.libres)
                 implementation(libs.kotlinx.coroutines.core)
                 implementation(libs.kotlinx.serialization.json)
                 implementation(libs.kotlinx.datetime)
                 implementation(libs.ktor.core)
-
                 implementation(libs.napier)
                 implementation(libs.composeIcons.feather)
                 implementation(libs.composeIcons.fontAwesome)
-
-//                implementation(libs.libres)
+                implementation(libs.apollo.runtime)
+                implementation(libs.apollo.adapters)
+                implementation(libs.multiplatform.settings)
+                implementation(libs.sqlDelight.driver.runtime)
 //                implementation(libs.composeImageLoader)
 //                implementation(libs.multiplatformSettings)
 //                implementation(libs.kstore)
 //                implementation(libs.voyager.navigator)
 //                implementation(libs.koin.core)
-//                implementation(libs.apollo.runtime)
 //                implementation(libs.moko.mvvm)
             }
         }
@@ -57,6 +59,7 @@ kotlin {
                 api(libs.androidx.activityCompose)
                 api(libs.androidx.appcompat)
                 api(libs.androidx.core.ktx)
+                api(libs.androidx.preference.ktx)
             }
         }
         val iosX64Main by getting
@@ -93,5 +96,34 @@ android {
     }
     kotlin {
         jvmToolchain(17)
+    }
+}
+
+buildConfig {
+    // BuildConfig configuration here.
+    // https://github.com/gmazzo/gradle-buildconfig-plugin#usage-in-kts
+}
+
+sqldelight {
+    databases {
+        create("MyDatabase") {
+            // Database configuration here.
+            // https://cashapp.github.io/sqldelight
+            packageName.set("me.next.serverdriven.db")
+        }
+    }
+}
+
+apollo {
+    generateKotlinModels = true
+    service("api") {
+        // GraphQL configuration here.
+        // https://www.apollographql.com/docs/kotlin/advanced/plugin-configuration/
+        packageName.set("me.next.serverdriven.graphql")
+        generateDataBuilders.set(true)
+        generateFragmentImplementations.set(true)
+        mapScalar("Any", "kotlin.Any","me.next.serverdriven.apollo.CustomAnyAdapter")
+        mapScalar("Json", "kotlinx.serialization.json.JsonElement","me.next.serverdriven.apollo.JsonAdapter")
+        mapScalar("Void", "kotlin.Unit", "me.next.serverdriven.apollo.VoidAdapter")
     }
 }

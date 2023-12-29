@@ -1,0 +1,16 @@
+query GetNode($nodeId:String!) {
+    sDNodes(where: {nodeId: { equalTo: $nodeId}}) {
+        edges {
+            node {
+                nodeId
+                component
+                properties
+                children {
+                    ... on Element {
+                        value
+                    }
+                }
+            }
+        }
+    }
+}

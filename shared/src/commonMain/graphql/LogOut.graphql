@@ -1,0 +1,6 @@
+mutation logOut {
+  logOut(input: { clientMutationId: "logOut" }) {
+    ok
+    clientMutationId
+  }
+}

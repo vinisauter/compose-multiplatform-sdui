@@ -1,0 +1,24 @@
+mutation CreateNode(
+    $nodeId: String!
+    $component: String!
+    $properties: Object
+    $children: [Any]
+) {
+    createSDNode(
+        input: {
+            fields: {
+                nodeId: $nodeId
+                component: $component
+                properties: $properties
+                children: $children
+            }
+        }
+    ) {
+        sDNode{
+            id
+            objectId
+            nodeId
+            createdAt
+        }
+    }
+}

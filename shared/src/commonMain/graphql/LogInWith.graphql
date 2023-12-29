@@ -1,0 +1,22 @@
+mutation LoginWith() {
+  logInWith(
+    input: {
+      authData: {
+        facebook: {
+          id: "user's Facebook id number as a string"
+          access_token: "Facebook access token for the user"
+          expiration_date: "token expiration date"
+        }
+      }
+      fields: { email: "a.new@user.com" }
+    }
+  ) {
+    viewer {
+      sessionToken
+      user {
+        id
+        email
+      }
+    }
+  }
+}

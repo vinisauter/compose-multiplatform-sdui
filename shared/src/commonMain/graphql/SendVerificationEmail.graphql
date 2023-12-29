@@ -1,0 +1,5 @@
+mutation sendVerificationEmail($email: String!) {
+  sendVerificationEmail(input: { email: $email }) {
+    ok
+  }
+}

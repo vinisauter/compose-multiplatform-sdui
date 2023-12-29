@@ -1,0 +1,12 @@
+type MapEntry {
+    key: String!
+    value: String
+}
+type ServerDrivenNode {
+    nodeId: String!
+    component: String!
+    properties: [MapEntry!]
+    children: [ServerDrivenNode!]
+}
+scalar Json
+scalar Void
