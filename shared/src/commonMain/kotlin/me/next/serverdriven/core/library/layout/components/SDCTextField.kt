@@ -9,6 +9,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.AnnotatedString
@@ -23,6 +24,7 @@ import compose.icons.FeatherIcons
 import compose.icons.feathericons.Eye
 import compose.icons.feathericons.EyeOff
 import me.next.serverdriven.compose.SDCLibrary
+import me.next.serverdriven.compose.SDCLibrary.Companion.launchHandling
 import me.next.serverdriven.core.library.interfaces.Layout
 import me.next.serverdriven.core.tree.ServerDrivenNode
 import kotlin.math.absoluteValue
@@ -134,8 +136,10 @@ class SDCTextField(val node: ServerDrivenNode, val state: MutableMap<String, Str
         val onPrevious = SDCLibrary.loadActions(onPrevious)
         val onSearch = SDCLibrary.loadActions(onSearch)
         val onSend = SDCLibrary.loadActions(onSend)
-
+        var isEnabled by remember { mutableStateOf(enabled ?: true) }
         var passwordVisibility by remember { mutableStateOf(false) }
+        // Creates a CoroutineScope bound to the Content's lifecycle
+        val scope = rememberCoroutineScope()
         TextField(
             value = state[onChangeUpdateState] ?: "",
             onValueChange = {
@@ -143,7 +147,7 @@ class SDCTextField(val node: ServerDrivenNode, val state: MutableMap<String, Str
                     state[onChangeUpdateState] = it
             },
             modifier = modifier,
-            enabled = enabled ?: true,
+            enabled = isEnabled,
             readOnly = readOnly ?: false,
             isError = isError ?: false,
             keyboardOptions = KeyboardOptions(
@@ -153,12 +157,42 @@ class SDCTextField(val node: ServerDrivenNode, val state: MutableMap<String, Str
                 imeAction = imeAction ?: ImeAction.Default
             ),
             keyboardActions = KeyboardActions(
-                onDone = { onDone.invoke(node, state) },
-                onGo = { onGo.invoke(node, state) },
-                onNext = { onNext.invoke(node, state) },
-                onPrevious = { onPrevious.invoke(node, state) },
-                onSearch = { onSearch.invoke(node, state) },
-                onSend = { onSend.invoke(node, state) },
+                onDone = {
+                    isEnabled = false
+                    scope.launchHandling(after = { isEnabled = true }) {
+                        onDone.invoke(node, state)
+                    }
+                },
+                onGo = {
+                    isEnabled = false
+                    scope.launchHandling(after = { isEnabled = true }) {
+                        onGo.invoke(node, state)
+                    }
+                },
+                onNext = {
+                    isEnabled = false
+                    scope.launchHandling (after = { isEnabled = true }){
+                        onNext.invoke(node, state)
+                    }
+                },
+                onPrevious = {
+                    isEnabled = false
+                    scope.launchHandling(after = { isEnabled = true }) {
+                        onPrevious.invoke(node, state)
+                    }
+                },
+                onSearch = {
+                    isEnabled = false
+                    scope.launchHandling(after = { isEnabled = true }) {
+                        onSearch.invoke(node, state)
+                    }
+                },
+                onSend = {
+                    isEnabled = false
+                    scope.launchHandling(after = { isEnabled = true }) {
+                        onSend.invoke(node, state)
+                    }
+                },
             ),
             singleLine = singleLine ?: false,
             maxLines = maxLines ?: if (singleLine == true) 1 else Int.MAX_VALUE,

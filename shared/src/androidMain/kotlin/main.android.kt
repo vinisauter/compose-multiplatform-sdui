@@ -2,8 +2,8 @@ import android.app.Application
 import android.content.Intent
 import android.net.Uri
 import androidx.compose.runtime.Composable
-import io.github.aakira.napier.DebugAntilog
-import io.github.aakira.napier.Napier
+import androidx.compose.runtime.rememberCoroutineScope
+import me.next.serverdriven.compose.SDCLibrary.Companion.launchHandling
 import me.next.serverdriven.core.library.navigation.components.LocalNavigator
 import java.util.UUID
 
@@ -11,7 +11,6 @@ object AndroidApp {
     lateinit var INSTANCE: Application
     fun init(application: Application) {
         INSTANCE = application
-        Napier.base(DebugAntilog())
     }
 }
 
@@ -30,8 +29,11 @@ actual fun generateUUID() = UUID.randomUUID().toString()
 
 @Composable
 fun MainView() {
+    val scope = rememberCoroutineScope()
     BackPressHandler {
-        LocalNavigator?.navigateBack()
+        scope.launchHandling {
+            LocalNavigator?.navigateBack()
+        }
     }
     App()
 }

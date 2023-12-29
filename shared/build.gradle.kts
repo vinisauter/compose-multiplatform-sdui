@@ -1,9 +1,11 @@
 plugins {
-    kotlin("multiplatform")
-    id("com.android.library")
-    id("org.jetbrains.compose")
+    alias(libs.plugins.kotlin.multiplatform)
+    alias(libs.plugins.android.library)
+    alias(libs.plugins.compose)
     alias(libs.plugins.buildConfig)
     alias(libs.plugins.kotlinx.serialization)
+    alias(libs.plugins.libres)
+    alias(libs.plugins.sqlDelight)
 }
 
 kotlin {
@@ -31,22 +33,21 @@ kotlin {
                 @OptIn(org.jetbrains.compose.ExperimentalComposeLibrary::class)
                 implementation(compose.components.resources)
 
+                implementation(libs.libres)
                 implementation(libs.kotlinx.coroutines.core)
                 implementation(libs.kotlinx.serialization.json)
                 implementation(libs.kotlinx.datetime)
                 implementation(libs.ktor.core)
-
                 implementation(libs.napier)
                 implementation(libs.composeIcons.feather)
                 implementation(libs.composeIcons.fontAwesome)
-
-//                implementation(libs.libres)
+                implementation(libs.multiplatform.settings)
+                implementation(libs.sqlDelight.driver.runtime)
 //                implementation(libs.composeImageLoader)
 //                implementation(libs.multiplatformSettings)
 //                implementation(libs.kstore)
 //                implementation(libs.voyager.navigator)
 //                implementation(libs.koin.core)
-//                implementation(libs.apollo.runtime)
 //                implementation(libs.moko.mvvm)
             }
         }
@@ -55,6 +56,7 @@ kotlin {
                 api(libs.androidx.activityCompose)
                 api(libs.androidx.appcompat)
                 api(libs.androidx.core.ktx)
+                api(libs.androidx.preference.ktx)
             }
         }
         val iosX64Main by getting
@@ -91,5 +93,20 @@ android {
     }
     kotlin {
         jvmToolchain(17)
+    }
+}
+
+buildConfig {
+    // BuildConfig configuration here.
+    // https://github.com/gmazzo/gradle-buildconfig-plugin#usage-in-kts
+}
+
+sqldelight {
+    databases {
+        create("MyDatabase") {
+            // Database configuration here.
+            // https://cashapp.github.io/sqldelight
+            packageName.set("me.next.serverdriven.db")
+        }
     }
 }

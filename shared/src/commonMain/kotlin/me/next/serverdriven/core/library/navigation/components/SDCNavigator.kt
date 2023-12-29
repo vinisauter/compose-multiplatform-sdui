@@ -23,9 +23,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.runBlocking
 import me.next.serverdriven.compose.SDCLibrary
-import me.next.serverdriven.compose.SDCLoaderLayout
-import me.next.serverdriven.compose.produceUiState
 import me.next.serverdriven.core.tree.IgnoredNode
 import me.next.serverdriven.core.tree.ServerDrivenNode
 
@@ -79,38 +78,51 @@ class SDCNavigator(
 
     private val _backStack = MutableStateFlow(listOf(startNode))
     val backStack: StateFlow<List<Route>> = _backStack.asStateFlow()
+    private val _nodeFlow: MutableStateFlow<ServerDrivenNode> = MutableStateFlow(
+        runBlocking { loadRouteNode(startNode) }
+    )
+    val nodeFlow = _nodeFlow.asStateFlow()
 
     fun handleLink(link: String) {
         //TODO: handleLink
     }
 
-    fun navigateTo(route: Route) {
-        val graphNode = routes[route]!!
-        val nodeType = graphNode.property("type")!!
-        val layout = graphNode.property("destiny")!!
+    suspend fun navigateTo(routeName: Route) {
+        val graphNode = routes[routeName]!!
+        graphNode.property("type")!!
+        graphNode.property("destiny")!!
 
-        val routeNode = loadRouteNode(route)
+        val routeNode = loadRouteNode(routeName)
         if (routeNode is IgnoredNode) return
 
-        if (_backStack.value.last() == route) return
+        if (_backStack.value.last() == routeName) return
 
         _backStack.update { currentState ->
-            currentState + route
+            currentState + routeName
+        }
+        _nodeFlow.update {
+            routeNode
         }
     }
 
-    fun navigateBack() {
+    suspend fun navigateBack() {
         if (_backStack.value.size > 1) {
             _backStack.update { currentState ->
                 currentState.dropLast(1)
+            }
+            val route: Route = _backStack.value.lastOrNull() ?: return
+            val routeNode = loadRouteNode(route)
+            if (routeNode is IgnoredNode) return
+            _nodeFlow.update {
+                routeNode
             }
         } else {
             // TODO Close Screen
         }
     }
 
-    fun loadRouteNode(route: Route): ServerDrivenNode {
-        val graphNode = routes[route]!!
+    suspend fun loadRouteNode(routeName: Route): ServerDrivenNode {
+        val graphNode = routes[routeName]!!
         val nodeType = graphNode.property("type")!!
         val layout = graphNode.property("destiny")!!
         return SDCLibrary.loadNodeTypeProvider(nodeType).invoke(layout)
@@ -124,9 +136,10 @@ fun NavigationHost(
     val backStack: List<Route> by navigator.backStack.collectAsState()
     val previousBackStackSize: Int by remember { mutableStateOf(backStack.size) }
     val isForwardNavigation: Boolean by derivedStateOf { backStack.size > previousBackStackSize }
-    val route: Route = backStack.lastOrNull() ?: return
+    val node by navigator.nodeFlow.collectAsState()
+
     AnimatedContent(
-        targetState = route,
+        targetState = node,
         modifier = Modifier.fillMaxSize(),
         transitionSpec = {
             if (isForwardNavigation) {
@@ -138,14 +151,9 @@ fun NavigationHost(
             }
         }
     ) {
-        val screen by produceUiState {
-            val node = navigator.loadRouteNode(it)
-            SDCNavigationScreen(screenNode = node, states = navigator.states)
-        }
-        SDCLoaderLayout(state = screen) {
-            NavigationDestination {
-                it.Content()
-            }
+        val screen = SDCNavigationScreen(screenNode = it, states = navigator.states)
+        NavigationDestination {
+            screen.Content()
         }
     }
 }

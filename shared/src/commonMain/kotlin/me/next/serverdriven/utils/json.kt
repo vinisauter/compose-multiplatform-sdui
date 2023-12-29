@@ -1,8 +1,10 @@
 package me.next.serverdriven.utils
 
 import generateUUID
+import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.booleanOrNull
@@ -14,24 +16,32 @@ import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.longOrNull
 import me.next.serverdriven.core.tree.ServerDrivenNode
 
-fun JsonObject.toNode(): ServerDrivenNode {
-    val json = this
-    return object : ServerDrivenNode {
-        override val id: String
-            get() = json["id"]?.jsonPrimitive?.content ?: "$component:${generateUUID()}"
-        override val component: String
-            get() = json["component"]?.jsonPrimitive?.content!!
-        override val properties: MutableMap<String, String?>?
-            get() = json["properties"]?.let { properties ->
-                transformJsonObjectToMapOfString(properties.jsonObject)
-            }
-        override val children: MutableList<ServerDrivenNode>?
-            get() = json["children"]?.jsonArray?.let { jsonArray ->
-                mapValuesToMutableList(jsonArray) {
-                    it.jsonObject.toNode()
-                }
-            }
+interface ServerDrivenJson {
+    val json: JsonObject
+}
+
+@Serializable
+class JsonServerDrivenNode(override val json: JsonObject) : ServerDrivenNode(
+    id = json["id"]?.jsonPrimitive?.content
+        ?: "${json["component"]?.jsonPrimitive?.content!!}:${generateUUID()}",
+    component = json["component"]?.jsonPrimitive?.content!!,
+    properties = json["properties"]?.let { properties ->
+        transformJsonObjectToMapOfString(properties.jsonObject)
+    },
+    children = json["children"]?.jsonArray?.let { jsonArray ->
+        mapValuesToMutableList(jsonArray) {
+            it.jsonObject.toNode()
+        }
     }
+), ServerDrivenJson {
+    override fun toString(): String {
+        return json.toString()
+    }
+}
+
+fun JsonObject.toNode(): ServerDrivenNode {
+    this["component"]?.jsonPrimitive?.content!!
+    return JsonServerDrivenNode(this)
 }
 
 fun transformJsonObjectToMapOfString(json: JsonObject): MutableMap<String, String?> {
@@ -122,4 +132,43 @@ fun <T, U> mapValuesToMutableList(list: List<T>, iterate: (item: T) -> U): Mutab
     val result = ArrayList<U>()
     list.forEach { result.add(iterate(it)) }
     return result
+}
+
+internal fun JsonElement.toAny(): Any? = when (this) {
+    is JsonObject -> this.mapValues { it.value.toAny() }
+    is JsonArray -> this.map { it.toAny() }
+    is JsonPrimitive -> {
+        when {
+            isString -> this.content
+            this is JsonNull -> null
+            else -> booleanOrNull ?: intOrNull ?: longOrNull ?: doubleOrNull
+            ?: error("cannot decode $this")
+        }
+    }
+
+    else -> error("cannot convert $this to Any")
+}
+
+inline fun <reified T> Any?.cast() = this as? T
+
+fun Any?.toJsonElement(): JsonElement = when (this) {
+    null -> JsonNull
+    is JsonElement -> this
+    is Map<*, *> -> JsonObject(this.cast<Map<String, *>>()!!.mapValues { it.value.toJsonElement() })
+    is Collection<*> -> JsonArray(map { it.toJsonElement() })
+    is Array<*> -> JsonArray(map { it.toJsonElement() })
+    is ByteArray -> JsonArray(map { JsonPrimitive(it) })
+    is CharArray -> JsonPrimitive(this.toString())
+    is ShortArray -> JsonArray(map { JsonPrimitive(it) })
+    is IntArray -> JsonArray(map { JsonPrimitive(it) })
+    is LongArray -> JsonArray(map { JsonPrimitive(it) })
+    is FloatArray -> JsonArray(map { JsonPrimitive(it) })
+    is DoubleArray -> JsonArray(map { JsonPrimitive(it) })
+    is BooleanArray -> JsonArray(map { JsonPrimitive(it) })
+    is Boolean -> JsonPrimitive(this)
+    is Number -> JsonPrimitive(this)
+    is String -> JsonPrimitive(this)
+    is Enum<*> -> JsonPrimitive(this.toString())
+    is JsonServerDrivenNode -> json
+    else -> throw IllegalStateException("Can't serialize unknown type: ${this::class} - $this")
 }

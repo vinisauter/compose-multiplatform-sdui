@@ -10,7 +10,7 @@ inline fun <T> produceUiState(crossinline block: suspend () -> T): State<UIResul
         value = try {
             UIResult.Success(block.invoke())
         } catch (error: Throwable) {
-            logger.error("ProduceUiState", error)
+            logger.e("ProduceUiState", error)
             UIResult.Error(error)
         }
     }

@@ -10,7 +10,7 @@ import me.next.serverdriven.core.library.layout.components.fromNode
 import me.next.serverdriven.core.tree.ServerDrivenNode
 
 typealias ComponentHandler = @Composable (ServerDrivenNode, MutableMap<String, String>) -> Unit
-typealias ActionHandler = (ServerDrivenNode, MutableMap<String, String>) -> Unit
+typealias ActionHandler = suspend (ServerDrivenNode, MutableMap<String, String>) -> Unit
 
 open class SDLibrary(val namespace: String = "") {
     private val components = HashMap<String, ComponentHandler>()
@@ -26,7 +26,10 @@ open class SDLibrary(val namespace: String = "") {
                 modifierGen = Modifier.fromNode(node)
                 load.invoke(node, state)
             }
-            SDCLoaderLayout(modifier = modifierGen ?: Modifier, state = uiState) {
+            SDCLoaderLayout(
+                modifier = modifierGen ?: Modifier,
+                state = uiState
+            ) {
                 it.Content()
             }
         }
