@@ -1,5 +1,5 @@
 {
-  "id": "hello-world",
+  "id": "hello-world-static",
   "component": "layout:column",
   "properties": {
     "fillMaxWidth": "1.0",
@@ -15,7 +15,7 @@
     {
       "component": "layout:imageFile",
       "properties": {
-        "painterResource": "compose-multiplatform.xml",
+        "painterResource": "drawable/compose-multiplatform.xml",
         "contentDescription": "LOGO"
       }
     }

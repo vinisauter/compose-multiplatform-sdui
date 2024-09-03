@@ -9,6 +9,10 @@ class SDAction : SDLibrary("action") {
     private val localMethods: HashMap<String,
                 (ServerDrivenNode, MutableMap<String, String>) -> Unit> = HashMap()
 
+    private fun loadMethod(method: String): (ServerDrivenNode, MutableMap<String, String>) -> Unit {
+        return localMethods[method] ?: error("No MethodHandler for method: $method")
+    }
+
     init {
         registerBooleanMethods(this)
         registerNativeMethods(this)
@@ -27,7 +31,6 @@ class SDAction : SDLibrary("action") {
                 loadMethod(this).invoke(node, state)
             }
         }
-
     }
 
     fun registerMethod(
@@ -35,9 +38,5 @@ class SDAction : SDLibrary("action") {
         handler: (ServerDrivenNode, MutableMap<String, String>) -> Unit
     ) {
         localMethods[method] = handler
-    }
-
-    private fun loadMethod(method: String): (ServerDrivenNode, MutableMap<String, String>) -> Unit {
-        return localMethods[method] ?: error("No MethodHandler for method: $method")
     }
 }

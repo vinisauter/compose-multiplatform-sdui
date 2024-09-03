@@ -14,7 +14,7 @@
       "properties": {
         "name": "login",
         "type": "file",
-        "destiny": "layout/login.json",
+        "destiny": "files/layout/login.json",
         "link": "../login"
       }
     },
@@ -31,7 +31,7 @@
       "properties": {
         "name": "menu",
         "type": "file",
-        "destiny": "layout/menu.json"
+        "destiny": "files/layout/menu.json"
       }
     },
     {
@@ -39,7 +39,7 @@
       "properties": {
         "name": "static",
         "type": "file",
-        "destiny": "layout/static.json"
+        "destiny": "files/layout/static.json"
       }
     },
     {
@@ -47,7 +47,7 @@
       "properties": {
         "name": "template",
         "type": "file",
-        "destiny": "layout/template.json"
+        "destiny": "files/layout/template.json"
       }
     }
   ]

@@ -12,7 +12,7 @@ import me.next.serverdriven.compose.produceUiState
 fun ServerDrivenApp() {
     SDCLibrary(debug = true) {
         val stateMap: MutableMap<String, String> = remember { mutableStateMapOf() }
-        val graph = "navigation/app-navigation.json"
+        val graph = "files/navigation/app-navigation.json"
         val uiState by produceUiState {
             loadNodeTypeProvider("file").invoke(graph)
         }

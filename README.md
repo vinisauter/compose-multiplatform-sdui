@@ -239,7 +239,7 @@ the same time:
                }
                AnimatedVisibility(showImage) {
                    Image(
-                       painterResource("compose-multiplatform.xml"),
+                       painterResource("drawable/compose-multiplatform.xml"),
                        null
                    )
                }
@@ -267,7 +267,7 @@ the same time:
    +           TextField(greetingText, onValueChange = { greetingText = it })
                AnimatedVisibility(showImage) {
                    Image(
-                       painterResource("compose-multiplatform.xml"),
+                       painterResource("drawable/compose-multiplatform.xml"),
                        null
                    )
                }

@@ -1,32 +1,35 @@
 [versions]
-agp = "8.2.0"
+agp = "8.5.2"
 android-compileSdk = "34"
 android-minSdk = "24"
 android-targetSdk = "34"
-androidx-activityCompose = "1.8.2"
-androidx-appcompat = "1.6.1"
-apollo = "3.8.1"
-buildConfig = "4.1.1"
-compose = "1.5.11"
-compose-uitooling = "1.5.4"
+androidx-activityCompose = "1.9.1"
+androidx-appcompat = "1.7.0"
+androidx-uiTest = "1.6.8"
+apollo = "4.0.0"
+buildConfig = "5.4.0"
+coil = "3.0.0-alpha10"
+compose = "1.7.0-alpha03"
+compose-uitooling = "1.6.8"
 composeIcons = "1.1.0"
 composeImageLoader = "1.7.1"
-coreKtx = "1.12.0"
-koin = "3.5.0"
-kotlin = "1.9.21"
-kotlinx-coroutines = "1.7.3"
-kotlinx-datetime = "0.5.0"
-kotlinx-serialization = "1.6.2"
-kstore = "0.7.1"
-ktor = "2.3.7"
+coreKtx = "1.13.1"
+koin = "4.0.0-RC1"
+kotlin = "2.0.20"
+kotlinx-coroutines = "1.9.0-RC.2"
+kotlinx-datetime = "0.6.1"
+kotlinx-serialization = "1.7.2"
+kstore = "0.8.0"
+ktor = "3.0.0-beta-2"
 libres = "1.2.2"
 moko-mvvm = "0.16.1"
 multiplatformSettings = "1.1.1"
-napier = "2.6.1"
+napier = "2.7.1"
 preferenceKtx = "1.2.1"
 runtime = "1.5.5"
-sqlDelight = "2.0.1"
-voyager = "1.0.0"
+sqlDelight = "2.0.2"
+voyager = "1.1.0-beta02"
+uiToolingPreviewDesktop = "1.6.8"
 
 [libraries]
 
@@ -41,6 +44,7 @@ composeImageLoader = { module = "io.github.qdsfdhvh:image-loader", version.ref =
 napier = { module = "io.github.aakira:napier", version.ref = "napier" }
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinx-coroutines" }
 kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "kotlinx-coroutines" }
+kotlinx-coroutines-swing = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-swing", version.ref = "kotlinx-coroutines" }
 moko-mvvm = { module = "dev.icerock.moko:mvvm-compose", version.ref = "moko-mvvm" }
 ktor-core = { module = "io.ktor:ktor-client-core", version.ref = "ktor" }
 ktor-client-darwin = { module = "io.ktor:ktor-client-darwin", version.ref = "ktor" }
@@ -67,10 +71,12 @@ composeIcons-linea = { module = "br.com.devsrsouza.compose.icons:linea", version
 composeIcons-octicons = { module = "br.com.devsrsouza.compose.icons:octicons", version.ref = "composeIcons" }
 composeIcons-simpleIcons = { module = "br.com.devsrsouza.compose.icons:simple-icons", version.ref = "composeIcons" }
 composeIcons-tablerIcons = { module = "br.com.devsrsouza.compose.icons:tabler-icons", version.ref = "composeIcons" }
+androidx-ui-tooling-preview-desktop = { group = "androidx.compose.ui", name = "ui-tooling-preview-desktop", version.ref = "uiToolingPreviewDesktop" }
 
 [plugins]
 kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 compose = { id = "org.jetbrains.compose", version.ref = "compose" }
 android-application = { id = "com.android.application", version.ref = "agp" }
 android-library = { id = "com.android.library", version.ref = "agp" }

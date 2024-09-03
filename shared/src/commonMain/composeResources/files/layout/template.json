@@ -88,7 +88,7 @@
         {
           "component": "layout:imageFile",
           "properties": {
-            "painterResource": "compose-multiplatform.xml",
+            "painterResource": "drawable/compose-multiplatform.xml",
             "contentDescription": null
           }
         }

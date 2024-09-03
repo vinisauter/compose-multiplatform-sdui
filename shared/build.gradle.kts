@@ -1,15 +1,22 @@
+import org.jetbrains.compose.ExperimentalComposeLibrary
+import org.jetbrains.compose.desktop.application.dsl.TargetFormat
+import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
+import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSetTree
+
 plugins {
     alias(libs.plugins.kotlin.multiplatform)
-    alias(libs.plugins.android.library)
+    alias(libs.plugins.compose.compiler)
     alias(libs.plugins.compose)
+    alias(libs.plugins.android.library)
     alias(libs.plugins.buildConfig)
     alias(libs.plugins.kotlinx.serialization)
     alias(libs.plugins.libres)
-    alias(libs.plugins.sqlDelight)
 }
 
 kotlin {
-    androidTarget()
+    jvmToolchain(11)
+    androidTarget {
+    }
 
     jvm("desktop")
 
@@ -21,92 +28,87 @@ kotlin {
         iosTarget.binaries.framework {
             baseName = "shared"
             isStatic = true
+            freeCompilerArgs += listOf("-Xbinary=bundleId=me.next.serverdriven.shared")
         }
     }
 
     sourceSets {
-        val commonMain by getting {
-            dependencies {
-                implementation(compose.runtime)
-                implementation(compose.foundation)
-                implementation(compose.material)
-                @OptIn(org.jetbrains.compose.ExperimentalComposeLibrary::class)
-                implementation(compose.components.resources)
+        commonMain.dependencies {
+            implementation(compose.runtime)
+            implementation(compose.foundation)
+            implementation(compose.material)
+            implementation(compose.components.resources)
+            implementation(compose.components.uiToolingPreview)
+            implementation(libs.kotlinx.coroutines.core)
+            implementation(libs.kotlinx.coroutines.core)
+            implementation(libs.kotlinx.serialization.json)
+            implementation(libs.kotlinx.datetime)
+            implementation(libs.ktor.core)
+            implementation(libs.napier)
+            implementation(libs.composeIcons.feather)
+            implementation(libs.composeIcons.fontAwesome)
+            implementation(libs.multiplatform.settings)
+//            implementation(libs.libres)
+//            implementation(libs.sqlDelight.driver.runtime)
+//            implementation(libs.composeImageLoader)
+//            implementation(libs.multiplatformSettings)
+//            implementation(libs.kstore)
+//            implementation(libs.voyager.navigator)
+//            implementation(libs.koin.core)
+//            implementation(libs.moko.mvvm)
+        }
 
-                implementation(libs.libres)
-                implementation(libs.kotlinx.coroutines.core)
-                implementation(libs.kotlinx.serialization.json)
-                implementation(libs.kotlinx.datetime)
-                implementation(libs.ktor.core)
-                implementation(libs.napier)
-                implementation(libs.composeIcons.feather)
-                implementation(libs.composeIcons.fontAwesome)
-                implementation(libs.multiplatform.settings)
-                implementation(libs.sqlDelight.driver.runtime)
-//                implementation(libs.composeImageLoader)
-//                implementation(libs.multiplatformSettings)
-//                implementation(libs.kstore)
-//                implementation(libs.voyager.navigator)
-//                implementation(libs.koin.core)
-//                implementation(libs.moko.mvvm)
-            }
+        androidMain.dependencies {
+            implementation(libs.androidx.activityCompose)
+            implementation(libs.androidx.appcompat)
+            implementation(libs.androidx.core.ktx)
+            implementation(libs.androidx.preference.ktx)
+            implementation(compose.uiTooling)
+            implementation(libs.kotlinx.coroutines.android)
+            implementation(libs.ktor.client.okhttp)
         }
-        val androidMain by getting {
-            dependencies {
-                api(libs.androidx.activityCompose)
-                api(libs.androidx.appcompat)
-                api(libs.androidx.core.ktx)
-                api(libs.androidx.preference.ktx)
-            }
+
+        jvmMain.dependencies {
+            implementation(compose.desktop.common)
+            implementation(compose.desktop.currentOs)
+            implementation(libs.kotlinx.coroutines.swing)
+            implementation(libs.ktor.client.okhttp)
         }
-        val iosX64Main by getting
-        val iosArm64Main by getting
-        val iosSimulatorArm64Main by getting
-        val iosMain by creating {
-            dependsOn(commonMain)
-            iosX64Main.dependsOn(this)
-            iosArm64Main.dependsOn(this)
-            iosSimulatorArm64Main.dependsOn(this)
-        }
-        val desktopMain by getting {
-            dependencies {
-                implementation(compose.desktop.common)
-            }
+
+        iosMain.dependencies {
+            implementation(libs.ktor.client.darwin)
         }
     }
 }
 
 android {
+    namespace = "me.next.serverdriven"
     compileSdk = (findProperty("android.compileSdk") as String).toInt()
-    namespace = "com.myapplication.common"
-
-    sourceSets["main"].manifest.srcFile("src/androidMain/AndroidManifest.xml")
-    sourceSets["main"].res.srcDirs("src/androidMain/res")
-    sourceSets["main"].resources.srcDirs("src/commonMain/resources")
 
     defaultConfig {
         minSdk = (findProperty("android.minSdk") as String).toInt()
     }
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
-    }
-    kotlin {
-        jvmToolchain(17)
+}
+
+compose.resources {
+    publicResClass = true
+    packageOfResClass = "me.next.serverdriven.resources"
+    generateResClass = always
+}
+
+compose.desktop {
+    application {
+        mainClass = "MainKt"
+
+        nativeDistributions {
+            targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
+            packageName = "me.next.serverdriven.desktopApp"
+            packageVersion = "1.0.0"
+        }
     }
 }
 
 buildConfig {
     // BuildConfig configuration here.
     // https://github.com/gmazzo/gradle-buildconfig-plugin#usage-in-kts
-}
-
-sqldelight {
-    databases {
-        create("MyDatabase") {
-            // Database configuration here.
-            // https://cashapp.github.io/sqldelight
-            packageName.set("me.next.serverdriven.db")
-        }
-    }
 }

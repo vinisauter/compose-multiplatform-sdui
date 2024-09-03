@@ -5,9 +5,9 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import me.next.serverdriven.core.library.interfaces.NodeTypeProvider
 import me.next.serverdriven.core.tree.ServerDrivenNode
+import me.next.serverdriven.resources.Res
 import me.next.serverdriven.utils.toNode
 import org.jetbrains.compose.resources.ExperimentalResourceApi
-import org.jetbrains.compose.resources.resource
 
 @OptIn(ExperimentalResourceApi::class)
 class JsonFileNodeTypeProvider(res: String) : NodeTypeProvider {
@@ -15,8 +15,7 @@ class JsonFileNodeTypeProvider(res: String) : NodeTypeProvider {
 
     init {
         val json = runBlocking {
-            val resource = resource(res)
-            val bytes: ByteArray = resource.readBytes()
+            val bytes = Res.readBytes(res)
             bytes.decodeToString()
         }
         node = Json.decodeFromString<JsonObject>(json).toNode()

@@ -1,4 +1,3 @@
-import androidx.compose.desktop.ui.tooling.preview.Preview
 import androidx.compose.runtime.Composable
 import java.awt.Desktop
 import java.net.URI
@@ -14,9 +13,3 @@ actual fun generateUUID() = UUID.randomUUID().toString()
 
 @Composable
 fun MainView() = App()
-
-@Preview
-@Composable
-fun AppPreview() {
-    App()
-}
