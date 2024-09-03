@@ -18,7 +18,7 @@ kotlin {
     androidTarget {
     }
 
-    jvm("desktop")
+    jvm()
 
     listOf(
         iosX64(),
