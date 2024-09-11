@@ -1,18 +1,18 @@
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 
 plugins {
-    alias(libs.plugins.kotlin.multiplatform)
-    alias(libs.plugins.compose.compiler)
+    alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.compose)
+    alias(libs.plugins.compose.compiler)
 }
 
 kotlin {
     jvm()
     sourceSets {
-        val jvmMain by getting  {
+        val jvmMain by getting {
             dependencies {
-                implementation(compose.desktop.currentOs)
                 implementation(project(":shared"))
+                implementation(compose.desktop.currentOs)
             }
         }
     }
@@ -20,11 +20,10 @@ kotlin {
 
 compose.desktop {
     application {
-        mainClass = "MainKt"
-
+        mainClass = "br.com.developes.sdui.MainKt"
         nativeDistributions {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
-            packageName = "KotlinMultiplatformComposeDesktopApplication"
+            packageName = "br.com.developes.sdui"
             packageVersion = "1.0.0"
         }
     }

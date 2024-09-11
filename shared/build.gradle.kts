@@ -1,24 +1,21 @@
-import org.jetbrains.compose.ExperimentalComposeLibrary
-import org.jetbrains.compose.desktop.application.dsl.TargetFormat
-import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
-import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSetTree
-
 plugins {
-    alias(libs.plugins.kotlin.multiplatform)
+    alias(libs.plugins.kotlinMultiplatform)
+    alias(libs.plugins.androidLibrary)
     alias(libs.plugins.compose.compiler)
     alias(libs.plugins.compose)
-    alias(libs.plugins.android.library)
     alias(libs.plugins.buildConfig)
     alias(libs.plugins.kotlinx.serialization)
-    alias(libs.plugins.libres)
 }
 
 kotlin {
-    jvmToolchain(11)
     androidTarget {
+        compilations.all {
+            @Suppress("DEPRECATION")
+            kotlinOptions {
+                jvmTarget = "1.8"
+            }
+        }
     }
-
-    jvm()
 
     listOf(
         iosX64(),
@@ -48,67 +45,43 @@ kotlin {
             implementation(libs.composeIcons.feather)
             implementation(libs.composeIcons.fontAwesome)
             implementation(libs.multiplatform.settings)
-//            implementation(libs.libres)
-//            implementation(libs.sqlDelight.driver.runtime)
-//            implementation(libs.composeImageLoader)
-//            implementation(libs.multiplatformSettings)
-//            implementation(libs.kstore)
-//            implementation(libs.voyager.navigator)
-//            implementation(libs.koin.core)
-//            implementation(libs.moko.mvvm)
         }
-
         androidMain.dependencies {
-            implementation(libs.androidx.activityCompose)
+            implementation(libs.androidx.activity.compose)
             implementation(libs.androidx.appcompat)
             implementation(libs.androidx.core.ktx)
             implementation(libs.androidx.preference.ktx)
-            implementation(compose.uiTooling)
             implementation(libs.kotlinx.coroutines.android)
             implementation(libs.ktor.client.okhttp)
         }
-
-        jvmMain.dependencies {
-            implementation(compose.desktop.common)
-            implementation(compose.desktop.currentOs)
-            implementation(libs.kotlinx.coroutines.swing)
-            implementation(libs.ktor.client.okhttp)
-        }
-
         iosMain.dependencies {
             implementation(libs.ktor.client.darwin)
         }
-    }
-}
-
-android {
-    namespace = "me.next.serverdriven"
-    compileSdk = (findProperty("android.compileSdk") as String).toInt()
-
-    defaultConfig {
-        minSdk = (findProperty("android.minSdk") as String).toInt()
+        commonTest.dependencies {
+            implementation(libs.kotlin.test)
+        }
     }
 }
 
 compose.resources {
     publicResClass = true
-    packageOfResClass = "me.next.serverdriven.resources"
+    packageOfResClass = "br.com.developes.sdui.resources"
     generateResClass = always
 }
 
-compose.desktop {
-    application {
-        mainClass = "MainKt"
-
-        nativeDistributions {
-            targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
-            packageName = "me.next.serverdriven.desktopApp"
-            packageVersion = "1.0.0"
-        }
-    }
+buildConfig {
+    // https://github.com/gmazzo/gradle-buildconfig-plugin#usage-in-kts
+    buildConfigField("BUILD_TIME", System.currentTimeMillis())
 }
 
-buildConfig {
-    // BuildConfig configuration here.
-    // https://github.com/gmazzo/gradle-buildconfig-plugin#usage-in-kts
+android {
+    namespace = "br.com.developes.sdui"
+    compileSdk = 34
+    defaultConfig {
+        minSdk = 24
+    }
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_1_8
+        targetCompatibility = JavaVersion.VERSION_1_8
+    }
 }

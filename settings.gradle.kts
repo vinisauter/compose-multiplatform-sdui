@@ -1,17 +1,17 @@
-rootProject.name = "SDUI-ComposeApplication"
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
-
-include(":shared")
-include(":iosApp")
-include(":androidApp")
-include(":desktopApp")
-
 pluginManagement {
     repositories {
-        maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
         google()
         gradlePluginPortal()
         mavenCentral()
+//        maven {
+//            url = uri("https://nexus.prebanco.com.br/nexus/repository/next_mobile-build/")
+//            credentials {
+//                username = "next-mobile"
+//                password = "next-mobile@nexus"
+//            }
+//            isAllowInsecureProtocol = true
+//        }
     }
 }
 
@@ -19,10 +19,19 @@ dependencyResolutionManagement {
     repositories {
         google()
         mavenCentral()
-        maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
+//        maven {
+//            url = uri("https://nexus.prebanco.com.br/nexus/repository/next_mobile-build/")
+//            credentials {
+//                username = "next-mobile"
+//                password = "next-mobile@nexus"
+//            }
+//            isAllowInsecureProtocol = true
+//        }
     }
 }
 
-plugins {
-    id("org.gradle.toolchains.foojay-resolver-convention") version("0.7.0")
-}
+rootProject.name = "SDUI-ComposeApplication"
+
+include(":androidApp")
+include(":iosApp")
+include(":shared")

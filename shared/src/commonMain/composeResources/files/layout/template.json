@@ -63,9 +63,8 @@
       "component": "layout:button",
       "properties": {
         "onClick": {
-          "component": "action:method",
+          "component": "navigation:goToUrl",
           "properties": {
-            "method": "openUrl",
             "url": "https://www.google.com.br/"
           }
         }

@@ -2,6 +2,7 @@
 rm -rf .idea
 ./gradlew clean
 rm -rf .gradle
+rm -rf .kotlin
 rm -rf build
 rm -rf */build
 rm -rf iosApp/iosApp.xcworkspace
