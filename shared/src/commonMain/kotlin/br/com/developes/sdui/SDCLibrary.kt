@@ -209,6 +209,7 @@ class SDCLibrary private constructor() {
          * It seems like instance is an object (possibly a class or singleton) that holds a registry of available components.
          *
          * ```if (component != null) { ... } else { ... }```: This conditional block checks if a corresponding Composable function was found for the given nodeComponent.
+         *
          * ```component.invoke(node, dataState)```: If a component is found, it's invoked (called) and passed the node and dataState as arguments.
          * This is how the actual UI component is rendered.
          *
@@ -221,7 +222,7 @@ class SDCLibrary private constructor() {
             dataState: MutableMap<String, String>
         ) {
             if (node is IgnoredNode) return
-            val nodeComponent = node.component
+            val nodeComponent = node.component // button? text? topbar? column?
             val component = instance.getComponent(nodeComponent)
             if (component != null) {
                 component.invoke(node, dataState)
