@@ -9,6 +9,7 @@ import br.com.developes.sdui.layout.components.SDCButtonText
 import br.com.developes.sdui.layout.components.SDCColumn
 import br.com.developes.sdui.layout.components.SDCImage
 import br.com.developes.sdui.layout.components.SDCRow
+import br.com.developes.sdui.layout.components.SDCScaffold
 import br.com.developes.sdui.layout.components.SDCText
 import br.com.developes.sdui.layout.components.SDCTextField
 
@@ -24,5 +25,6 @@ class SDLayout : SDLibrary("layout") {
         addComponentLayout("button") { node, state -> SDCButton(node, state) }
         addComponentLayout("textButton") { node, state -> SDCButtonText(node, state) }
         addComponentLayout("iconButton") { node, state -> SDCButtonIcon(node, state) }
+        addComponentLayout("scaffold") { node, state -> SDCScaffold(node, state) }
     }
 }

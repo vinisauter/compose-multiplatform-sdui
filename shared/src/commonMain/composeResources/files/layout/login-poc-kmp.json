@@ -1,8 +1,7 @@
 {
   "id": "login",
-  "component": "layout:column",
+  "component": "layout:scaffold",
   "properties": {
-    "verticalArrangement": "Center",
     "backgroundColor": "2379677",
     "fillMaxSize": "1"
   },
@@ -10,7 +9,7 @@
     {
       "component": "layout:row",
       "properties": {
-        "fillMaxWidth": "",
+        "fillMaxWidth": "1",
         "horizontalArrangement": "Center",
         "paddingAll": "5"
       },
