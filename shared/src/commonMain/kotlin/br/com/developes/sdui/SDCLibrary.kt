@@ -90,8 +90,6 @@ typealias NodeProvider = suspend (String) -> ServerDrivenNode
  * @property libraries: HashMap<String, SDLibrary>: A map to store instances of other SDLibrary objects,
  * representing different modules or feature sets,
  * indexed by a namespace (a string identifier).
- *
- * Here's a breakdown of its key aspects:
  * */
 class SDCLibrary private constructor() {
     private val libraries: HashMap<String, SDLibrary> = HashMap()
