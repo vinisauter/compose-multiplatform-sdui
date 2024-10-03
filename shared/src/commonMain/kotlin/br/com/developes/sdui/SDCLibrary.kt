@@ -202,18 +202,19 @@ class SDCLibrary private constructor() {
          * @param dataState: A [MutableMap] used to store and manage state related to the UI.
          *
          * step by step:
-         * if (node is IgnoredNode) return: This line checks if the node is an instance of IgnoredNode.
+         * ```if (node is IgnoredNode) return```: This line checks if the node is an instance of IgnoredNode.
          * If it is, the function returns without rendering anything. This suggests that certain nodes might be marked as ignorable in the server response.
          *
-         * val nodeComponent = node.component: This retrieves the actual component identifier (likely a string) from the node object.
+         * ```val nodeComponent = node.component```: This retrieves the actual component identifier (likely a string) from the node object.
          *
-         * val component = instance.getComponent(nodeComponent): This line retrieves a Composable function associated with the nodeComponent identifier.
+         * ```val component = instance.getComponent(nodeComponent)```: This line retrieves a Composable function associated with the nodeComponent identifier.
          * It seems like instance is an object (possibly a class or singleton) that holds a registry of available components.
          *
-         * if (component != null) { ... } else { ... }: This conditional block checks if a corresponding Composable function was found for the given nodeComponent.
-         * component.invoke(node, dataState): If a component is found, it's invoked (called) and passed the node and dataState as arguments.
+         * ```if (component != null) { ... } else { ... }```: This conditional block checks if a corresponding Composable function was found for the given nodeComponent.
+         * ```component.invoke(node, dataState)```: If a component is found, it's invoked (called) and passed the node and dataState as arguments.
          * This is how the actual UI component is rendered.
-         * Text(...): If no component is found, an error message is displayed within a Text composable.
+         *
+         * ```Text(...)```: If no component is found, an error message is displayed within a Text composable.
          * This message indicates that the server-driven component is unknown and includes the unrecognized node.component for debugging purposes.
          * */
         @Composable
