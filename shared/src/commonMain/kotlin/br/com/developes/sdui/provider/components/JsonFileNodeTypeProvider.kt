@@ -9,6 +9,11 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 
+/**
+ * reads a JSON file from the specified resource, parses it into a [JsonObject],
+ * and converts it into a [ServerDrivenNode] which represents the root of the server-driven UI.
+ * This [ServerDrivenNode] is then accessible through the node property.
+ * */
 @OptIn(ExperimentalResourceApi::class)
 class JsonFileNodeTypeProvider(res: String) : NodeTypeProvider {
     override val node: ServerDrivenNode
