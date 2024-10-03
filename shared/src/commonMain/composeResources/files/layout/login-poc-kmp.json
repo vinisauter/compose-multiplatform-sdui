@@ -69,7 +69,8 @@
         "fillMaxWidth": "",
         "horizontalArrangement": "End",
         "verticalAlignment": "Center",
-        "paddingAll": "5"
+        "paddingVertical": "20",
+        "paddingEnd": "12"
       },
       "children": [
         {
