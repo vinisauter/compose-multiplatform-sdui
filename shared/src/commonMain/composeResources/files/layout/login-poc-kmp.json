@@ -1,0 +1,119 @@
+{
+  "id": "login",
+  "component": "layout:column",
+  "properties": {
+    "verticalArrangement": "Center",
+    "backgroundColor": "2379677",
+    "fillMaxSize": "1"
+  },
+  "children": [
+    {
+      "component": "layout:row",
+      "properties": {
+        "fillMaxWidth": "",
+        "horizontalArrangement": "Center",
+        "paddingAll": "5"
+      },
+      "children": [
+        {
+          "component": "layout:imageFile",
+          "properties": {
+            "painterResource": "drawable/ic_logo_dark.xml",
+            "contentDescription": "LOGO"
+          }
+        }
+      ]
+    },
+    {
+      "id": "tfCPF",
+      "component": "layout:textField",
+      "properties": {
+        "fillMaxWidth": "1",
+        "keyboardType": "Number",
+        "paddingTop": "10",
+        "paddingHorizontal": "10",
+        "onChangeUpdateState": "cpf",
+        "imeAction": "Next",
+        "label": [
+          {
+            "component": "layout:text",
+            "properties": {
+              "text": "CPF"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "tfPassword",
+      "component": "layout:textField",
+      "properties": {
+        "fillMaxWidth": "1",
+        "paddingTop": "10",
+        "paddingHorizontal": "10",
+        "keyboardType": "NumberPassword",
+        "onChangeUpdateState": "password",
+        "imeAction": "Done",
+        "label": [
+          {
+            "component": "layout:text",
+            "properties": {
+              "text": "Senha"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "component": "layout:row",
+      "properties": {
+        "fillMaxWidth": "",
+        "horizontalArrangement": "End",
+        "verticalAlignment": "Center",
+        "paddingAll": "5"
+      },
+      "children": [
+        {
+          "component": "layout:imageFile",
+          "properties": {
+            "paddingEnd": "10",
+            "painterResource": "drawable/ic_back_right.xml",
+            "contentDescription": "LOGO"
+          }
+        },
+        {
+          "component": "layout:text",
+          "properties": {
+            "text": "Esqueci a senha",
+            "onClick": [
+              {
+                "component": "navigation:goTo",
+                "properties": {
+                  "destiny": "menu"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "component": "layout:textButton",
+      "properties": {
+        "height": "70",
+        "paddingHorizontal": "5",
+        "fillMaxWidth": "1",
+        "roundedCornerShape": "7",
+        "text": "Entrar",
+        "onClick": [
+          {
+            "component": "navigation:goTo",
+            "properties": {
+              "destiny": "menu"
+            }
+          }
+        ]
+      }
+    }
+  ]
+}
