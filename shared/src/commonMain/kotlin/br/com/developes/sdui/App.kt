@@ -45,6 +45,10 @@ fun App() {
     }
 }
 
+/**
+ * Initializes a server-driven UI SDK, loads a UI structure from a JSON file, and uses the SDK to render the UI based on the loaded structure.
+ * The use of [produceUiState] makes possible that the UI can be updated asynchronously, possibly reflecting changes from the server.
+ * */
 @Composable
 fun ServerDrivenApp() {
     SDCLibrary(debug = true) {
