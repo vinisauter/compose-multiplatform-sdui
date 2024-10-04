@@ -12,6 +12,7 @@ import br.com.developes.sdui.layout.components.SDCRow
 import br.com.developes.sdui.layout.components.SDCScaffold
 import br.com.developes.sdui.layout.components.SDCText
 import br.com.developes.sdui.layout.components.SDCTextField
+import br.com.developes.sdui.layout.components.SDCTopAppBar
 
 class SDLayout : SDLibrary("layout") {
     init {
@@ -26,5 +27,6 @@ class SDLayout : SDLibrary("layout") {
         addComponentLayout("textButton") { node, state -> SDCButtonText(node, state) }
         addComponentLayout("iconButton") { node, state -> SDCButtonIcon(node, state) }
         addComponentLayout("scaffold") { node, state -> SDCScaffold(node, state) }
+        addComponentLayout("topAppBar") { node, state -> SDCTopAppBar(node, state) }
     }
 }

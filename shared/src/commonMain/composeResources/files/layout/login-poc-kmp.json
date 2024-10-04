@@ -1,11 +1,18 @@
 {
   "id": "login",
-  "component": "layout:scaffold",
+  "component": "layout:column",
   "properties": {
     "backgroundColor": "2379677",
     "fillMaxSize": "1"
   },
   "children": [
+    {
+      "component": "layout:topAppBar",
+      "properties": {
+        "title": "ENTRAR",
+        "horizontalArrangement": "Center"
+      }
+    },
     {
       "component": "layout:row",
       "properties": {

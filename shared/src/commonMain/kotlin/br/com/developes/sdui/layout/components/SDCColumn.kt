@@ -8,9 +8,12 @@ import androidx.compose.ui.Modifier
 import br.com.developes.sdui.SDCLibrary
 import br.com.developes.sdui.ServerDrivenNode
 import br.com.developes.sdui.layout.Layout
+import br.com.developes.sdui.layout.dp
 
 class SDCColumn(node: ServerDrivenNode, state: MutableMap<String, String>) : Layout {
     private val modifier = Modifier.fromNode(node)
+    private val spacedBy = node.property("spacedBy")?.dp
+
     private val verticalArrangement: Arrangement.Vertical =
         when (node.property("verticalArrangement")) {
             null -> Arrangement.Top
@@ -42,10 +45,16 @@ class SDCColumn(node: ServerDrivenNode, state: MutableMap<String, String>) : Lay
     override fun Content() {
         Column(
             modifier = modifier,
-            verticalArrangement = verticalArrangement,
+            verticalArrangement = verticallArrangement(),
             horizontalAlignment = horizontalAlignment
         ) {
             loadChildren.invoke()
         }
+    }
+
+    private fun verticallArrangement(): Arrangement.Vertical {
+        return spacedBy?.let {
+            Arrangement.spacedBy(space = spacedBy, Alignment.CenterVertically)
+        }?: verticalArrangement
     }
 }

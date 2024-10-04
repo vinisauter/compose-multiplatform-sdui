@@ -1,0 +1,77 @@
+{
+  "id": "login",
+  "component": "layout:box",
+  "properties": {
+    "spacedBy": "12",
+    "paddingHorizontal": "12",
+    "backgroundColor": "4294901760",
+    "fillMaxSize": ""
+  },
+  "children": [
+    {
+      "component": "layout:row",
+      "properties": {
+        "verticalAlignment": "Bottom",
+        "backgroundColor": "4278255360",
+        "paddingAll": "5"
+      },
+      "children": [
+        {
+          "component": "layout:imageFile",
+          "properties": {
+            "verticalAlignment": "Bottom",
+            "painterResource": "drawable/ic_logo_dark.xml",
+            "contentDescription": "LOGO"
+          }
+        }
+      ]
+    },
+    {
+      "component": "layout:column",
+      "properties": {
+        "contentAlignment": "BottomCenter",
+        "horizontalArrangement": "Center",
+        "backgroundColor": "4278190080"
+      },
+      "children": [
+        {
+          "id": "btAlreadyRegistered",
+          "component": "layout:textButton",
+          "properties": {
+            "height": "70",
+            "fillMaxWidth": "1",
+            "roundedCornerShape": "7",
+            "text": "JÁ TENHO CONTA",
+            "onClick": [
+              {
+                "component": "navigation:goTo",
+                "properties": {
+                  "destiny": "menu"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "btCreateAccount",
+          "component": "layout:textButton",
+          "properties": {
+            "height": "70",
+            "border": "70",
+            "fillMaxWidth": "1",
+            "roundedCornerShape": "7",
+            "text": "CRIAR CONTA",
+            "onClick": [
+              {
+                "component": "navigation:goTo",
+                "properties": {
+                  "destiny": "menu"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}
