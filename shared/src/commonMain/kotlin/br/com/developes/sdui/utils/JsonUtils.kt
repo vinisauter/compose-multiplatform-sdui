@@ -130,3 +130,35 @@ fun <T, U> mapValuesToMutableList(list: List<T>, iterate: (item: T) -> U): Mutab
     list.forEach { result.add(iterate(it)) }
     return result
 }
+
+fun String.toColorInt(): Long {
+    if (this[0] == '#') {
+        var color = substring(1).toLong(16)
+        if (length == 7) {
+            color = color or 0x00000000ff000000L
+        } else if (length != 9) {
+            throw IllegalArgumentException("Unknown color")
+        }
+        return color
+    }
+    throw IllegalArgumentException("Unknown color")
+}
+
+val JsonElement.serverDrivenNode: ArrayList<ServerDrivenNode>
+    get() = when (this) {
+        is JsonArray -> {
+            val nodes: ArrayList<ServerDrivenNode> = arrayListOf()
+            for (jsonItem in this) {
+                if (jsonItem is JsonObject) nodes.add(jsonItem.toNode())
+            }
+            nodes
+        }
+
+        is JsonObject -> {
+            arrayListOf(this.toNode())
+        }
+
+        else -> {
+            arrayListOf()
+        }
+    }
