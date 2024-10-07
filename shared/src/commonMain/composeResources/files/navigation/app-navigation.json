@@ -37,6 +37,30 @@
     {
       "component": "navigation:node",
       "properties": {
+        "name": "main",
+        "type": "file",
+        "destiny": "files/layout/main-screen-poc.json"
+      }
+    },
+    {
+      "component": "navigation:node",
+      "properties": {
+        "name": "login-poc",
+        "type": "file",
+        "destiny": "files/layout/login-poc.json"
+      }
+    },
+    {
+      "component": "navigation:node",
+      "properties": {
+        "name": "login-poc",
+        "type": "file",
+        "destiny": "files/layout/login-poc.json"
+      }
+    },
+    {
+      "component": "navigation:node",
+      "properties": {
         "name": "static",
         "type": "file",
         "destiny": "files/layout/static.json"

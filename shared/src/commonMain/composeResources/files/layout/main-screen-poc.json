@@ -42,7 +42,7 @@
               {
                 "component": "navigation:goTo",
                 "properties": {
-                  "destiny": "menu"
+                  "destiny": "login-poc"
                 }
               }
             ]
@@ -61,15 +61,7 @@
             "fillMaxWidth": "1",
             "height": "70",
             "roundedCornerShape": "7",
-            "text": "CRIAR CONTA",
-            "onClick": [
-              {
-                "component": "navigation:goTo",
-                "properties": {
-                  "destiny": "menu"
-                }
-              }
-            ]
+            "text": "CRIAR CONTA"
           }
         }
       ]

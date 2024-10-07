@@ -1,5 +1,5 @@
 {
-  "id": "login",
+  "id": "login-poc",
   "component": "layout:column",
   "properties": {
     "horizontalAlignment": "Center"

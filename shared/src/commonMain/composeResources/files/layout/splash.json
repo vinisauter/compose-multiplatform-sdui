@@ -14,6 +14,20 @@
         "painterResource": "drawable/ic_logo_bigger_light.xml",
         "contentDescription": null
       }
+    },
+    {
+      "component": "layout:textButton",
+      "properties": {
+        "text": "Next",
+        "onClick": [
+          {
+            "component": "navigation:goTo",
+            "properties": {
+              "destiny": "main"
+            }
+          }
+        ]
+      }
     }
   ]
 }
