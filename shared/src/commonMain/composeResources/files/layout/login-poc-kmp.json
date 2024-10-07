@@ -2,8 +2,7 @@
   "id": "login",
   "component": "layout:column",
   "properties": {
-    "backgroundColor": "2379677",
-    "fillMaxSize": "1"
+    "horizontalAlignment": "Center"
   },
   "children": [
     {
@@ -18,7 +17,7 @@
       "properties": {
         "fillMaxWidth": "1",
         "horizontalArrangement": "Center",
-        "paddingAll": "5"
+        "paddingTop": "12"
       },
       "children": [
         {
@@ -31,67 +30,105 @@
       ]
     },
     {
-      "id": "tfCPF",
-      "component": "layout:textField",
+      "component": "layout:column",
       "properties": {
-        "fillMaxWidth": "1",
-        "keyboardType": "Number",
-        "paddingTop": "10",
-        "paddingHorizontal": "10",
-        "onChangeUpdateState": "cpf",
-        "imeAction": "Next",
-        "label": [
-          {
-            "component": "layout:text",
-            "properties": {
-              "text": "CPF"
-            }
+        "paddingAll": "5",
+        "verticalArrangement": "Center",
+        "spacedBy": "12"
+      },
+      "children": [
+        {
+          "id": "tfEmail",
+          "component": "layout:textField",
+          "properties": {
+            "fillMaxWidth": "1",
+            "keyboardType": "Email",
+            "paddingTop": "10",
+            "paddingHorizontal": "10",
+            "onChangeUpdateState": "email",
+            "imeAction": "Next",
+            "label": [
+              {
+                "component": "layout:text",
+                "properties": {
+                  "text": "Email"
+                }
+              }
+            ]
           }
-        ]
-      }
-    },
-    {
-      "id": "tfPassword",
-      "component": "layout:textField",
-      "properties": {
-        "fillMaxWidth": "1",
-        "paddingTop": "10",
-        "paddingHorizontal": "10",
-        "keyboardType": "NumberPassword",
-        "onChangeUpdateState": "password",
-        "imeAction": "Done",
-        "label": [
-          {
-            "component": "layout:text",
-            "properties": {
-              "text": "Senha"
-            }
+        },
+        {
+          "id": "tfPassword",
+          "component": "layout:textField",
+          "properties": {
+            "fillMaxWidth": "1",
+            "paddingTop": "10",
+            "paddingHorizontal": "10",
+            "keyboardType": "NumberPassword",
+            "onChangeUpdateState": "password",
+            "imeAction": "Done",
+            "label": [
+              {
+                "component": "layout:text",
+                "properties": {
+                  "text": "Senha"
+                }
+              }
+            ]
           }
-        ]
-      }
+        },
+        {
+          "component": "layout:row",
+          "properties": {
+            "fillMaxWidth": "",
+            "horizontalArrangement": "End",
+            "verticalAlignment": "Center",
+            "paddingVertical": "20",
+            "paddingEnd": "12"
+          },
+          "children": [
+            {
+              "component": "layout:imageFile",
+              "properties": {
+                "paddingEnd": "10",
+                "painterResource": "drawable/ic_back_right.xml",
+                "contentDescription": "LOGO"
+              }
+            },
+            {
+              "component": "layout:text",
+              "properties": {
+                "text": "Esqueci a senha",
+                "onClick": [
+                  {
+                    "component": "navigation:goTo",
+                    "properties": {
+                      "destiny": "menu"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      ]
     },
     {
       "component": "layout:row",
       "properties": {
-        "fillMaxWidth": "",
-        "horizontalArrangement": "End",
-        "verticalAlignment": "Center",
-        "paddingVertical": "20",
-        "paddingEnd": "12"
+        "verticalAlignment": "Bottom",
+        "fillMaxSize": "",
+        "paddingAll": "20"
       },
       "children": [
         {
-          "component": "layout:imageFile",
+          "component": "layout:textButton",
           "properties": {
-            "paddingEnd": "10",
-            "painterResource": "drawable/ic_back_right.xml",
-            "contentDescription": "LOGO"
-          }
-        },
-        {
-          "component": "layout:text",
-          "properties": {
-            "text": "Esqueci a senha",
+            "height": "70",
+            "paddingHorizontal": "5",
+            "fillMaxWidth": "1",
+            "roundedCornerShape": "7",
+            "text": "Entrar",
             "onClick": [
               {
                 "component": "navigation:goTo",
@@ -103,24 +140,6 @@
           }
         }
       ]
-    },
-    {
-      "component": "layout:textButton",
-      "properties": {
-        "height": "70",
-        "paddingHorizontal": "5",
-        "fillMaxWidth": "1",
-        "roundedCornerShape": "7",
-        "text": "Entrar",
-        "onClick": [
-          {
-            "component": "navigation:goTo",
-            "properties": {
-              "destiny": "menu"
-            }
-          }
-        ]
-      }
     }
   ]
 }
