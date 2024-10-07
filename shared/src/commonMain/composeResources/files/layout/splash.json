@@ -1,0 +1,19 @@
+{
+  "id": "splash",
+  "component": "layout:column",
+  "properties": {
+    "horizontalAlignment": "Center",
+    "verticalArrangement": "Center",
+    "fillMaxSize": "1",
+    "backgroundColor": "4278190335"
+  },
+  "children": [
+    {
+      "component": "layout:imageFile",
+      "properties": {
+        "painterResource": "drawable/ic_logo_bigger_light.xml",
+        "contentDescription": null
+      }
+    }
+  ]
+}

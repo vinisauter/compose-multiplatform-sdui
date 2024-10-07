@@ -14,7 +14,7 @@
       "properties": {
         "name": "login",
         "type": "file",
-        "destiny": "files/layout/main-screen-poc-kmp.json",
+        "destiny": "files/layout/splash.json",
         "link": "../login"
       }
     },
