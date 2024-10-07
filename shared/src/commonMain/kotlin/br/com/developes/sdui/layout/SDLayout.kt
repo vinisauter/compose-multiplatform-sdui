@@ -8,6 +8,7 @@ import br.com.developes.sdui.layout.components.SDCButtonIcon
 import br.com.developes.sdui.layout.components.SDCButtonText
 import br.com.developes.sdui.layout.components.SDCColumn
 import br.com.developes.sdui.layout.components.SDCImage
+import br.com.developes.sdui.layout.components.SDCOutlinedButtonText
 import br.com.developes.sdui.layout.components.SDCRow
 import br.com.developes.sdui.layout.components.SDCScaffold
 import br.com.developes.sdui.layout.components.SDCText
@@ -24,6 +25,7 @@ class SDLayout : SDLibrary("layout") {
         addComponentLayout("animatedVisibility") { node, state -> SDCAnimatedVisibility(node, state) }
         addComponentLayout("imageFile") { node, state -> SDCImage(node, state) }
         addComponentLayout("button") { node, state -> SDCButton(node, state) }
+        addComponentLayout("outlinedButton") { node, state -> SDCOutlinedButtonText(node, state) }
         addComponentLayout("textButton") { node, state -> SDCButtonText(node, state) }
         addComponentLayout("iconButton") { node, state -> SDCButtonIcon(node, state) }
         addComponentLayout("scaffold") { node, state -> SDCScaffold(node, state) }
