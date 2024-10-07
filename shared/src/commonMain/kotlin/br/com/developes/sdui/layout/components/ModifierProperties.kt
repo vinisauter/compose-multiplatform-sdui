@@ -13,10 +13,18 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.TileMode
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import br.com.developes.sdui.ServerDrivenNode
+import br.com.developes.sdui.utils.toColorInt
+import kotlinx.serialization.json.float
+import kotlinx.serialization.json.jsonArray
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 
 fun Modifier.fromNode(
     node: ServerDrivenNode,
@@ -43,6 +51,80 @@ class ModifierProperties(
     private val paddingEnd = node.property("paddingEnd")?.dp
     private val paddingBottom = node.property("paddingBottom")?.dp
     private val backgroundColor = node.property("backgroundColor")?.hexToColor()
+    private val backgroundGradient =
+        node.propertyJsonObject("backgroundGradient")?.let { gradient ->
+            val type = gradient["type"]?.jsonPrimitive?.content
+            val colors = gradient["colors"]?.let { colors ->
+                colors.jsonArray.map { Color(it.jsonPrimitive.content.toColorInt()) }
+            } ?: emptyList()
+            val tileMode: TileMode = gradient["tileMode"]?.let {
+                when (it.jsonPrimitive.content) {
+                    "Clamp" -> TileMode.Clamp
+                    "Repeat" -> TileMode.Repeated
+                    "Mirror" -> TileMode.Mirror
+                    "Decal" -> TileMode.Decal
+                    else -> null
+                }
+            } ?: TileMode.Clamp
+
+            if (type == "linear") {
+                val start: Offset = gradient["startOffset"]?.let { offset ->
+                    Offset(
+                        offset.jsonObject["x"]!!.jsonPrimitive.float,
+                        offset.jsonObject["y"]!!.jsonPrimitive.float
+                    )
+                } ?: Offset.Zero
+                val end: Offset = gradient["endOffset"]?.let { offset ->
+                    Offset(
+                        offset.jsonObject["x"]!!.jsonPrimitive.float,
+                        offset.jsonObject["y"]!!.jsonPrimitive.float
+                    )
+                } ?: Offset.Infinite
+                Brush.linearGradient(colors = colors, tileMode = tileMode, start = start, end = end)
+            } else if (type == "radial") {
+                val center: Offset = gradient["centerOffset"]?.let { offset ->
+                    Offset(
+                        offset.jsonObject["x"]!!.jsonPrimitive.float,
+                        offset.jsonObject["y"]!!.jsonPrimitive.float
+                    )
+                } ?: Offset.Unspecified
+                val radius = gradient["radius"]?.jsonPrimitive?.float ?: Float.POSITIVE_INFINITY
+                Brush.radialGradient(
+                    colors = colors,
+                    tileMode = tileMode,
+                    center = center,
+                    radius = radius
+                )
+            } else if (type == "sweep") {
+                val center: Offset = gradient["centerOffset"]?.let { offset ->
+                    Offset(
+                        offset.jsonObject["x"]!!.jsonPrimitive.float,
+                        offset.jsonObject["y"]!!.jsonPrimitive.float
+                    )
+                } ?: Offset.Unspecified
+                Brush.sweepGradient(colors = colors, center = center)
+            } else if (type == "vertical") {
+                val startY = gradient["startY"]?.jsonPrimitive?.float ?: 0.0f
+                val endY = gradient["endY"]?.jsonPrimitive?.float ?: Float.POSITIVE_INFINITY
+                Brush.verticalGradient(
+                    colors = colors,
+                    tileMode = tileMode,
+                    startY = startY,
+                    endY = endY
+                )
+            } else if (type == "horizontal") {
+                val startX = gradient["startX"]?.jsonPrimitive?.float ?: 0.0f
+                val endX = gradient["endX"]?.jsonPrimitive?.float ?: Float.POSITIVE_INFINITY
+                Brush.horizontalGradient(
+                    colors = colors,
+                    tileMode = tileMode,
+                    startX = startX,
+                    endX = endX
+                )
+            } else {
+                null
+            }
+        }
     private val verticalScroll = node.property("verticalScroll")?.let { true }
     private val horizontalScroll = node.property("horizontalScroll")?.let { true }
     val modifier = modifier
@@ -82,6 +164,8 @@ class ModifierProperties(
                 end = end,
                 bottom = bottom
             )
+        }.ifNotNullThen(backgroundGradient) {
+            background(brush = it)
         }.ifNotNullThen(backgroundColor) {
             background(color = it)
         }.conditional(verticalScroll) {
