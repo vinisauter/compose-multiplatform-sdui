@@ -33,7 +33,7 @@ class SDCImage @OptIn(ExperimentalResourceApi::class) constructor(
         Image(
             modifier = modifier,
             imageVector = resource,
-            contentDescription = contentDescription
+            contentDescription = contentDescription,
         )
     }
 }

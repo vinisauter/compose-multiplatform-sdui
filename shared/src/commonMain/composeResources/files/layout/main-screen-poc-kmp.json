@@ -1,25 +1,22 @@
 {
-  "id": "login",
-  "component": "layout:box",
+  "id": "main-screen",
+  "component": "layout:column",
   "properties": {
-    "spacedBy": "12",
     "paddingHorizontal": "12",
-    "backgroundColor": "4294901760",
-    "fillMaxSize": ""
+    "paddingBottom": "24"
   },
   "children": [
     {
       "component": "layout:row",
       "properties": {
-        "verticalAlignment": "Bottom",
-        "backgroundColor": "4278255360",
-        "paddingAll": "5"
+        "fillMaxWidth": "",
+        "horizontalArrangement": "Center",
+        "paddingTop": "90"
       },
       "children": [
         {
           "component": "layout:imageFile",
           "properties": {
-            "verticalAlignment": "Bottom",
             "painterResource": "drawable/ic_logo_dark.xml",
             "contentDescription": "LOGO"
           }
@@ -29,18 +26,17 @@
     {
       "component": "layout:column",
       "properties": {
-        "contentAlignment": "BottomCenter",
-        "horizontalArrangement": "Center",
-        "backgroundColor": "4278190080"
+        "verticalArrangement": "Bottom",
+        "fillMaxSize": ""
       },
       "children": [
         {
           "id": "btAlreadyRegistered",
           "component": "layout:textButton",
           "properties": {
-            "height": "70",
             "fillMaxWidth": "1",
             "roundedCornerShape": "7",
+            "height": "70",
             "text": "JÁ TENHO CONTA",
             "onClick": [
               {
@@ -53,12 +49,17 @@
           }
         },
         {
+          "component": "layout:column",
+          "properties": {
+            "height": "24"
+          }
+        },
+        {
           "id": "btCreateAccount",
           "component": "layout:textButton",
           "properties": {
-            "height": "70",
-            "border": "70",
             "fillMaxWidth": "1",
+            "height": "70",
             "roundedCornerShape": "7",
             "text": "CRIAR CONTA",
             "onClick": [

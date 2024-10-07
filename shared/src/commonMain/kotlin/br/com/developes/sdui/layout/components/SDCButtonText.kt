@@ -22,7 +22,7 @@ class SDCButtonText(val node: ServerDrivenNode, val state: MutableMap<String, St
     private val enabled = node.propertyState("enabled", state)?.toBoolean()
     private val text = node.propertyState("text", state)!!
     private val actions = node.propertyNodes("onClick")
-    private val roundedCornerShape = node.property("roundedCornerShape")?.dp
+    private val roundedCornerShape = node.property("roundedCornerShape")?.dp ?: 0.dp
 
     @Composable
     override fun Content() {
@@ -30,6 +30,7 @@ class SDCButtonText(val node: ServerDrivenNode, val state: MutableMap<String, St
         val action = SDCLibrary.loadActions(actions)
         // Creates a CoroutineScope bound to the Content's lifecycle
         val scope = rememberCoroutineScope()
+
         Button(
             modifier = modifier,
             enabled = isEnabled,
@@ -39,7 +40,7 @@ class SDCButtonText(val node: ServerDrivenNode, val state: MutableMap<String, St
                     action.invoke(node, state)
                 }
             },
-            shape = RoundedCornerShape(roundedCornerShape ?: 0.dp)
+            shape = RoundedCornerShape(roundedCornerShape)
         ) {
             Text(text)
         }
