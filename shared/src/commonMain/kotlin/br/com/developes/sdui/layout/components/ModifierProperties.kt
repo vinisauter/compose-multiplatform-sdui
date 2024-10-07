@@ -42,7 +42,7 @@ class ModifierProperties(
     private val paddingTop = node.property("paddingTop")?.dp
     private val paddingEnd = node.property("paddingEnd")?.dp
     private val paddingBottom = node.property("paddingBottom")?.dp
-    private val backgroundColor = node.property("backgroundColor")?.let { Color(it.toLong()) }
+    private val backgroundColor = node.property("backgroundColor")?.hexToColor()
     private val verticalScroll = node.property("verticalScroll")?.let { true }
     private val horizontalScroll = node.property("horizontalScroll")?.let { true }
     val modifier = modifier
@@ -121,4 +121,15 @@ fun <T> Modifier.ifNotNullThen(value: T?, modifier: Modifier.(T) -> Modifier): M
     } else {
         this
     }
+}
+
+/**
+ * Supports colors in hex format AARRGGBB
+ * */
+private fun String.hexToColor(): Color {
+    val alpha = this.substring(0, 2).toInt(16)
+    val red = this.substring(2, 4).toInt(16)
+    val green = this.substring(4, 6).toInt(16)
+    val blue = this.substring(6, 8).toInt(16)
+    return Color(alpha = alpha, red = red, green = green, blue = blue)
 }

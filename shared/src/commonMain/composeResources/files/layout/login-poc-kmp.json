@@ -2,7 +2,7 @@
   "id": "login",
   "component": "layout:scaffold",
   "properties": {
-    "backgroundColor": "2379677",
+    "backgroundColor": "FFFFFFFF",
     "fillMaxSize": "1"
   },
   "children": [
