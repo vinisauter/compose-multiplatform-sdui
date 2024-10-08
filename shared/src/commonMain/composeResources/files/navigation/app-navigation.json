@@ -2,13 +2,29 @@
   "id": "app-navigation",
   "component": "navigation:graph",
   "properties": {
-    "startDestination": "login",
+    "startDestination": "login-recurrent",
     "states": {
       "name": "João da Silva",
       "nickname": "silva_apenas"
     }
   },
   "children": [
+    {
+      "component": "navigation:node",
+      "properties": {
+        "name": "splash",
+        "type": "file",
+        "destiny": "files/layout/splash.json"
+      }
+    },
+    {
+      "component": "navigation:node",
+      "properties": {
+        "name": "login-recurrent",
+        "type": "file",
+        "destiny": "files/layout/login-recurrent-poc.json"
+      }
+    },
     {
       "component": "navigation:node",
       "properties": {

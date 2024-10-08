@@ -6,8 +6,6 @@ import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
 import androidx.compose.material.Text
 import androidx.compose.material.TopAppBar
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -20,6 +18,9 @@ import br.com.developes.sdui.SDCLibrary
 import br.com.developes.sdui.SDCLibrary.Companion.launchHandling
 import br.com.developes.sdui.ServerDrivenNode
 import br.com.developes.sdui.layout.Layout
+import br.com.developes.sdui.resources.Res
+import br.com.developes.sdui.resources.ic_back_button_toolbar
+import org.jetbrains.compose.resources.vectorResource
 
 class SDCTopAppBar(val node: ServerDrivenNode, val state: MutableMap<String, String>) : Layout {
     private var modifier = Modifier.fromNode(node)
@@ -42,7 +43,7 @@ class SDCTopAppBar(val node: ServerDrivenNode, val state: MutableMap<String, Str
                     }
                 }) {
                     Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        imageVector = vectorResource(Res.drawable.ic_back_button_toolbar),
                         contentDescription = ""
                     )
                 }
