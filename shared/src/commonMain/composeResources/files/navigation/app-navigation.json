@@ -2,7 +2,7 @@
   "id": "app-navigation",
   "component": "navigation:graph",
   "properties": {
-    "startDestination": "login",
+    "startDestination": "login-recurrent",
     "states": {
       "name": "João da Silva",
       "nickname": "silva_apenas"
@@ -12,9 +12,25 @@
     {
       "component": "navigation:node",
       "properties": {
+        "name": "splash",
+        "type": "file",
+        "destiny": "files/layout/splash.json"
+      }
+    },
+    {
+      "component": "navigation:node",
+      "properties": {
+        "name": "login-recurrent",
+        "type": "file",
+        "destiny": "files/layout/login-recurrent-poc.json"
+      }
+    },
+    {
+      "component": "navigation:node",
+      "properties": {
         "name": "login",
         "type": "file",
-        "destiny": "files/layout/login-poc-kmp.json",
+        "destiny": "files/layout/splash.json",
         "link": "../login"
       }
     },
@@ -32,6 +48,30 @@
         "name": "menu",
         "type": "file",
         "destiny": "files/layout/menu.json"
+      }
+    },
+    {
+      "component": "navigation:node",
+      "properties": {
+        "name": "main",
+        "type": "file",
+        "destiny": "files/layout/main-screen-poc.json"
+      }
+    },
+    {
+      "component": "navigation:node",
+      "properties": {
+        "name": "login-poc",
+        "type": "file",
+        "destiny": "files/layout/login-poc.json"
+      }
+    },
+    {
+      "component": "navigation:node",
+      "properties": {
+        "name": "login-poc",
+        "type": "file",
+        "destiny": "files/layout/login-poc.json"
       }
     },
     {

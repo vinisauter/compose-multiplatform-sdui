@@ -11,6 +11,7 @@ import br.com.developes.sdui.layout.Layout
 
 class SDCColumn(node: ServerDrivenNode, state: MutableMap<String, String>) : Layout {
     private val modifier = Modifier.fromNode(node)
+
     private val verticalArrangement: Arrangement.Vertical =
         when (node.property("verticalArrangement")) {
             null -> Arrangement.Top
