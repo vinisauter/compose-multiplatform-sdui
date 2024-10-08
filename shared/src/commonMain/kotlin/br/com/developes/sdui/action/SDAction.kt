@@ -6,15 +6,14 @@ import br.com.developes.sdui.action.method.registerBooleanMethods
 
 class SDAction : SDLibrary("action") {
     private val localMethods: HashMap<String,
-                (ServerDrivenNode, MutableMap<String, String>) -> Unit> = HashMap()
+            suspend (ServerDrivenNode, MutableMap<String, String>) -> Unit> = HashMap()
 
-    private fun loadMethod(method: String): (ServerDrivenNode, MutableMap<String, String>) -> Unit {
+    private fun loadMethod(method: String): suspend (ServerDrivenNode, MutableMap<String, String>) -> Unit {
         return localMethods[method] ?: error("No MethodHandler for method: $method")
     }
 
     init {
         registerBooleanMethods(this)
-
         addAction("update") { node, states ->
             val stateName = node.propertyState("state", states)!!
             node.propertyState("value", states)?.run {
@@ -33,7 +32,7 @@ class SDAction : SDLibrary("action") {
 
     fun registerMethod(
         method: String,
-        handler: (ServerDrivenNode, MutableMap<String, String>) -> Unit
+        handler: suspend (ServerDrivenNode, MutableMap<String, String>) -> Unit
     ) {
         localMethods[method] = handler
     }

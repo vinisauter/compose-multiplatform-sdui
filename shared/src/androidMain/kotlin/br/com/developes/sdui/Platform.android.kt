@@ -6,6 +6,7 @@ import android.net.Uri
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
 import br.com.developes.sdui.SDCLibrary.Companion.launchHandling
+import br.com.developes.sdui.events.lifecycle.LifecycleTracker
 import br.com.developes.sdui.navigation.components.LocalNavigator
 import java.util.UUID
 
@@ -36,12 +37,12 @@ actual fun openUrl(url: String?) {
 actual fun generateUUID() = UUID.randomUUID().toString()
 
 @Composable
-fun MainView() {
+fun MainView(lifecycleTracker: LifecycleTracker) {
     val scope = rememberCoroutineScope()
     BackPressHandler {
         scope.launchHandling {
             LocalNavigator?.navigateBack()
         }
     }
-    App()
+    App(lifecycleTracker)
 }

@@ -8,6 +8,7 @@ import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.remember
@@ -15,6 +16,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import br.com.developes.sdui.SDCLibrary.Companion.loadNodeTypeProvider
+import br.com.developes.sdui.events.lifecycle.LifecycleTracker
+import br.com.developes.sdui.events.lifecycle.LocalLifecycleTracker
 import br.com.developes.sdui.utils.LoaderLayout
 import br.com.developes.sdui.utils.produceUiState
 import kotlin.native.concurrent.ThreadLocal
@@ -39,9 +42,11 @@ var defaultError: @Composable (modifier: Modifier, throwable: Throwable) -> Unit
     }
 
 @Composable
-fun App() {
-    MaterialTheme {
-        ServerDrivenApp()
+fun App(lifecycleTracker: LifecycleTracker) {
+    CompositionLocalProvider(LocalLifecycleTracker provides lifecycleTracker) {
+        MaterialTheme {
+            ServerDrivenApp()
+        }
     }
 }
 

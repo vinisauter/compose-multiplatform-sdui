@@ -24,6 +24,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import br.com.developes.sdui.action.SDAction
+import br.com.developes.sdui.events.SDEvent
 import br.com.developes.sdui.layout.SDLayout
 import br.com.developes.sdui.navigation.SDNavigation
 import br.com.developes.sdui.provider.components.JsonFileNodeTypeProvider
@@ -33,6 +34,7 @@ import br.com.developes.sdui.utils.SimpleLogger
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -131,13 +133,25 @@ class SDCLibrary private constructor() {
         private val LocalLib = staticCompositionLocalOf {
             val defaultLibraries: List<SDLibrary> = listOf(
                 SDLayout(),
+                SDNavigation(),
+                SDEvent(),
                 SDAction().also {
+                    //TODO: native components should be apart from the library
+                    //TODO: create shared library and sdc library
+                    //TODO: create a block on the constructor and load native components
                     it.registerMethod("getPlatformName") { node, states ->
                         val stateName = node.property("state") ?: "platformName"
                         states[stateName] = getPlatform().name
                     }
+                    it.registerMethod("loadSplashServices") { node, states ->
+                        delay(2000)
+                        states["isAppReady"] = true.toString()
+                    }
+                    it.registerMethod("existsUser") { node, states ->
+                        delay(2000)
+                        states["userExists"] = false.toString()
+                    }
                 },
-                SDNavigation()
             )
             SDCLibrary().apply {
                 registerNodeTypeProvider("json") { json ->
