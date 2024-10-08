@@ -89,7 +89,7 @@ class SDCNavigator(
         openUrl(link)
     }
 
-    suspend fun navigateTo(routeName: Route) {
+    suspend fun navigateTo(routeName: Route, popStack: Boolean = false) {
         val graphNode = routes[routeName]!!
         graphNode.property("type")!!
         graphNode.property("destiny")!!
@@ -100,7 +100,11 @@ class SDCNavigator(
         if (_backStack.value.last() == routeName) return
 
         _backStack.update { currentState ->
-            currentState + routeName
+            if (popStack) {
+                currentState.dropLast(1)
+            } else {
+                currentState + routeName
+            }
         }
         _nodeFlow.update {
             routeNode
