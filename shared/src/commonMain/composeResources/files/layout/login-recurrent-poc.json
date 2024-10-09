@@ -36,6 +36,20 @@
             "painterResource": "drawable/ic_round_icon.xml",
             "contentDescription": "LOGO"
           }
+        },
+        {
+          "component": "layout:text",
+          "properties": {
+            "text": "LEONARDO WIEBUSCH",
+            "fontWeight": "ExtraBold",
+            "paddingTop": "12"
+          }
+        },
+        {
+          "component": "layout:text",
+          "properties": {
+            "text": "99909990-1"
+          }
         }
       ]
     },
