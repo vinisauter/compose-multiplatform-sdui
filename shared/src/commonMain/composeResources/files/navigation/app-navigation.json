@@ -2,7 +2,7 @@
   "id": "app-navigation",
   "component": "navigation:graph",
   "properties": {
-    "startDestination": "login-recurrent",
+    "startDestination": "splash",
     "states": {
       "name": "João da Silva",
       "nickname": "silva_apenas"

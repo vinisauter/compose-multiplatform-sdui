@@ -3,6 +3,7 @@ agp = "8.3.0"
 android-compileSdk = "34"
 android-minSdk = "24"
 android-targetSdk = "34"
+firebaseAuth = "2.1.0"
 kotlin = "2.0.20"
 compose = "1.7.0-beta01"
 compose-ui = "1.7.0"
@@ -32,8 +33,11 @@ runtime = "1.5.5"
 sqlDelight = "2.0.2"
 voyager = "1.1.0-beta02"
 uiToolingPreviewDesktop = "1.6.8"
+gservices = "4.4.2"
+
 
 [libraries]
+firebase-auth = { module = "dev.gitlive:firebase-auth", version.ref = "firebaseAuth" }
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
 androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "androidx-activityCompose" }
 compose-ui = { module = "androidx.compose.ui:ui", version.ref = "compose-ui" }
@@ -93,4 +97,4 @@ buildConfig = { id = "com.github.gmazzo.buildconfig", version.ref = "buildConfig
 kotlinx-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 sqlDelight = { id = "app.cash.sqldelight", version.ref = "sqlDelight" }
 apollo = { id = "com.apollographql.apollo3", version.ref = "apollo" }
-
+googleServices = { id = "com.google.gms.google-services", version.ref = "gservices"}

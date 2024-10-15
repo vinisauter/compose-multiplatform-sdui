@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "253141532036",
+    "project_id": "compose-multiplatform-sdui",
+    "storage_bucket": "compose-multiplatform-sdui.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:253141532036:android:c3a7683f40cdf2d14df1d1",
+        "android_client_info": {
+          "package_name": "br.com.developes.sdui"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDx9urp9-QT-lc3EYGuc4CQEe6rHefwsIM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:253141532036:android:6bfdcd1853c34f4e4df1d1",
+        "android_client_info": {
+          "package_name": "br.com.developes.sdui.android"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDx9urp9-QT-lc3EYGuc4CQEe6rHefwsIM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
