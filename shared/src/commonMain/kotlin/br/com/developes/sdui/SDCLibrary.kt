@@ -30,6 +30,7 @@ import br.com.developes.sdui.navigation.SDNavigation
 import br.com.developes.sdui.provider.components.JsonFileNodeTypeProvider
 import br.com.developes.sdui.provider.components.JsonNodeTypeProvider
 import br.com.developes.sdui.utils.AnimatedDialog
+import br.com.developes.sdui.utils.CoroutineScopeLocalProvider
 import br.com.developes.sdui.utils.SimpleLogger
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart
@@ -62,7 +63,7 @@ fun SDCLibrary(
     vararg libraries: SDLibrary,
     debug: Boolean = false,
     block: @Composable SDCLibrary.() -> Unit
-) {
+) = CoroutineScopeLocalProvider {
     show_states = debug
     block.invoke(SDCLibrary.instance.apply {
         for (library in libraries) {

@@ -1,13 +1,13 @@
 package br.com.developes.sdui.events
 
 import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.rememberCoroutineScope
 import br.com.developes.sdui.SDCLibrary
 import br.com.developes.sdui.SDCLibrary.Companion.launchHandling
 import br.com.developes.sdui.SDLibrary
 import br.com.developes.sdui.events.lifecycle.LifecycleEvent
 import br.com.developes.sdui.events.lifecycle.LifecycleObserver
 import br.com.developes.sdui.events.lifecycle.LocalLifecycleTracker
+import br.com.developes.sdui.utils.LocalCoroutineScope
 import br.com.developes.sdui.utils.serverDrivenNode
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
@@ -24,7 +24,7 @@ class SDEvent : SDLibrary("event") {
 
             val ifState = node.propertyJsonArray("ifState")
 
-            val coroutineScope = rememberCoroutineScope()
+            val coroutineScope = LocalCoroutineScope.current
             val lifecycleTracker = LocalLifecycleTracker.current
             DisposableEffect(Unit) {
                 val listener = object : LifecycleObserver {
