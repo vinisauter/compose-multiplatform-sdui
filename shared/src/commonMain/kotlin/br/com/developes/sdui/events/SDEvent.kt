@@ -15,6 +15,8 @@ import kotlinx.serialization.json.jsonPrimitive
 class SDEvent : SDLibrary("event") {
     init {
         addComponent("loader") { node, states ->
+            //TODO: check lifecycle of @Composable br.com.developes.sdui.navigation.Screen
+            // current is in Activity/ViewController && @Composable<init>
             val onCreate = node.propertyNodes("onCreate").let { SDCLibrary.loadActions(it) }
             val onStart = node.propertyNodes("onStart").let { SDCLibrary.loadActions(it) }
             val onResume = node.propertyNodes("onResume").let { SDCLibrary.loadActions(it) }

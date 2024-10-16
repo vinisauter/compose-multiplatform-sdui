@@ -37,7 +37,9 @@ var defaultLoading: @Composable (modifier: Modifier) -> Unit = {
 var defaultError: @Composable (modifier: Modifier, throwable: Throwable) -> Unit =
     { modifier, throwable ->
         Column(modifier = modifier.background(Color.Red)) {
-            Text("Error: ${throwable.message ?: throwable::class.simpleName}")
+            val msg = "Error: ${throwable.message ?: throwable::class.simpleName}"
+            Text(msg)
+            logger.e(msg, throwable)
         }
     }
 

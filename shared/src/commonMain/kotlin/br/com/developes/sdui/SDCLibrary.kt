@@ -32,6 +32,8 @@ import br.com.developes.sdui.provider.components.JsonNodeTypeProvider
 import br.com.developes.sdui.utils.AnimatedDialog
 import br.com.developes.sdui.utils.CoroutineScopeLocalProvider
 import br.com.developes.sdui.utils.SimpleLogger
+import dev.gitlive.firebase.Firebase
+import dev.gitlive.firebase.auth.auth
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Job
@@ -149,8 +151,20 @@ class SDCLibrary private constructor() {
                         states["isAppReady"] = true.toString()
                     }
                     it.registerMethod("existsUser") { node, states ->
-                        delay(2000)
-                        states["userExists"] = false.toString()
+                        val auth = Firebase.auth
+                        val userExists = auth.currentUser != null
+                        states["userExists"] = userExists.toString()
+                    }
+                    it.registerMethod("login") { node, states ->
+//                        states["cpf"] = "teste@gmail.com"
+//                        states["password"] = "1234567"
+                        // TODO: validate data and create UseCase
+                        val auth = Firebase.auth
+                        val email = states["cpf"]
+                        val password = states["password"]
+                        val signInResult = auth.signInWithEmailAndPassword(email!!, password!!)
+                        val userExists = signInResult.user != null
+                        states["userExists"] = userExists.toString()
                     }
                 },
             )

@@ -11,6 +11,7 @@ import platform.Foundation.NSURL
 import platform.Foundation.NSUUID
 import platform.UIKit.UIApplication
 import platform.UIKit.UIDevice
+import platform.UIKit.UIViewController
 
 class IOSPlatform : Platform {
     override val name: String =
@@ -20,13 +21,13 @@ class IOSPlatform : Platform {
         Firebase.initialize()
     }
 
-    fun MainViewController() {
+    fun MainViewController(): UIViewController {
         val lifecycleTracker = LifecycleTracker()
         return ComposeUIViewController({
             delegate = LifecycleComposeUIVCDelegate(lifecycleTracker)
         }) {
             CompositionLocalProvider(LocalLifecycleTracker provides lifecycleTracker) {
-                App()
+                App(lifecycleTracker)
             }
         }
     }

@@ -52,7 +52,7 @@
               {
                 "component": "navigation:goTo",
                 "properties": {
-                  "destiny": "menu",
+                  "destiny": "login-recurrent",
                   "popStack": true
                 }
               }
