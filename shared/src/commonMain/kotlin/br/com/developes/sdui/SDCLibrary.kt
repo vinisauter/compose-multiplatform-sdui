@@ -24,6 +24,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import br.com.developes.sdui.action.SDAction
+import br.com.developes.sdui.authentication.AuthenticationRecurrentUseCase
+import br.com.developes.sdui.authentication.AuthenticationUseCase
 import br.com.developes.sdui.events.SDEvent
 import br.com.developes.sdui.layout.SDLayout
 import br.com.developes.sdui.navigation.SDNavigation
@@ -150,21 +152,26 @@ class SDCLibrary private constructor() {
                         delay(2000)
                         states["isAppReady"] = true.toString()
                     }
+                    it.registerMethod("loginRecurrent") { node, states ->
+                        val auth = Firebase.auth
+                        val email = auth.currentUser?.email
+                        val password = states["password"]
+                        states["loginAgain"] = AuthenticationRecurrentUseCase()
+                            .login(email!!, password)
+                            .toString()
+                    }
                     it.registerMethod("existsUser") { node, states ->
                         val auth = Firebase.auth
                         val userExists = auth.currentUser != null
                         states["userExists"] = userExists.toString()
                     }
                     it.registerMethod("login") { node, states ->
-//                        states["cpf"] = "teste@gmail.com"
-//                        states["password"] = "1234567"
-                        // TODO: validate data and create UseCase
-                        val auth = Firebase.auth
-                        val email = states["cpf"]
+                        val email = states["email"]
                         val password = states["password"]
-                        val signInResult = auth.signInWithEmailAndPassword(email!!, password!!)
-                        val userExists = signInResult.user != null
-                        states["userExists"] = userExists.toString()
+
+                        states["userExists"] = AuthenticationUseCase()
+                            .login(email, password)
+                            .toString()
                     }
                 },
             )

@@ -24,20 +24,20 @@
       ]
     },
     {
-      "id": "tfCPF",
+      "id": "tfEmail",
       "component": "layout:textField",
       "properties": {
         "fillMaxWidth": "1",
-        "keyboardType": "Number",
+        "keyboardType": "Email",
         "paddingTop": "10",
         "paddingHorizontal": "10",
-        "onChangeUpdateState": "cpf",
+        "onChangeUpdateState": "email",
         "imeAction": "Next",
         "label": [
           {
             "component": "layout:text",
             "properties": {
-              "text": "CPF"
+              "text": "Email"
             }
           }
         ]
