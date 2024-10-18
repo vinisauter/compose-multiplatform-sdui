@@ -132,7 +132,34 @@
             "fillMaxWidth": "1",
             "height": "70",
             "roundedCornerShape": "7",
-            "text": "Entrar"
+            "text": "Entrar",
+            "onClick": [
+              {
+                "component": "action:method",
+                "properties": {
+                  "method": "loginRecurrent"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "component": "event:loader",
+          "properties": {
+            "ifState": [
+              {
+                "state": "loginAgain",
+                "then": [
+                  {
+                    "component": "navigation:goTo",
+                    "properties": {
+                      "destiny": "menu",
+                      "popStack": true
+                    }
+                  }
+                ]
+              }
+            ]
           }
         }
       ]

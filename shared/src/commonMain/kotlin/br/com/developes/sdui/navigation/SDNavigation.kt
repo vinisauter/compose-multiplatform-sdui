@@ -31,7 +31,7 @@ class SDNavigation : SDLibrary("navigation") {
         }
         addAction("goTo") { node, _ ->
             val navigator = LocalNavigator!!
-            val popStack = node.property("popStack")?.let { it.toBoolean() } ?: false
+            val popStack = node.property("popStack")?.toBoolean() ?: false
             navigator.navigateTo(routeName = node.property("destiny")!!, popStack = popStack)
         }
         addAction("goToUrl") { node, _ ->

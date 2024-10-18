@@ -2,29 +2,70 @@
   "id": "splash",
   "component": "layout:column",
   "properties": {
+    "fillMaxWidth": 1.0,
+    "fillMaxHeight": 1.0,
     "horizontalAlignment": "Center",
     "verticalArrangement": "Center",
-    "fillMaxSize": "1",
-    "backgroundColor": "4278190335"
+    "backgroundGradient": {
+      "type": "linear",
+      "colors": [
+        "#244F9D",
+        "#0F2142"
+      ]
+    }
   },
   "children": [
     {
       "component": "layout:imageFile",
       "properties": {
+        "align": "Center",
         "painterResource": "drawable/ic_logo_bigger_light.xml",
-        "contentDescription": null
+        "contentDescription": "LOGO"
       }
     },
     {
-      "component": "layout:textButton",
+      "component": "event:loader",
       "properties": {
-        "text": "Next",
-        "onClick": [
+        "onCreate": [
           {
-            "component": "navigation:goTo",
+            "component": "action:method",
             "properties": {
-              "destiny": "main"
+              "method": "loadSplashServices"
             }
+          }
+        ],
+        "ifState": [
+          {
+            "state": "isAppReady",
+            "then": [
+              {
+                "component": "action:method",
+                "properties": {
+                  "method": "existsUser"
+                }
+              }
+            ]
+          },
+          {
+            "state": "userExists",
+            "then": [
+              {
+                "component": "navigation:goTo",
+                "properties": {
+                  "destiny": "login-recurrent",
+                  "popStack": true
+                }
+              }
+            ],
+            "else": [
+              {
+                "component": "navigation:goTo",
+                "properties": {
+                  "destiny": "login",
+                  "popStack": true
+                }
+              }
+            ]
           }
         ]
       }
