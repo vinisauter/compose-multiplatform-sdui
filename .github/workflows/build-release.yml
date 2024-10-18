@@ -24,3 +24,13 @@ jobs:
       with:
         gradle-version: 7.2
         tasks: build
+
+    - name: Build iOS
+      run: |
+        set -o pipefail
+        slather setup
+        xcodebuild build-for-testing \
+        -scheme iOSGitHubActions \
+        -destination 'platform=iOS Simulator,name=iPhone 11 Pro' \
+        -derivedDataPath build \
+        | xcpretty
