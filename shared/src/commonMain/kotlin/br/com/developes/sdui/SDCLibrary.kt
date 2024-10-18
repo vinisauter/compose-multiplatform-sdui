@@ -26,6 +26,7 @@ import androidx.compose.ui.unit.dp
 import br.com.developes.sdui.action.SDAction
 import br.com.developes.sdui.authentication.AuthenticationRecurrentUseCase
 import br.com.developes.sdui.authentication.AuthenticationUseCase
+import br.com.developes.sdui.authentication.CheckIfUserExistsUseCase
 import br.com.developes.sdui.events.SDEvent
 import br.com.developes.sdui.layout.SDLayout
 import br.com.developes.sdui.navigation.SDNavigation
@@ -34,8 +35,6 @@ import br.com.developes.sdui.provider.components.JsonNodeTypeProvider
 import br.com.developes.sdui.utils.AnimatedDialog
 import br.com.developes.sdui.utils.CoroutineScopeLocalProvider
 import br.com.developes.sdui.utils.SimpleLogger
-import dev.gitlive.firebase.Firebase
-import dev.gitlive.firebase.auth.auth
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Job
@@ -153,17 +152,15 @@ class SDCLibrary private constructor() {
                         states["isAppReady"] = true.toString()
                     }
                     it.registerMethod("loginRecurrent") { node, states ->
-                        val auth = Firebase.auth
-                        val email = auth.currentUser?.email
                         val password = states["password"]
                         states["loginAgain"] = AuthenticationRecurrentUseCase()
-                            .login(email!!, password)
+                            .login(password)
                             .toString()
                     }
                     it.registerMethod("existsUser") { node, states ->
-                        val auth = Firebase.auth
-                        val userExists = auth.currentUser != null
-                        states["userExists"] = userExists.toString()
+                        states["userExists"] = CheckIfUserExistsUseCase()
+                            .check()
+                            .toString()
                     }
                     it.registerMethod("login") { node, states ->
                         val email = states["email"]

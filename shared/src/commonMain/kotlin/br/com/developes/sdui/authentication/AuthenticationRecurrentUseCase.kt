@@ -7,8 +7,9 @@ import dev.gitlive.firebase.auth.auth
 
 class AuthenticationRecurrentUseCase {
 
-    suspend fun login(email: String, password: String?): Boolean {
+    suspend fun login(password: String?): Boolean {
         val auth = Firebase.auth
+        val email = auth.currentUser?.email
 
         if (password?.trim()?.isEmpty() == true) {
             val errorMessage = "Informe a Senha !!!"
@@ -17,7 +18,7 @@ class AuthenticationRecurrentUseCase {
 
         } else {
             try {
-                val signInResult = auth.signInWithEmailAndPassword(email, password!!)
+                val signInResult = auth.signInWithEmailAndPassword(email!!, password!!)
                 return signInResult.user != null
 
             } catch (e: Exception) {
