@@ -1,10 +1,13 @@
 import SwiftUI
+import FirebaseCore
 
 @main
-struct iOSApp: App {
+struct iOSApp: App  {
+    init() {
+        FirebaseApp.configure()
+    }
+
 	var body: some Scene {
-//        FirebaseApp.configure()
- 	    MainControllerKt.initialise()
 		WindowGroup {
 			ContentView()
 		}

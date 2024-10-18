@@ -5,8 +5,6 @@ import androidx.compose.ui.window.ComposeUIViewController
 import br.com.developes.sdui.events.lifecycle.LifecycleComposeUIVCDelegate
 import br.com.developes.sdui.events.lifecycle.LifecycleTracker
 import br.com.developes.sdui.events.lifecycle.LocalLifecycleTracker
-import dev.gitlive.firebase.Firebase
-import dev.gitlive.firebase.initialize
 import platform.Foundation.NSURL
 import platform.Foundation.NSUUID
 import platform.UIKit.UIApplication
@@ -16,10 +14,6 @@ import platform.UIKit.UIViewController
 class IOSPlatform : Platform {
     override val name: String =
         UIDevice.currentDevice.systemName() + " " + UIDevice.currentDevice.systemVersion
-
-    fun initialize() {
-        Firebase.initialize()
-    }
 
     fun MainViewController(): UIViewController {
         val lifecycleTracker = LifecycleTracker()
