@@ -26,8 +26,4 @@ jobs:
           tasks: build
 
       - name: Build iOS
-        run: |
-          gem install cocoapods
-          pod repo update
-          pod install --project-directory=Example
-          set -o pipefail && xcodebuild test -enableCodeCoverage YES -workspace Example/KontentAiDelivery.xcworkspace -scheme KontentAiDelivery-Example -sdk iphonesimulator -destination 'name=iPhone 11' ONLY_ACTIVE_ARCH=NO | xcpretty
+        run: xcodebuild -project iosApp/iosApp.xcodeproj -scheme iosApp -destination 'platform=iOS Simulator,name=iPhone 15' build
