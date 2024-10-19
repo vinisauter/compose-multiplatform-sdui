@@ -45,7 +45,7 @@ kotlin {
             implementation(libs.composeIcons.feather)
             implementation(libs.composeIcons.fontAwesome)
             implementation(libs.multiplatform.settings)
-            implementation(libs.firebase.auth)
+            implementation(libs.gitlive.firebase.auth)
         }
         androidMain.dependencies {
             implementation(libs.androidx.activity.compose)

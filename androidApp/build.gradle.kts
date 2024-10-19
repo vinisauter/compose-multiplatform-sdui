@@ -38,11 +38,12 @@ android {
 }
 
 dependencies {
+    implementation(platform("com.google.firebase:firebase-bom:33.4.0"))
     implementation(projects.shared)
     implementation(libs.compose.ui)
     implementation(libs.compose.ui.tooling.preview)
     implementation(libs.compose.material3)
     implementation(libs.androidx.activity.compose)
-    implementation(libs.firebase.auth)
+    implementation(libs.gitlive.firebase.auth)
     debugImplementation(libs.compose.ui.tooling)
 }

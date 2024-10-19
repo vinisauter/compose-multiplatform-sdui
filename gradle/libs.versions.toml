@@ -3,7 +3,8 @@ agp = "8.3.0"
 android-compileSdk = "34"
 android-minSdk = "24"
 android-targetSdk = "34"
-firebaseAuth = "2.1.0"
+firebaseAuth = "21.0.0"
+gitlive = "2.1.0"
 kotlin = "2.0.20"
 compose = "1.7.0-beta01"
 compose-ui = "1.7.0"
@@ -37,7 +38,8 @@ gservices = "4.4.2"
 
 
 [libraries]
-firebase-auth = { module = "dev.gitlive:firebase-auth", version.ref = "firebaseAuth" }
+firebase-auth = { module = "com.google.firebase:firebase-common-ktx", version.ref = "firebaseAuth" }
+gitlive-firebase-auth = { module = "dev.gitlive:firebase-auth", version.ref = "gitlive" }
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
 androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "androidx-activityCompose" }
 compose-ui = { module = "androidx.compose.ui:ui", version.ref = "compose-ui" }
