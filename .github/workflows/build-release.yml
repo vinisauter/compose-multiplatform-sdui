@@ -23,8 +23,8 @@ jobs:
         with:
           gradle-version: 7.2
 
-#      - name: Build Android
-#        run: ./gradlew androidApp:build
+      - name: Build Android
+        run: ./gradlew androidApp:build
 
       - name: Build iOS
         run: xcodebuild -project iosApp/iosApp.xcodeproj -scheme iosApp -destination 'platform=iOS Simulator,name=iPhone 15' build
