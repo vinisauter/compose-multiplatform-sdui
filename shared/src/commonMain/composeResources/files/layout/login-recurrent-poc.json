@@ -3,16 +3,15 @@
   "component": "layout:column",
   "properties": {
     "horizontalAlignment": "Center",
-    "backgroundColor": "4278190335"
+    "backgroundGradient": {
+      "type": "linear",
+      "colors": [
+        "#244F9D",
+        "#0F2142"
+      ]
+    }
   },
   "children": [
-    {
-      "component": "layout:topAppBar",
-      "properties": {
-        "title": "ENTRAR",
-        "horizontalArrangement": "Center"
-      }
-    },
     {
       "component": "layout:column",
       "properties": {
