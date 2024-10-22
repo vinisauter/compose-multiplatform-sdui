@@ -24,15 +24,21 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import br.com.developes.sdui.action.SDAction
+import br.com.developes.sdui.authentication.AuthenticationRecurrentUseCase
+import br.com.developes.sdui.authentication.AuthenticationUseCase
+import br.com.developes.sdui.authentication.CheckIfUserExistsUseCase
+import br.com.developes.sdui.events.SDEvent
 import br.com.developes.sdui.layout.SDLayout
 import br.com.developes.sdui.navigation.SDNavigation
 import br.com.developes.sdui.provider.components.JsonFileNodeTypeProvider
 import br.com.developes.sdui.provider.components.JsonNodeTypeProvider
 import br.com.developes.sdui.utils.AnimatedDialog
+import br.com.developes.sdui.utils.CoroutineScopeLocalProvider
 import br.com.developes.sdui.utils.SimpleLogger
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -60,7 +66,7 @@ fun SDCLibrary(
     vararg libraries: SDLibrary,
     debug: Boolean = false,
     block: @Composable SDCLibrary.() -> Unit
-) {
+) = CoroutineScopeLocalProvider {
     show_states = debug
     block.invoke(SDCLibrary.instance.apply {
         for (library in libraries) {
@@ -131,13 +137,40 @@ class SDCLibrary private constructor() {
         private val LocalLib = staticCompositionLocalOf {
             val defaultLibraries: List<SDLibrary> = listOf(
                 SDLayout(),
+                SDNavigation(),
+                SDEvent(),
                 SDAction().also {
+                    //TODO: native components should be apart from the library
+                    //TODO: create shared library and sdc library
+                    //TODO: create a block on the constructor and load native components
                     it.registerMethod("getPlatformName") { node, states ->
                         val stateName = node.property("state") ?: "platformName"
                         states[stateName] = getPlatform().name
                     }
+                    it.registerMethod("loadSplashServices") { node, states ->
+                        delay(2000)
+                        states["isAppReady"] = true.toString()
+                    }
+                    it.registerMethod("loginRecurrent") { node, states ->
+                        val password = states["password"]
+                        states["loginAgain"] = AuthenticationRecurrentUseCase()
+                            .login(password)
+                            .toString()
+                    }
+                    it.registerMethod("existsUser") { node, states ->
+                        states["userExists"] = CheckIfUserExistsUseCase()
+                            .check()
+                            .toString()
+                    }
+                    it.registerMethod("login") { node, states ->
+                        val email = states["email"]
+                        val password = states["password"]
+
+                        states["userExists"] = AuthenticationUseCase()
+                            .login(email, password)
+                            .toString()
+                    }
                 },
-                SDNavigation()
             )
             SDCLibrary().apply {
                 registerNodeTypeProvider("json") { json ->

@@ -17,27 +17,27 @@
         {
           "component": "layout:imageFile",
           "properties": {
-            "painterResource": "drawable/ic_logo_dark.xml",
+            "painterResource": "drawable/ic_logo_dark_mini.xml",
             "contentDescription": "LOGO"
           }
         }
       ]
     },
     {
-      "id": "tfCPF",
+      "id": "tfEmail",
       "component": "layout:textField",
       "properties": {
         "fillMaxWidth": "1",
-        "keyboardType": "Number",
+        "keyboardType": "Email",
         "paddingTop": "10",
         "paddingHorizontal": "10",
-        "onChangeUpdateState": "cpf",
+        "onChangeUpdateState": "email",
         "imeAction": "Next",
         "label": [
           {
             "component": "layout:text",
             "properties": {
-              "text": "CPF"
+              "text": "Email"
             }
           }
         ]
@@ -77,7 +77,7 @@
           "component": "layout:imageFile",
           "properties": {
             "paddingEnd": "10",
-            "painterResource": "drawable/ic_back_right.xml",
+            "painterResource": "drawable/ic_back_right_dark.xml",
             "contentDescription": "LOGO"
           }
         },
@@ -107,10 +107,38 @@
         "text": "Entrar",
         "onClick": [
           {
-            "component": "navigation:goTo",
+            "component": "action:method",
             "properties": {
-              "destiny": "menu"
+              "method": "login"
             }
+          }
+        ]
+      }
+    },
+    {
+      "component": "event:loader",
+      "properties": {
+        "ifState": [
+          {
+            "state": "userExists",
+            "then": [
+              {
+                "component": "navigation:goTo",
+                "properties": {
+                  "destiny": "menu",
+                  "popStack": true
+                }
+              }
+            ],
+            "else": [
+              {
+                "component": "navigation:goTo",
+                "properties": {
+                  "destiny": "login",
+                  "popStack": true
+                }
+              }
+            ]
           }
         ]
       }

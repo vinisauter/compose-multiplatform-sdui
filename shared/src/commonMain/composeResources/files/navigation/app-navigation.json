@@ -30,7 +30,7 @@
       "properties": {
         "name": "login",
         "type": "file",
-        "destiny": "files/layout/splash.json",
+        "destiny": "files/layout/login-poc-kmp.json",
         "link": "../login"
       }
     },

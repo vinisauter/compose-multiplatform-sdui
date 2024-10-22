@@ -102,9 +102,8 @@ class SDCNavigator(
         _backStack.update { currentState ->
             if (popStack) {
                 currentState.dropLast(1)
-            } else {
-                currentState + routeName
             }
+            currentState + routeName
         }
         _nodeFlow.update {
             routeNode
