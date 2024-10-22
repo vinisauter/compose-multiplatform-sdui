@@ -4,6 +4,7 @@ import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import br.com.developes.sdui.ServerDrivenNode
 import br.com.developes.sdui.layout.Layout
@@ -11,6 +12,7 @@ import br.com.developes.sdui.layout.Layout
 class SDCText(node: ServerDrivenNode, state: MutableMap<String, String>) : Layout {
     private val modifier = Modifier.fromNode(node)
     val text by node.propertyState("text", state) { it ?: "" }
+    val textColor = node.property("textColor")?.hexToColor() ?: Color.Black
 
     private val fontWeight: FontWeight =
         when (node.property("fontWeight")) {
@@ -25,7 +27,8 @@ class SDCText(node: ServerDrivenNode, state: MutableMap<String, String>) : Layou
         Text(
             modifier = modifier,
             text = text,
-            fontWeight = fontWeight
+            fontWeight = fontWeight,
+            color = textColor
         )
     }
 }
