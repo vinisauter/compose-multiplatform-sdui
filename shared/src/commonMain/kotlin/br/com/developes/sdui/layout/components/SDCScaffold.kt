@@ -21,25 +21,27 @@ import br.com.developes.sdui.layout.Layout
 
 class SDCScaffold(
     private val node: ServerDrivenNode, private val dataState: MutableMap<String, String>
-): Layout {
+) : Layout {
 
     private val modifier = Modifier.fromNode(node)
-    private val horizontalArrangement: Arrangement.Horizontal =
-        when (node.property("horizontalArrangement")) {
-            "Start" -> Arrangement.Start
+    private val verticalArrangement: Arrangement.Vertical =
+        when (node.property("verticalArrangement")) {
+            null -> Arrangement.Top
+            "Top" -> Arrangement.Top
             "Center" -> Arrangement.Center
-            "End" -> Arrangement.End
+            "Bottom" -> Arrangement.Bottom
             "SpaceAround" -> Arrangement.SpaceAround
             "SpaceBetween" -> Arrangement.SpaceBetween
             "SpaceEvenly" -> Arrangement.SpaceEvenly
-            else -> Arrangement.Start
+            else -> error("Unknown value for verticalArrangement ${node.property("verticalArrangement")}")
         }
-    private val verticalAlignment: Alignment.Vertical =
-        when (node.property("verticalAlignment")) {
-            "Top" -> Alignment.Top
-            "Center" -> Alignment.CenterVertically
-            "Bottom" -> Alignment.Bottom
-            else -> Alignment.Top
+    private val horizontalAlignment: Alignment.Horizontal =
+        when (node.property("horizontalAlignment")) {
+            null -> Alignment.Start
+            "Start" -> Alignment.Start
+            "Center" -> Alignment.CenterHorizontally
+            "End" -> Alignment.End
+            else -> error("Unknown value for horizontalAlignment ${node.property("horizontalAlignment")}")
         }
     private val loadChildren: @Composable () -> Unit? = {
         node.children?.let {
@@ -48,29 +50,29 @@ class SDCScaffold(
             }
         }
     }
+    private val loadTopBar: @Composable () -> Unit? = {
+        node.propertyNode("topBar")?.let { serverDrivenNode ->
+            SDCLibrary.loadComponent(node = serverDrivenNode, dataState = dataState)
+        }
+    }
+    private val loadBottomBar: @Composable () -> Unit? = {
+        node.propertyNode("bottomBar")?.let { serverDrivenNode ->
+            SDCLibrary.loadComponent(node = serverDrivenNode, dataState = dataState)
+        }
+    }
 
     @Composable
     override fun Content() {
         Scaffold(
-            topBar = {
-                TopAppBar(
-                    navigationIcon = {
-                        IconButton(onClick = {}) {
-                            Icon(
-                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                contentDescription = ""
-                            )
-                        }
-                    },
-                    title = { Text(text = "ENTRAR") },
-                )
-            },
+            topBar = { loadTopBar.invoke() },
+            bottomBar = { loadBottomBar.invoke() }
         ) { innerPadding ->
-
             Column(
                 modifier = modifier
                     .fillMaxSize()
                     .padding(innerPadding),
+                verticalArrangement = verticalArrangement,
+                horizontalAlignment = horizontalAlignment
             ) {
                 loadChildren.invoke()
             }
