@@ -52,6 +52,7 @@ class SDCTextField(val node: ServerDrivenNode, val state: MutableMap<String, Str
     private val minLines = node.property("minLines")?.toInt()
     private val textFieldColor = node.property("textFieldColor")?.toColorInt()
     private val trailingIconColor = node.property("trailingIconColor")?.toColorInt()
+    private val underLineColor = node.property("underLineColor")?.toColorInt()
     private val capitalization = node.property("capitalization")?.let {
         when (it) {
             "None" -> KeyboardCapitalization.None
@@ -162,10 +163,13 @@ class SDCTextField(val node: ServerDrivenNode, val state: MutableMap<String, Str
                 color = color ?: Color.White
             ),
             colors = TextFieldDefaults.textFieldColors(
-                backgroundColor = backgroundColor ?: MaterialTheme.colors.background,
+                backgroundColor = Color.Transparent,
+                textColor = Color(textFieldColor!!),
                 focusedIndicatorColor = color ?: Color.Gray,
-                unfocusedIndicatorColor = color ?: Color.Gray
+                trailingIconColor = Color(trailingIconColor!!),
+                unfocusedIndicatorColor = Color(underLineColor!!)
             ),
+
             modifier = modifier,
             enabled = isEnabled,
             readOnly = readOnly ?: false,
@@ -236,13 +240,6 @@ class SDCTextField(val node: ServerDrivenNode, val state: MutableMap<String, Str
             label = label,
             placeholder = placeholder,
             leadingIcon = leadingIcon,
-            colors = TextFieldDefaults.textFieldColors(
-                textColor = Color(textFieldColor!!),
-                trailingIconColor = Color(trailingIconColor!!),
-                focusedLabelColor = Color.Red,
-                unfocusedLabelColor = Color.Magenta,
-                backgroundColor = Color.Transparent,
-            )
         )
     }
 

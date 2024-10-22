@@ -17,7 +17,6 @@ class SDCText(node: ServerDrivenNode, state: MutableMap<String, String>) : Layou
     private val textColor = node.property("textColor")?.hexToRgbColor() ?: Color.Black
 
     private val fontSize = node.property("fontSize")?.toFloatOrNull()?.sp ?: 16.sp
-    private val color = node.property("color")?.hexToColor()
     private val textAlign: TextAlign =
         when (node.property("textAlign")) {
             "Start" -> TextAlign.Start
@@ -40,7 +39,7 @@ class SDCText(node: ServerDrivenNode, state: MutableMap<String, String>) : Layou
             modifier = modifier,
             text = text,
             fontWeight = fontWeight,
-            color = color ?: Color.White,
+            color = textColor,
             textAlign = textAlign,
             fontSize = fontSize,
         )

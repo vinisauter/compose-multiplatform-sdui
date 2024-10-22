@@ -72,8 +72,9 @@
             "paddingHorizontal": "10",
             "keyboardType": "NumberPassword",
             "onChangeUpdateState": "password",
-            "textFieldColor": "#bbc8e1",
+            "textFieldColor": "#BBC8E1",
             "trailingIconColor": "#9AAED2",
+            "underLineColor": "#9AAED2",
             "imeAction": "Done",
             "label": [
               {
