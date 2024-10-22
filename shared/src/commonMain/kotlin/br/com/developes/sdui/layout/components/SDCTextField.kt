@@ -1,9 +1,11 @@
 package br.com.developes.sdui.layout.components
 
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
+import androidx.compose.material.MaterialTheme
 import androidx.compose.material.TextField
 import androidx.compose.material.TextFieldDefaults
 import androidx.compose.runtime.Composable
@@ -15,6 +17,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
@@ -22,6 +25,7 @@ import androidx.compose.ui.text.input.OffsetMapping
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.TransformedText
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.unit.sp
 import br.com.developes.sdui.SDCLibrary
 import br.com.developes.sdui.SDCLibrary.Companion.launchHandling
 import br.com.developes.sdui.ServerDrivenNode
@@ -36,6 +40,9 @@ class SDCTextField(val node: ServerDrivenNode, val state: MutableMap<String, Str
     private val modifier = Modifier.fromNode(node)
     private val onChangeUpdateState = node.property("onChangeUpdateState") ?: "TextField_${node.id}"
     private val text = node.property("text") ?: ""
+    private val fontSize = node.property("fontSize")?.toFloatOrNull()?.sp ?: 16.sp
+    private val color = node.property("color")?.hexToColor()
+    private val backgroundColor = node.property("backgroundColor")?.hexToColor()
     private val enabled = node.propertyState("enabled", state)?.toBoolean()
     private val readOnly = node.propertyState("readOnly", state)?.toBoolean()
     private val isError = node.propertyState("isError", state)?.toBoolean()
@@ -113,7 +120,6 @@ class SDCTextField(val node: ServerDrivenNode, val state: MutableMap<String, Str
 
         }
     }
-
     private val trailingIcon: @Composable (() -> Unit)? = node.propertyNodes("trailingIcon").let {
         if (it.isEmpty()) return@let null
         return@let {
@@ -151,6 +157,15 @@ class SDCTextField(val node: ServerDrivenNode, val state: MutableMap<String, Str
                 if (maxLength == null || it.length <= maxLength)
                     state[onChangeUpdateState] = it
             },
+            textStyle = TextStyle(
+                fontSize = fontSize,
+                color = color ?: Color.White
+            ),
+            colors = TextFieldDefaults.textFieldColors(
+                backgroundColor = backgroundColor ?: MaterialTheme.colors.background,
+                focusedIndicatorColor = color ?: Color.Gray,
+                unfocusedIndicatorColor = color ?: Color.Gray
+            ),
             modifier = modifier,
             enabled = isEnabled,
             readOnly = readOnly ?: false,
