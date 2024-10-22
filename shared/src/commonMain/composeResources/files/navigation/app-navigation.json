@@ -89,6 +89,14 @@
         "type": "file",
         "destiny": "files/layout/template.json"
       }
+    },
+    {
+      "component": "navigation:node",
+      "properties": {
+        "name": "create-account",
+        "type": "file",
+        "destiny": "files/layout/create-account.json"
+      }
     }
   ]
 }
