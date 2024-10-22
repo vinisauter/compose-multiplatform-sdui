@@ -5,6 +5,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
 import androidx.compose.material.TextField
+import androidx.compose.material.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -12,6 +13,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
@@ -24,6 +26,7 @@ import br.com.developes.sdui.SDCLibrary
 import br.com.developes.sdui.SDCLibrary.Companion.launchHandling
 import br.com.developes.sdui.ServerDrivenNode
 import br.com.developes.sdui.layout.Layout
+import br.com.developes.sdui.utils.toColorInt
 import compose.icons.FeatherIcons
 import compose.icons.feathericons.Eye
 import compose.icons.feathericons.EyeOff
@@ -40,6 +43,8 @@ class SDCTextField(val node: ServerDrivenNode, val state: MutableMap<String, Str
     private val singleLine = node.property("singleLine")?.toBoolean()
     private val maxLines = node.property("maxLines")?.toInt()
     private val minLines = node.property("minLines")?.toInt()
+    private val textFieldColor = node.property("textFieldColor")?.toColorInt()
+    private val trailingIconColor = node.property("trailingIconColor")?.toColorInt()
     private val capitalization = node.property("capitalization")?.let {
         when (it) {
             "None" -> KeyboardCapitalization.None
@@ -216,10 +221,13 @@ class SDCTextField(val node: ServerDrivenNode, val state: MutableMap<String, Str
             label = label,
             placeholder = placeholder,
             leadingIcon = leadingIcon,
-//            textStyle = node.property("textStyle")?.let { LocalTextStyle.current },
-//            interactionSource = interactionSource ?: remember { MutableInteractionSource() },
-//            shape = shape ?: MaterialTheme.shapes.small.copy(bottomEnd = ZeroCornerSize, bottomStart = ZeroCornerSize),
-//            colors = colors ?: TextFieldDefaults.textFieldColors()
+            colors = TextFieldDefaults.textFieldColors(
+                textColor = Color(textFieldColor!!),
+                trailingIconColor = Color(trailingIconColor!!),
+                focusedLabelColor = Color.Red,
+                unfocusedLabelColor = Color.Magenta,
+                backgroundColor = Color.Transparent,
+            )
         )
     }
 

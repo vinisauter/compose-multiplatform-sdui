@@ -3,6 +3,7 @@
   "component": "layout:column",
   "properties": {
     "horizontalAlignment": "Center",
+    "verticalScroll": "true",
     "backgroundGradient": {
       "type": "linear",
       "colors": [
@@ -49,7 +50,7 @@
           "component": "layout:text",
           "properties": {
             "text": "99909990-1",
-            "textColor": "FFFFFFFF"
+            "textColor": "FFFFFF"
           }
         }
       ]
@@ -71,6 +72,8 @@
             "paddingHorizontal": "10",
             "keyboardType": "NumberPassword",
             "onChangeUpdateState": "password",
+            "textFieldColor": "#bbc8e1",
+            "trailingIconColor": "#9AAED2",
             "imeAction": "Done",
             "label": [
               {
@@ -104,6 +107,7 @@
               "component": "layout:text",
               "properties": {
                 "text": "Esqueci a senha",
+                "textColor": "9AAED2",
                 "onClick": [
                   {
                     "component": "navigation:goTo",
@@ -134,6 +138,8 @@
             "height": "70",
             "roundedCornerShape": "7",
             "text": "Entrar",
+            "textColor": "233C67",
+            "lineBorderColor": "233C67",
             "onClick": [
               {
                 "component": "action:method",

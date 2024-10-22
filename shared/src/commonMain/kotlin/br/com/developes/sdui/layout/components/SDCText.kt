@@ -12,7 +12,7 @@ import br.com.developes.sdui.layout.Layout
 class SDCText(node: ServerDrivenNode, state: MutableMap<String, String>) : Layout {
     private val modifier = Modifier.fromNode(node)
     val text by node.propertyState("text", state) { it ?: "" }
-    val textColor = node.property("textColor")?.hexToColor() ?: Color.Black
+    private val textColor = node.property("textColor")?.hexToRgbColor() ?: Color.Black
 
     private val fontWeight: FontWeight =
         when (node.property("fontWeight")) {
