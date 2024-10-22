@@ -230,7 +230,7 @@ fun <T> Modifier.ifNotNullThen(value: T?, modifier: Modifier.(T) -> Modifier): M
 /**
  * Supports colors in hex format AARRGGBB
  * */
-private fun String.hexToColor(): Color {
+fun String.hexToColor(): Color {
     val alpha = this.substring(0, 2).toInt(16)
     val red = this.substring(2, 4).toInt(16)
     val green = this.substring(4, 6).toInt(16)
