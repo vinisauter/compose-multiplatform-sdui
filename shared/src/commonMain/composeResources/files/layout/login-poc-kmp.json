@@ -2,16 +2,46 @@
   "id": "login",
   "component": "layout:scaffold",
   "properties": {
-    "backgroundColor": "FFFFFFFF",
-    "fillMaxSize": "1"
+    "verticalScroll": "true",
+    "topBar": {
+      "component": "layout:topAppBar",
+      "properties": {
+        "backgroundColor": "FF244F9D",
+        "color": "FFFFFFFF",
+        "title": "CRIAR CONTA",
+        "horizontalArrangement": "Center",
+        "onClick": {
+          "component": "navigation:goBack"
+        }
+      }
+    },
+    "bottomBar": {
+      "component": "layout:textButton",
+      "properties": {
+        "height": "70",
+        "paddingHorizontal": "5",
+        "fillMaxWidth": "1",
+        "roundedCornerShape": "7",
+        "text": "Entrar",
+        "onClick": [
+          {
+            "component": "action:method",
+            "properties": {
+              "method": "login"
+            }
+          }
+        ]
+      }
+    }
   },
+
   "children": [
     {
       "component": "layout:row",
       "properties": {
         "fillMaxWidth": "1",
         "horizontalArrangement": "Center",
-        "paddingAll": "5"
+        "paddingAll": "30"
       },
       "children": [
         {
@@ -33,6 +63,8 @@
         "paddingHorizontal": "10",
         "onChangeUpdateState": "email",
         "imeAction": "Next",
+        "trailingIconColor": "#9AAED2",
+        "underLineColor": "#9AAED2",
         "label": [
           {
             "component": "layout:text",
@@ -53,6 +85,8 @@
         "keyboardType": "NumberPassword",
         "onChangeUpdateState": "password",
         "imeAction": "Done",
+        "trailingIconColor": "#9AAED2",
+        "underLineColor": "#9AAED2",
         "label": [
           {
             "component": "layout:text",
@@ -96,24 +130,6 @@
           }
         }
       ]
-    },
-    {
-      "component": "layout:textButton",
-      "properties": {
-        "height": "70",
-        "paddingHorizontal": "5",
-        "fillMaxWidth": "1",
-        "roundedCornerShape": "7",
-        "text": "Entrar",
-        "onClick": [
-          {
-            "component": "action:method",
-            "properties": {
-              "method": "login"
-            }
-          }
-        ]
-      }
     },
     {
       "component": "event:loader",
