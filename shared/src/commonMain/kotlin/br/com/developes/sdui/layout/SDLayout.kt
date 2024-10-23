@@ -7,6 +7,7 @@ import br.com.developes.sdui.layout.components.SDCButton
 import br.com.developes.sdui.layout.components.SDCButtonIcon
 import br.com.developes.sdui.layout.components.SDCButtonText
 import br.com.developes.sdui.layout.components.SDCColumn
+import br.com.developes.sdui.layout.components.SDCDivider
 import br.com.developes.sdui.layout.components.SDCImage
 import br.com.developes.sdui.layout.components.SDCOutlinedButtonText
 import br.com.developes.sdui.layout.components.SDCRow
@@ -30,5 +31,6 @@ class SDLayout : SDLibrary("layout") {
         addComponentLayout("iconButton") { node, state -> SDCButtonIcon(node, state) }
         addComponentLayout("scaffold") { node, state -> SDCScaffold(node, state) }
         addComponentLayout("topAppBar") { node, state -> SDCTopAppBar(node, state) }
+        addComponentLayout("divider") { node, state -> SDCDivider(node, state) }
     }
 }

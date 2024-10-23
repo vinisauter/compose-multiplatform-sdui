@@ -97,6 +97,14 @@
         "type": "file",
         "destiny": "files/layout/create-account.json"
       }
+    },
+    {
+      "component": "navigation:node",
+      "properties": {
+        "name": "home",
+        "type": "file",
+        "destiny": "files/layout/home.json"
+      }
     }
   ]
 }
