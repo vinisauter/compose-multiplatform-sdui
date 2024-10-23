@@ -119,6 +119,7 @@
           "component": "layout:text",
           "properties": {
             "text": "Esqueci a senha",
+            "textColor": "9AAED2",
             "onClick": [
               {
                 "component": "navigation:goTo",
