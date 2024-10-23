@@ -164,7 +164,7 @@
                   {
                     "component": "navigation:goTo",
                     "properties": {
-                      "destiny": "menu",
+                      "destiny": "home",
                       "popStack": true
                     }
                   }
