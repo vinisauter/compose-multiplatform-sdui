@@ -51,6 +51,7 @@ class SDCTextField(val node: ServerDrivenNode, val state: MutableMap<String, Str
     private val maxLines = node.property("maxLines")?.toInt()
     private val minLines = node.property("minLines")?.toInt()
     private val textFieldColor = node.property("textFieldColor")?.toColorInt()
+        ?: Color.Black.value.toLong()
     private val trailingIconColor = node.property("trailingIconColor")?.toColorInt()
     private val underLineColor = node.property("underLineColor")?.toColorInt()
     private val capitalization = node.property("capitalization")?.let {
@@ -160,11 +161,11 @@ class SDCTextField(val node: ServerDrivenNode, val state: MutableMap<String, Str
             },
             textStyle = TextStyle(
                 fontSize = fontSize,
-                color = color ?: Color.White
+                color = color ?: Color.Black
             ),
             colors = TextFieldDefaults.textFieldColors(
                 backgroundColor = Color.Transparent,
-                textColor = Color(textFieldColor ?: Color.Black.value.toLong()),
+                textColor = Color(textFieldColor),
                 focusedIndicatorColor = color ?: Color.Gray,
                 trailingIconColor = Color(trailingIconColor ?: MaterialTheme.colors.primary.value.toLong()),
                 unfocusedIndicatorColor = Color(underLineColor ?: MaterialTheme.colors.primary.value.toLong())

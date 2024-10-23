@@ -2,6 +2,7 @@
   "id": "login-poc",
   "component": "layout:column",
   "properties": {
+    "fillMaxSize": "1",
     "horizontalAlignment": "Center",
     "verticalScroll": "true",
     "backgroundGradient": {
@@ -17,7 +18,6 @@
       "component": "layout:column",
       "properties": {
         "fillMaxWidth": "1",
-        "verticalArrangement": "Center",
         "horizontalAlignment": "Center",
         "paddingTop": "12"
       },
@@ -127,8 +127,9 @@
       "component": "layout:row",
       "properties": {
         "verticalAlignment": "Bottom",
-        "fillMaxSize": "",
-        "paddingAll": "20"
+        "fillMaxWidth": "1",
+        "paddingAll": "20",
+        "backgroundColor": "000000FF"
       },
       "children": [
         {
