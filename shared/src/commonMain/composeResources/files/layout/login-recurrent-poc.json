@@ -1,6 +1,6 @@
 {
   "id": "login-poc",
-  "component": "layout:column",
+  "component": "layout:scaffold",
   "properties": {
     "fillMaxSize": "1",
     "horizontalAlignment": "Center",
@@ -11,6 +11,28 @@
         "#244F9D",
         "#0F2142"
       ]
+    },
+    "bottomBar": {
+      "id": "btEnter",
+      "component": "layout:outlinedButton",
+      "properties": {
+        "paddingHorizontal": "5",
+        "paddingBottom": "12",
+        "fillMaxWidth": "1",
+        "height": "70",
+        "roundedCornerShape": "7",
+        "text": "Entrar",
+        "textColor": "233C67",
+        "lineBorderColor": "233C67",
+        "onClick": [
+          {
+            "component": "action:method",
+            "properties": {
+              "method": "loginRecurrent"
+            }
+          }
+        ]
+      }
     }
   },
   "children": [
@@ -19,7 +41,7 @@
       "properties": {
         "fillMaxWidth": "1",
         "horizontalAlignment": "Center",
-        "paddingTop": "12"
+        "paddingTop": "36"
       },
       "children": [
         {
@@ -72,7 +94,7 @@
             "paddingHorizontal": "10",
             "keyboardType": "NumberPassword",
             "onChangeUpdateState": "password",
-            "textFieldColor": "#BBC8E1",
+            "textFieldColor": "#9AAED2",
             "trailingIconColor": "#9AAED2",
             "underLineColor": "#9AAED2",
             "imeAction": "Done",
@@ -132,26 +154,6 @@
         "backgroundColor": "000000FF"
       },
       "children": [
-        {
-          "id": "btEnter",
-          "component": "layout:outlinedButton",
-          "properties": {
-            "fillMaxWidth": "1",
-            "height": "70",
-            "roundedCornerShape": "7",
-            "text": "Entrar",
-            "textColor": "233C67",
-            "lineBorderColor": "233C67",
-            "onClick": [
-              {
-                "component": "action:method",
-                "properties": {
-                  "method": "loginRecurrent"
-                }
-              }
-            ]
-          }
-        },
         {
           "component": "event:loader",
           "properties": {

@@ -8,7 +8,7 @@
       "properties": {
         "backgroundColor": "FF244F9D",
         "color": "FFFFFFFF",
-        "title": "CRIAR CONTA",
+        "title": "ENTRAR",
         "horizontalArrangement": "Center",
         "onClick": {
           "component": "navigation:goBack"
