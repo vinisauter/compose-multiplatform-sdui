@@ -1,16 +1,20 @@
 package br.com.developes.sdui.layout.components
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import br.com.developes.sdui.SDCLibrary
+import br.com.developes.sdui.SDCLibrary.Companion.launchHandling
 import br.com.developes.sdui.ServerDrivenNode
 import br.com.developes.sdui.layout.Layout
 
-class SDCColumn(node: ServerDrivenNode, state: MutableMap<String, String>) : Layout {
+class SDCColumn(val node: ServerDrivenNode, val state: MutableMap<String, String>) : Layout {
     private val modifier = Modifier.fromNode(node)
+    private val actions = node.propertyNodes("onClick")
 
     private val verticalArrangement: Arrangement.Vertical =
         when (node.property("verticalArrangement")) {
@@ -41,10 +45,16 @@ class SDCColumn(node: ServerDrivenNode, state: MutableMap<String, String>) : Lay
 
     @Composable
     override fun Content() {
+        val action = SDCLibrary.loadActions(actions)
+        val scope = rememberCoroutineScope()
+
         Column(
-            modifier = modifier,
+            modifier = if (actions.isNotEmpty()) modifier.clickable {
+            scope.launchHandling {
+                action.invoke(node, state)
+            } } else modifier,
             verticalArrangement = verticalArrangement,
-            horizontalAlignment = horizontalAlignment
+            horizontalAlignment = horizontalAlignment,
         ) {
             loadChildren.invoke()
         }

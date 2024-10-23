@@ -42,7 +42,7 @@ class SDCText(node: ServerDrivenNode, state: MutableMap<String, String>) : Layou
             fontWeight = fontWeight,
             textAlign = textAlign,
             fontSize = fontSize,
-            color = color ?: Color.White
+            color = color ?: Color.Black
         )
     }
 }

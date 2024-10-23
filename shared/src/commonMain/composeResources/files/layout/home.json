@@ -1,0 +1,668 @@
+{
+  "id": "home",
+  "component": "layout:scaffold",
+  "properties": {
+    "fillMaxSize": 1
+  },
+  "children": [
+    {
+      "component": "layout:column",
+      "properties": {
+        "fillMaxWidth": 1,
+        "fillMaxHeight": 1,
+        "backgroundColor": "FF244F9D"
+      },
+      "children": [
+        {
+          "component": "layout:row",
+          "properties": {
+            "fillMaxWidth": 1,
+            "verticalAlignment": "Center"
+          },
+          "children": [
+            {
+              "component": "layout:box",
+              "properties": {
+                "contentAlignment": "Center",
+                "width": 90,
+                "height": 90,
+                "paddingAll": 16,
+                "backgroundColor": "FFFFFFFF",
+                "backgroundShape": "CircleShape"
+              },
+              "children": [
+                {
+                  "component": "layout:text",
+                  "properties": {
+                    "text": "J"
+                  }
+                }
+              ]
+            },
+            {
+              "component": "layout:row",
+              "properties": {
+                "fillMaxWidth": 1,
+                "paddingEnd": 16,
+                "verticalAlignment": "Center",
+                "horizontalArrangement": "Center"
+              },
+              "children": [
+                {
+                  "component": "layout:text",
+                  "properties": {
+                    "color": "FFFFFFFF",
+                    "text": "Jonas"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "component": "layout:divider",
+          "properties": {
+            "paddingHorizontal": 16,
+            "color": "55CCCCCC"
+          }
+        },
+        {
+          "component": "layout:row",
+          "properties": {
+            "fillMaxWidth": 1,
+            "verticalAlignment": "Center",
+            "horizontalArrangement": "Start",
+            "paddingHorizontal": 16,
+            "paddingTop": 16
+          },
+          "children": [
+            {
+              "component": "layout:text",
+              "properties": {
+                "color": "FF9AAED2",
+                "text": "SALDO CONTA CORRENTE"
+              }
+            }
+          ]
+        },
+        {
+          "component": "layout:row",
+          "properties": {
+            "fillMaxWidth": 1,
+            "verticalAlignment": "Center",
+            "horizontalArrangement": "SpaceBetween",
+            "paddingHorizontal": 16
+          },
+          "children": [
+            {
+              "component": "layout:text",
+              "properties": {
+                "color": "FFFFFFFF",
+                "text": "R$ **********"
+              }
+            },
+            {
+              "component": "layout:imageFile",
+              "properties": {
+                "painterResource": "drawable/ic_eye.xml",
+                "contentDescription": "LOGO"
+              }
+            }
+          ]
+        },
+        {
+          "component": "layout:column",
+          "properties": {
+            "paddingTop": 32,
+            "fillMaxWidth": 1,
+            "fillMaxHeight": 1,
+            "backgroundColor": "FFFFFFFF",
+            "backgroundShape": "RoundedCornerShape",
+            "backgroundShapeTopStart": 24,
+            "backgroundShapeTopEnd": 24
+          },
+          "children": [
+            {
+              "component": "layout:column",
+              "properties": {
+                "paddingTop": 32,
+                "fillMaxWidth": 1,
+                "fillMaxHeight": 1,
+                "paddingHorizontal": 16
+              },
+              "children": [
+                {
+                  "component": "layout:row",
+                  "properties": {
+                    "fillMaxWidth": 1
+                  },
+                  "children": [
+                    {
+                      "component": "layout:text",
+                      "properties": {
+                        "fontSize": 14,
+                        "text": "Todos os serviços"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "component": "layout:row",
+                  "properties": {
+                    "fillMaxWidth": 1,
+                    "paddingTop": 32,
+                    "horizontalArrangement": "SpaceBetween"
+                  },
+                  "children": [
+                    {
+                      "component": "layout:column",
+                      "properties": {
+                        "horizontalAlignment": "Center",
+                        "verticalArrangement": "Center",
+                        "onClick": [
+                          {
+                            "component": "navigation:goTo",
+                            "properties": {
+                              "destiny": "menu"
+                            }
+                          }
+                        ]
+                      },
+                      "children": [
+                        {
+                          "component": "layout:imageFile",
+                          "properties": {
+                            "painterResource": "drawable/ic_investment.xml",
+                            "contentDescription": "LOGO"
+                          }
+                        },
+                        {
+                          "component": "layout:text",
+                          "properties": {
+                            "text": "Investimentos"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "component": "layout:column",
+                      "properties": {
+                        "horizontalAlignment": "Center",
+                        "verticalArrangement": "Center",
+                        "paddingEnd": 48,
+                        "onClick": [
+                          {
+                            "component": "navigation:goTo",
+                            "properties": {
+                              "destiny": "menu"
+                            }
+                          }
+                        ]
+                      },
+                      "children": [
+                        {
+                          "component": "layout:imageFile",
+                          "properties": {
+                            "painterResource": "drawable/ic_savings.xml",
+                            "contentDescription": "LOGO"
+                          }
+                        },
+                        {
+                          "component": "layout:text",
+                          "properties": {
+                            "text": "Poupança"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "component": "layout:column",
+                      "properties": {
+                        "horizontalAlignment": "Center",
+                        "verticalArrangement": "Center",
+                        "paddingEnd": 32,
+                        "onClick": [
+                          {
+                            "component": "navigation:goTo",
+                            "properties": {
+                              "destiny": "menu"
+                            }
+                          }
+                        ]
+                      },
+                      "children": [
+                        {
+                          "component": "layout:imageFile",
+                          "properties": {
+                            "painterResource": "drawable/ic_cash_in.xml",
+                            "contentDescription": "LOGO"
+                          }
+                        },
+                        {
+                          "component": "layout:text",
+                          "properties": {
+                            "text": "Cobrar"
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "component": "layout:row",
+                  "properties": {
+                    "fillMaxWidth": 1,
+                    "paddingTop": 32,
+                    "horizontalArrangement": "SpaceBetween"
+                  },
+                  "children": [
+                    {
+                      "component": "layout:column",
+                      "properties": {
+                        "horizontalAlignment": "Center",
+                        "verticalArrangement": "Center",
+                        "onClick": [
+                          {
+                            "component": "navigation:goTo",
+                            "properties": {
+                              "destiny": "menu"
+                            }
+                          }
+                        ]
+                      },
+                      "children": [
+                        {
+                          "component": "layout:imageFile",
+                          "properties": {
+                            "painterResource": "drawable/ic_smartphone.xml",
+                            "contentDescription": "LOGO"
+                          }
+                        },
+                        {
+                          "component": "layout:text",
+                          "properties": {
+                            "text": "Recarga Celular"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "component": "layout:column",
+                      "properties": {
+                        "horizontalAlignment": "Center",
+                        "verticalArrangement": "Center",
+                        "paddingEnd": 38,
+                        "onClick": [
+                          {
+                            "component": "navigation:goTo",
+                            "properties": {
+                              "destiny": "menu"
+                            }
+                          }
+                        ]
+                      },
+                      "children": [
+                        {
+                          "component": "layout:imageFile",
+                          "properties": {
+                            "painterResource": "drawable/ic_loan.xml",
+                            "contentDescription": "LOGO"
+                          }
+                        },
+                        {
+                          "component": "layout:text",
+                          "properties": {
+                            "text": "Empréstimos"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "component": "layout:column",
+                      "properties": {
+                        "horizontalAlignment": "Center",
+                        "verticalArrangement": "Center",
+                        "paddingEnd": 24,
+                        "onClick": [
+                          {
+                            "component": "navigation:goTo",
+                            "properties": {
+                              "destiny": "menu"
+                            }
+                          }
+                        ]
+                      },
+                      "children": [
+                        {
+                          "component": "layout:imageFile",
+                          "properties": {
+                            "painterResource": "drawable/ic_insurance.xml",
+                            "contentDescription": "LOGO"
+                          }
+                        },
+                        {
+                          "component": "layout:text",
+                          "properties": {
+                            "text": "Seguros"
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "component": "layout:row",
+                  "properties": {
+                    "fillMaxWidth": 1,
+                    "paddingTop": 32,
+                    "horizontalArrangement": "SpaceBetween"
+                  },
+                  "children": [
+                    {
+                      "component": "layout:column",
+                      "properties": {
+                        "horizontalAlignment": "Center",
+                        "verticalArrangement": "Center",
+                        "paddingStart": 24,
+                        "onClick": [
+                          {
+                            "component": "navigation:goTo",
+                            "properties": {
+                              "destiny": "menu"
+                            }
+                          }
+                        ]
+                      },
+                      "children": [
+                        {
+                          "component": "layout:imageFile",
+                          "properties": {
+                            "painterResource": "drawable/ic_my_finances.xml",
+                            "contentDescription": "LOGO"
+                          }
+                        },
+                        {
+                          "component": "layout:text",
+                          "properties": {
+                            "text": "Finanças"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "component": "layout:column",
+                      "properties": {
+                        "horizontalAlignment": "Center",
+                        "verticalArrangement": "Center",
+                        "paddingEnd": 0,
+                        "onClick": [
+                          {
+                            "component": "navigation:goTo",
+                            "properties": {
+                              "destiny": "menu"
+                            }
+                          }
+                        ]
+                      },
+                      "children": [
+                        {
+                          "component": "layout:imageFile",
+                          "properties": {
+                            "painterResource": "drawable/ic_open_finance.xml",
+                            "contentDescription": "LOGO"
+                          }
+                        },
+                        {
+                          "component": "layout:text",
+                          "properties": {
+                            "text": "Open Finance"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "component": "layout:column",
+                      "properties": {
+                        "horizontalAlignment": "Center",
+                        "verticalArrangement": "Center",
+                        "paddingEnd": 32,
+                        "onClick": [
+                          {
+                            "component": "navigation:goTo",
+                            "properties": {
+                              "destiny": "menu"
+                            }
+                          }
+                        ]
+                      },
+                      "children": [
+                        {
+                          "component": "layout:imageFile",
+                          "properties": {
+                            "painterResource": "drawable/ic_pampering.xml",
+                            "contentDescription": "LOGO"
+                          }
+                        },
+                        {
+                          "component": "layout:text",
+                          "properties": {
+                            "text": "Mimos"
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "component": "layout:row",
+                  "properties": {
+                    "fillMaxWidth": 1,
+                    "paddingTop": 32,
+                    "horizontalArrangement": "SpaceBetween"
+                  },
+                  "children": [
+                    {
+                      "component": "layout:column",
+                      "properties": {
+                        "horizontalAlignment": "Center",
+                        "verticalArrangement": "Center",
+                        "paddingStart": 16,
+                        "onClick": [
+                          {
+                            "component": "navigation:goTo",
+                            "properties": {
+                              "destiny": "menu"
+                            }
+                          }
+                        ]
+                      },
+                      "children": [
+                        {
+                          "component": "layout:imageFile",
+                          "properties": {
+                            "painterResource": "drawable/ic_changes.xml",
+                            "contentDescription": "LOGO"
+                          }
+                        },
+                        {
+                          "component": "layout:text",
+                          "properties": {
+                            "text": "Transfências"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "component": "layout:column",
+                      "properties": {
+                        "horizontalAlignment": "Center",
+                        "verticalArrangement": "Center",
+                        "paddingEnd": 32,
+                        "onClick": [
+                          {
+                            "component": "navigation:goTo",
+                            "properties": {
+                              "destiny": "menu"
+                            }
+                          }
+                        ]
+                      },
+                      "children": [
+                        {
+                          "component": "layout:imageFile",
+                          "properties": {
+                            "painterResource": "drawable/ic_deposits_withdrawals.xml",
+                            "contentDescription": "LOGO"
+                          }
+                        },
+                        {
+                          "component": "layout:text",
+                          "properties": {
+                            "text": "Depósitos"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "component": "layout:column",
+                      "properties": {
+                        "horizontalAlignment": "Center",
+                        "verticalArrangement": "Center",
+                        "paddingEnd": 32,
+                        "onClick": [
+                          {
+                            "component": "navigation:goTo",
+                            "properties": {
+                              "destiny": "menu"
+                            }
+                          }
+                        ]
+                      },
+                      "children": [
+                        {
+                          "component": "layout:imageFile",
+                          "properties": {
+                            "painterResource": "drawable/ic_joy.xml",
+                            "contentDescription": "LOGO"
+                          }
+                        },
+                        {
+                          "component": "layout:text",
+                          "properties": {
+                            "text": "nxJoy"
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "component": "layout:row",
+                  "properties": {
+                    "fillMaxWidth": 1,
+                    "paddingTop": 32,
+                    "horizontalArrangement": "SpaceBetween"
+                  },
+                  "children": [
+                    {
+                      "component": "layout:column",
+                      "properties": {
+                        "horizontalAlignment": "Center",
+                        "verticalArrangement": "Center",
+                        "paddingStart": 16,
+                        "onClick": [
+                          {
+                            "component": "navigation:goTo",
+                            "properties": {
+                              "destiny": "menu"
+                            }
+                          }
+                        ]
+                      },
+                      "children": [
+                        {
+                          "component": "layout:imageFile",
+                          "properties": {
+                            "painterResource": "drawable/ic_bring_salary.xml",
+                            "contentDescription": "LOGO"
+                          }
+                        },
+                        {
+                          "component": "layout:text",
+                          "properties": {
+                            "text": "Trazer salário"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "component": "layout:column",
+                      "properties": {
+                        "horizontalAlignment": "Center",
+                        "verticalArrangement": "Center",
+                        "paddingStart": 16,
+                        "onClick": [
+                          {
+                            "component": "navigation:goTo",
+                            "properties": {
+                              "destiny": "menu"
+                            }
+                          }
+                        ]
+                      },
+                      "children": [
+                        {
+                          "component": "layout:imageFile",
+                          "properties": {
+                            "painterResource": "drawable/ic_donations.xml",
+                            "contentDescription": "LOGO"
+                          }
+                        },
+                        {
+                          "component": "layout:text",
+                          "properties": {
+                            "text": "Doações"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "component": "layout:column",
+                      "properties": {
+                        "horizontalAlignment": "Center",
+                        "verticalArrangement": "Center",
+                        "onClick": [
+                          {
+                            "component": "navigation:goTo",
+                            "properties": {
+                              "destiny": "menu"
+                            }
+                          }
+                        ]
+                      },
+                      "children": [
+                        {
+                          "component": "layout:imageFile",
+                          "properties": {
+                            "painterResource": "drawable/ic_receipts.xml",
+                            "contentDescription": "LOGO"
+                          }
+                        },
+                        {
+                          "component": "layout:text",
+                          "properties": {
+                            "text": "Comprovantes"
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
