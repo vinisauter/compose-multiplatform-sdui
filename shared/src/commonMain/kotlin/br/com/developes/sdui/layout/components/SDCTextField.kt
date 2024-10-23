@@ -164,10 +164,10 @@ class SDCTextField(val node: ServerDrivenNode, val state: MutableMap<String, Str
             ),
             colors = TextFieldDefaults.textFieldColors(
                 backgroundColor = Color.Transparent,
-                textColor = Color(textFieldColor!!),
+                textColor = Color(textFieldColor ?: Color.Black.value.toLong()),
                 focusedIndicatorColor = color ?: Color.Gray,
-                trailingIconColor = Color(trailingIconColor!!),
-                unfocusedIndicatorColor = Color(underLineColor!!)
+                trailingIconColor = Color(trailingIconColor ?: MaterialTheme.colors.primary.value.toLong()),
+                unfocusedIndicatorColor = Color(underLineColor ?: MaterialTheme.colors.primary.value.toLong())
             ),
 
             modifier = modifier,
