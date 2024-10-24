@@ -60,10 +60,35 @@
       "component": "layout:column",
       "properties": {
         "fillMaxWidth": "1",
-        "horizontalAlignment": "Center",
-        "paddingTop": "36"
+        "horizontalAlignment": "Center"
       },
       "children": [
+        {
+          "component": "layout:column",
+          "properties": {
+            "fillMaxWidth": "1",
+            "horizontalAlignment": "Start",
+            "paddingHorizontal": "20"
+          },
+          "children": [
+            {
+              "component": "layout:imageFile",
+              "properties": {
+                "onClick": [
+                  {
+                    "component": "action:method",
+                    "properties": {
+                      "method": "logout",
+                      "popStack": true
+                    }
+                  }
+                ],
+                "painterResource": "drawable/ic_logout.xml",
+                "paddingTop": "16"
+              }
+            }
+          ]
+        },
         {
           "component": "layout:imageFile",
           "properties": {
@@ -194,7 +219,7 @@
           "properties": {
             "ifState": [
               {
-                "state": "loginAgain",
+                "state": "userLogged",
                 "then": [
                   {
                     "component": "navigation:goTo",

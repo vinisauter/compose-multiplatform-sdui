@@ -664,6 +664,22 @@
           ]
         }
       ]
+    },
+    {
+      "component": "layout:textButton",
+      "properties": {
+        "fillMaxWidth": 1,
+        "height": "70",
+        "text": "Sair",
+        "onClick": [
+          {
+            "component": "action:method",
+            "properties": {
+              "method": "endSession"
+            }
+          }
+        ]
+      }
     }
   ]
 }
