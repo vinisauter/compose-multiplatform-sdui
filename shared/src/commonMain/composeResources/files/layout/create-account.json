@@ -23,7 +23,7 @@
           {
             "component": "navigation:goTo",
             "properties": {
-              "destiny": "login-poc"
+              "destiny": "login"
             }
           }
         ]

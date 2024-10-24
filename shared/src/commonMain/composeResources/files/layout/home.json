@@ -2,6 +2,7 @@
   "id": "home",
   "component": "layout:scaffold",
   "properties": {
+    "verticalScroll": "true",
     "fillMaxSize": 1
   },
   "children": [

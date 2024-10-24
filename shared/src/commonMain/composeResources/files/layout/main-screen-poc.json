@@ -61,7 +61,15 @@
             "fillMaxWidth": "1",
             "height": "70",
             "roundedCornerShape": "7",
-            "text": "CRIAR CONTA"
+            "text": "CRIAR CONTA",
+            "onClick": [
+              {
+                "component": "navigation:goTo",
+                "properties": {
+                  "destiny": "create-account"
+                }
+              }
+            ]
           }
         }
       ]
