@@ -136,6 +136,7 @@
               {
                 "component": "layout:text",
                 "properties": {
+                  "color": "9AAED2",
                   "text": "Senha"
                 }
               }

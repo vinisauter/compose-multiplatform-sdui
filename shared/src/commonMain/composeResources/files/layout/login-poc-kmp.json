@@ -63,12 +63,14 @@
         "paddingHorizontal": "10",
         "onChangeUpdateState": "email",
         "imeAction": "Next",
+        "textFieldColor": "#9AAED2",
         "trailingIconColor": "#9AAED2",
         "underLineColor": "#9AAED2",
         "label": [
           {
             "component": "layout:text",
             "properties": {
+              "color": "9AAED2",
               "text": "Email"
             }
           }
@@ -85,12 +87,14 @@
         "keyboardType": "NumberPassword",
         "onChangeUpdateState": "password",
         "imeAction": "Done",
+        "textFieldColor": "#9AAED2",
         "trailingIconColor": "#9AAED2",
         "underLineColor": "#9AAED2",
         "label": [
           {
             "component": "layout:text",
             "properties": {
+              "color": "9AAED2",
               "text": "Senha"
             }
           }
@@ -118,6 +122,7 @@
         {
           "component": "layout:text",
           "properties": {
+            "color": "9AAED2",
             "text": "Esqueci a senha",
             "textColor": "9AAED2",
             "onClick": [
