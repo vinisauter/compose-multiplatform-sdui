@@ -24,6 +24,8 @@ class SDCOutlinedButtonText(val node: ServerDrivenNode, val state: MutableMap<St
     private var modifier = Modifier.fromNode(node)
     private val enabled = node.propertyState("enabled", state)?.toBoolean()
     private val text = node.propertyState("text", state)!!
+    private val textColor = node.property("textColor")?.hexToRgbColor()
+    private val lineBorderColor = node.property("lineBorderColor")?.hexToRgbColor()
     private val actions = node.propertyNodes("onClick")
     private val roundedCornerShape = node.property("roundedCornerShape")?.dp ?: 0.dp
 
@@ -38,7 +40,7 @@ class SDCOutlinedButtonText(val node: ServerDrivenNode, val state: MutableMap<St
             modifier = modifier
                 .border(
                     width = 1.dp,
-                    color = if (isEnabled) Color.Blue else Color.Gray,
+                    color = lineBorderColor ?: Color.Unspecified,
                     shape = RoundedCornerShape(roundedCornerShape)
                 ),
             enabled = isEnabled,
@@ -55,7 +57,8 @@ class SDCOutlinedButtonText(val node: ServerDrivenNode, val state: MutableMap<St
             shape = RoundedCornerShape(roundedCornerShape)
         ) {
             Text(
-                text = text
+                text = text,
+                color = textColor ?: Color.Unspecified,
             )
         }
     }

@@ -1,13 +1,18 @@
 package br.com.developes.sdui.layout.components
 
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.ContentAlpha
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
+import androidx.compose.material.LocalContentAlpha
+import androidx.compose.material.LocalContentColor
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.TextField
 import androidx.compose.material.TextFieldDefaults
+import androidx.compose.material.TextFieldDefaults.BackgroundOpacity
+import androidx.compose.material.TextFieldDefaults.IconOpacity
+import androidx.compose.material.TextFieldDefaults.UnfocusedIndicatorLineOpacity
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -30,6 +35,7 @@ import br.com.developes.sdui.SDCLibrary
 import br.com.developes.sdui.SDCLibrary.Companion.launchHandling
 import br.com.developes.sdui.ServerDrivenNode
 import br.com.developes.sdui.layout.Layout
+import br.com.developes.sdui.utils.toColorInt
 import compose.icons.FeatherIcons
 import compose.icons.feathericons.Eye
 import compose.icons.feathericons.EyeOff
@@ -49,6 +55,15 @@ class SDCTextField(val node: ServerDrivenNode, val state: MutableMap<String, Str
     private val singleLine = node.property("singleLine")?.toBoolean()
     private val maxLines = node.property("maxLines")?.toInt()
     private val minLines = node.property("minLines")?.toInt()
+    private val textFieldColor = node.property("textFieldColor")?.toColorInt()?.let {
+        Color(it)
+    }
+    private val trailingIconColor = node.property("trailingIconColor")?.toColorInt()?.let {
+        Color(it)
+    }
+    private val underLineColor = node.property("underLineColor")?.toColorInt()?.let {
+        Color(it)
+    }
     private val capitalization = node.property("capitalization")?.let {
         when (it) {
             "None" -> KeyboardCapitalization.None
@@ -156,13 +171,16 @@ class SDCTextField(val node: ServerDrivenNode, val state: MutableMap<String, Str
             },
             textStyle = TextStyle(
                 fontSize = fontSize,
-                color = color ?: Color.White
+                color = color ?: Color.Unspecified
             ),
             colors = TextFieldDefaults.textFieldColors(
-                backgroundColor = backgroundColor ?: MaterialTheme.colors.background,
-                focusedIndicatorColor = color ?: Color.Gray,
-                unfocusedIndicatorColor = color ?: Color.Gray
+                backgroundColor = backgroundColor ?: MaterialTheme.colors.onSurface.copy(alpha = BackgroundOpacity),
+                textColor = textFieldColor ?: LocalContentColor.current.copy(LocalContentAlpha.current),
+                focusedIndicatorColor = color ?: MaterialTheme.colors.primary.copy(alpha = ContentAlpha.high),
+                trailingIconColor = trailingIconColor ?: MaterialTheme.colors.onSurface.copy(alpha = IconOpacity),
+                unfocusedIndicatorColor = underLineColor ?: MaterialTheme.colors.onSurface.copy(alpha = UnfocusedIndicatorLineOpacity)
             ),
+
             modifier = modifier,
             enabled = isEnabled,
             readOnly = readOnly ?: false,
@@ -233,10 +251,6 @@ class SDCTextField(val node: ServerDrivenNode, val state: MutableMap<String, Str
             label = label,
             placeholder = placeholder,
             leadingIcon = leadingIcon,
-//            textStyle = node.property("textStyle")?.let { LocalTextStyle.current },
-//            interactionSource = interactionSource ?: remember { MutableInteractionSource() },
-//            shape = shape ?: MaterialTheme.shapes.small.copy(bottomEnd = ZeroCornerSize, bottomStart = ZeroCornerSize),
-//            colors = colors ?: TextFieldDefaults.textFieldColors()
         )
     }
 

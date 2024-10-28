@@ -1,13 +1,57 @@
 {
   "id": "login-poc",
-  "component": "layout:column",
+  "component": "layout:scaffold",
   "properties": {
+    "fillMaxSize": "1",
     "horizontalAlignment": "Center",
+    "verticalScroll": "true",
     "backgroundGradient": {
       "type": "linear",
       "colors": [
         "#244F9D",
         "#0F2142"
+      ]
+    },
+    "bottomBar": {
+      "id": "btEnter",
+      "component": "layout:column",
+      "properties": {
+        "backgroundColor": "00FF0000"
+      },
+      "children": [
+        {
+          "id": "btEnter",
+          "component": "layout:outlinedButton",
+          "properties": {
+            "paddingHorizontal": "5",
+            "paddingBottom": "12",
+            "fillMaxWidth": "1",
+            "height": "70",
+            "roundedCornerShape": "7",
+            "text": "Entrar",
+            "textColor": "233C67",
+            "lineBorderColor": "233C67",
+            "onClick": [
+              {
+                "component": "action:method",
+                "properties": {
+                  "method": "loginRecurrent"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "component": "layout:text",
+          "properties": {
+            "color": "9AAED2",
+            "textAlign": "End",
+            "text": "Versão 0.0.1",
+            "paddingHorizontal": "5",
+            "fontSize": "12",
+            "fillMaxWidth": "1"
+          }
+        }
       ]
     }
   },
@@ -16,11 +60,35 @@
       "component": "layout:column",
       "properties": {
         "fillMaxWidth": "1",
-        "verticalArrangement": "Center",
-        "horizontalAlignment": "Center",
-        "paddingTop": "12"
+        "horizontalAlignment": "Center"
       },
       "children": [
+        {
+          "component": "layout:column",
+          "properties": {
+            "fillMaxWidth": "1",
+            "horizontalAlignment": "Start",
+            "paddingHorizontal": "20"
+          },
+          "children": [
+            {
+              "component": "layout:imageFile",
+              "properties": {
+                "onClick": [
+                  {
+                    "component": "action:method",
+                    "properties": {
+                      "method": "logout",
+                      "popStack": true
+                    }
+                  }
+                ],
+                "painterResource": "drawable/ic_logout.xml",
+                "paddingTop": "16"
+              }
+            }
+          ]
+        },
         {
           "component": "layout:imageFile",
           "properties": {
@@ -29,25 +97,41 @@
           }
         },
         {
-          "component": "layout:imageFile",
+          "component": "layout:box",
           "properties": {
-            "paddingTop": "12",
-            "painterResource": "drawable/ic_round_icon.xml",
-            "contentDescription": "LOGO"
-          }
+            "contentAlignment": "Center",
+            "width": 160,
+            "height": 160,
+            "paddingAll": 16,
+            "backgroundColor": "FFFFFFFF",
+            "backgroundShape": "CircleShape"
+          },
+          "children": [
+            {
+              "component": "layout:text",
+              "properties": {
+                "color": "244F9D",
+                "text": "FS",
+                "fontWeight": "Thin",
+                "fontSize": "60"
+              }
+            }
+          ]
         },
         {
           "component": "layout:text",
           "properties": {
-            "text": "LEONARDO WIEBUSCH",
+            "text": "Fulano Silva",
             "fontWeight": "ExtraBold",
+            "color": "FFFFFFFF",
             "paddingTop": "12"
           }
         },
         {
           "component": "layout:text",
           "properties": {
-            "text": "99909990-1"
+            "text": "99909990-1",
+            "color": "FFFFFF"
           }
         }
       ]
@@ -69,11 +153,16 @@
             "paddingHorizontal": "10",
             "keyboardType": "NumberPassword",
             "onChangeUpdateState": "password",
+            "textFieldColor": "#9AAED2",
+            "trailingIconColor": "#9AAED2",
+            "underLineColor": "#9AAED2",
+            "backgroundColor": "00000000",
             "imeAction": "Done",
             "label": [
               {
                 "component": "layout:text",
                 "properties": {
+                  "color": "9AAED2",
                   "text": "Senha"
                 }
               }
@@ -102,6 +191,7 @@
               "component": "layout:text",
               "properties": {
                 "text": "Esqueci a senha",
+                "color": "9AAED2",
                 "onClick": [
                   {
                     "component": "navigation:goTo",
@@ -120,39 +210,22 @@
       "component": "layout:row",
       "properties": {
         "verticalAlignment": "Bottom",
-        "fillMaxSize": "",
-        "paddingAll": "20"
+        "fillMaxWidth": "1",
+        "paddingAll": "20",
+        "backgroundColor": "000000FF"
       },
       "children": [
-        {
-          "id": "btEnter",
-          "component": "layout:outlinedButton",
-          "properties": {
-            "fillMaxWidth": "1",
-            "height": "70",
-            "roundedCornerShape": "7",
-            "text": "Entrar",
-            "onClick": [
-              {
-                "component": "action:method",
-                "properties": {
-                  "method": "loginRecurrent"
-                }
-              }
-            ]
-          }
-        },
         {
           "component": "event:loader",
           "properties": {
             "ifState": [
               {
-                "state": "loginAgain",
+                "state": "userLogged",
                 "then": [
                   {
                     "component": "navigation:goTo",
                     "properties": {
-                      "destiny": "menu",
+                      "destiny": "home",
                       "popStack": true
                     }
                   }

@@ -2,6 +2,7 @@
   "id": "home",
   "component": "layout:scaffold",
   "properties": {
+    "verticalScroll": "true",
     "fillMaxSize": 1
   },
   "children": [
@@ -13,6 +14,33 @@
         "backgroundColor": "FF244F9D"
       },
       "children": [
+        {
+          "component": "layout:row",
+          "properties": {
+            "fillMaxWidth": 1,
+            "verticalAlignment": "Center"
+          },
+          "children": [
+            {
+              "component": "layout:imageFile",
+              "properties": {
+                "onClick": [
+                  {
+                    "component": "action:method",
+                    "properties": {
+                      "method": "logout",
+                      "popStack": true
+                    }
+                  }
+                ],
+                "painterResource": "drawable/ic_logout.xml",
+                "paddingTop": "16",
+                "paddingStart": "16"
+
+              }
+            }
+          ]
+        },
         {
           "component": "layout:row",
           "properties": {
@@ -663,6 +691,22 @@
           ]
         }
       ]
+    },
+    {
+      "component": "layout:textButton",
+      "properties": {
+        "fillMaxWidth": 1,
+        "height": "70",
+        "text": "Sair",
+        "onClick": [
+          {
+            "component": "action:method",
+            "properties": {
+              "method": "endSession"
+            }
+          }
+        ]
+      }
     }
   ]
 }

@@ -2,16 +2,46 @@
   "id": "login",
   "component": "layout:scaffold",
   "properties": {
-    "backgroundColor": "FFFFFFFF",
-    "fillMaxSize": "1"
+    "verticalScroll": "true",
+    "topBar": {
+      "component": "layout:topAppBar",
+      "properties": {
+        "backgroundColor": "FF244F9D",
+        "color": "FFFFFFFF",
+        "title": "ENTRAR",
+        "horizontalArrangement": "Center",
+        "onClick": {
+          "component": "navigation:goBack"
+        }
+      }
+    },
+    "bottomBar": {
+      "component": "layout:textButton",
+      "properties": {
+        "height": "70",
+        "paddingHorizontal": "5",
+        "fillMaxWidth": "1",
+        "roundedCornerShape": "7",
+        "text": "Entrar",
+        "onClick": [
+          {
+            "component": "action:method",
+            "properties": {
+              "method": "login"
+            }
+          }
+        ]
+      }
+    }
   },
+
   "children": [
     {
       "component": "layout:row",
       "properties": {
         "fillMaxWidth": "1",
         "horizontalArrangement": "Center",
-        "paddingAll": "5"
+        "paddingAll": "30"
       },
       "children": [
         {
@@ -33,10 +63,15 @@
         "paddingHorizontal": "10",
         "onChangeUpdateState": "email",
         "imeAction": "Next",
+        "textFieldColor": "#9AAED2",
+        "trailingIconColor": "#9AAED2",
+        "underLineColor": "#9AAED2",
+        "backgroundColor": "00000000",
         "label": [
           {
             "component": "layout:text",
             "properties": {
+              "color": "9AAED2",
               "text": "Email"
             }
           }
@@ -53,10 +88,15 @@
         "keyboardType": "NumberPassword",
         "onChangeUpdateState": "password",
         "imeAction": "Done",
+        "textFieldColor": "#9AAED2",
+        "backgroundColor": "00000000",
+        "trailingIconColor": "#9AAED2",
+        "underLineColor": "#9AAED2",
         "label": [
           {
             "component": "layout:text",
             "properties": {
+              "color": "9AAED2",
               "text": "Senha"
             }
           }
@@ -84,7 +124,9 @@
         {
           "component": "layout:text",
           "properties": {
+            "color": "9AAED2",
             "text": "Esqueci a senha",
+            "textColor": "9AAED2",
             "onClick": [
               {
                 "component": "navigation:goTo",
@@ -98,24 +140,6 @@
       ]
     },
     {
-      "component": "layout:textButton",
-      "properties": {
-        "height": "70",
-        "paddingHorizontal": "5",
-        "fillMaxWidth": "1",
-        "roundedCornerShape": "7",
-        "text": "Entrar",
-        "onClick": [
-          {
-            "component": "action:method",
-            "properties": {
-              "method": "login"
-            }
-          }
-        ]
-      }
-    },
-    {
       "component": "event:loader",
       "properties": {
         "ifState": [
@@ -125,7 +149,7 @@
               {
                 "component": "navigation:goTo",
                 "properties": {
-                  "destiny": "menu",
+                  "destiny": "home",
                   "popStack": true
                 }
               }

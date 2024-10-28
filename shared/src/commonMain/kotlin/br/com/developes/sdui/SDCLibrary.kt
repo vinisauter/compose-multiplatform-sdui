@@ -27,6 +27,7 @@ import br.com.developes.sdui.action.SDAction
 import br.com.developes.sdui.authentication.AuthenticationRecurrentUseCase
 import br.com.developes.sdui.authentication.AuthenticationUseCase
 import br.com.developes.sdui.authentication.CheckIfUserExistsUseCase
+import br.com.developes.sdui.authentication.LogoutUseCase
 import br.com.developes.sdui.events.SDEvent
 import br.com.developes.sdui.layout.SDLayout
 import br.com.developes.sdui.navigation.SDNavigation
@@ -153,7 +154,7 @@ class SDCLibrary private constructor() {
                     }
                     it.registerMethod("loginRecurrent") { node, states ->
                         val password = states["password"]
-                        states["loginAgain"] = AuthenticationRecurrentUseCase()
+                        states["userLogged"] = AuthenticationRecurrentUseCase()
                             .login(password)
                             .toString()
                     }
@@ -169,6 +170,13 @@ class SDCLibrary private constructor() {
                         states["userExists"] = AuthenticationUseCase()
                             .login(email, password)
                             .toString()
+                    }
+                    it.registerMethod("logout") { node, states ->
+                        states["userExists"] = LogoutUseCase()
+                            .logout().toString()
+                    }
+                    it.registerMethod("endSession") { node, states ->
+                        states["userLogged"] = ""
                     }
                 },
             )
