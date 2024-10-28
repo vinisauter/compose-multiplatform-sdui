@@ -52,7 +52,7 @@ class SDCButtonText(val node: ServerDrivenNode, val state: MutableMap<String, St
         ) {
             Text(
                 text = text,
-                color = color ?: Color.White
+                color = color ?: Color.Unspecified
             )
         }
     }

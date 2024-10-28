@@ -22,6 +22,33 @@
           },
           "children": [
             {
+              "component": "layout:imageFile",
+              "properties": {
+                "onClick": [
+                  {
+                    "component": "action:method",
+                    "properties": {
+                      "method": "logout",
+                      "popStack": true
+                    }
+                  }
+                ],
+                "painterResource": "drawable/ic_logout.xml",
+                "paddingTop": "16",
+                "paddingStart": "16"
+
+              }
+            }
+          ]
+        },
+        {
+          "component": "layout:row",
+          "properties": {
+            "fillMaxWidth": 1,
+            "verticalAlignment": "Center"
+          },
+          "children": [
+            {
               "component": "layout:box",
               "properties": {
                 "contentAlignment": "Center",

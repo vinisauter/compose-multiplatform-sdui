@@ -1,15 +1,16 @@
 package br.com.developes.sdui.layout.components
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
+import androidx.compose.material.LocalContentAlpha
+import androidx.compose.material.LocalContentColor
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.material.TopAppBar
+import androidx.compose.material.primarySurface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -44,7 +45,7 @@ class SDCTopAppBar(val node: ServerDrivenNode, val state: MutableMap<String, Str
         val scope = rememberCoroutineScope()
 
         TopAppBar(
-            backgroundColor = backgroundColor ?: MaterialTheme.colors.primary,
+            backgroundColor = backgroundColor ?: MaterialTheme.colors.primarySurface,
             navigationIcon = {
                 IconButton(onClick = {
                     scope.launchHandling(after = { isEnabled = true }) {
@@ -54,7 +55,7 @@ class SDCTopAppBar(val node: ServerDrivenNode, val state: MutableMap<String, Str
                     Icon(
                         imageVector = vectorResource(Res.drawable.ic_back_button_toolbar),
                         contentDescription = "",
-                        tint = color ?: Color.White
+                        tint = color ?: LocalContentColor.current.copy(alpha = LocalContentAlpha.current)
                     )
                 }
             },
@@ -66,7 +67,7 @@ class SDCTopAppBar(val node: ServerDrivenNode, val state: MutableMap<String, Str
                     Text(
                         modifier = modifier,
                         text = title,
-                        color = color ?: Color.White
+                        color = color ?: Color.Unspecified
                     )
                 }
             },

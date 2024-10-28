@@ -1,13 +1,18 @@
 package br.com.developes.sdui.layout.components
 
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.ContentAlpha
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
+import androidx.compose.material.LocalContentAlpha
+import androidx.compose.material.LocalContentColor
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.TextField
 import androidx.compose.material.TextFieldDefaults
+import androidx.compose.material.TextFieldDefaults.BackgroundOpacity
+import androidx.compose.material.TextFieldDefaults.IconOpacity
+import androidx.compose.material.TextFieldDefaults.UnfocusedIndicatorLineOpacity
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -50,10 +55,15 @@ class SDCTextField(val node: ServerDrivenNode, val state: MutableMap<String, Str
     private val singleLine = node.property("singleLine")?.toBoolean()
     private val maxLines = node.property("maxLines")?.toInt()
     private val minLines = node.property("minLines")?.toInt()
-    private val textFieldColor = node.property("textFieldColor")?.toColorInt()
-        ?: Color.Black.value.toLong()
-    private val trailingIconColor = node.property("trailingIconColor")?.toColorInt()
-    private val underLineColor = node.property("underLineColor")?.toColorInt()
+    private val textFieldColor = node.property("textFieldColor")?.toColorInt()?.let {
+        Color(it)
+    }
+    private val trailingIconColor = node.property("trailingIconColor")?.toColorInt()?.let {
+        Color(it)
+    }
+    private val underLineColor = node.property("underLineColor")?.toColorInt()?.let {
+        Color(it)
+    }
     private val capitalization = node.property("capitalization")?.let {
         when (it) {
             "None" -> KeyboardCapitalization.None
@@ -161,14 +171,14 @@ class SDCTextField(val node: ServerDrivenNode, val state: MutableMap<String, Str
             },
             textStyle = TextStyle(
                 fontSize = fontSize,
-                color = color ?: Color.Black
+                color = color ?: Color.Unspecified
             ),
             colors = TextFieldDefaults.textFieldColors(
-                backgroundColor = Color.Transparent,
-                textColor = Color(textFieldColor),
-                focusedIndicatorColor = color ?: Color.Gray,
-                trailingIconColor = Color(trailingIconColor ?: MaterialTheme.colors.primary.value.toLong()),
-                unfocusedIndicatorColor = Color(underLineColor ?: MaterialTheme.colors.primary.value.toLong())
+                backgroundColor = backgroundColor ?: MaterialTheme.colors.onSurface.copy(alpha = BackgroundOpacity),
+                textColor = textFieldColor ?: LocalContentColor.current.copy(LocalContentAlpha.current),
+                focusedIndicatorColor = color ?: MaterialTheme.colors.primary.copy(alpha = ContentAlpha.high),
+                trailingIconColor = trailingIconColor ?: MaterialTheme.colors.onSurface.copy(alpha = IconOpacity),
+                unfocusedIndicatorColor = underLineColor ?: MaterialTheme.colors.onSurface.copy(alpha = UnfocusedIndicatorLineOpacity)
             ),
 
             modifier = modifier,

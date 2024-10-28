@@ -156,6 +156,7 @@
             "textFieldColor": "#9AAED2",
             "trailingIconColor": "#9AAED2",
             "underLineColor": "#9AAED2",
+            "backgroundColor": "00000000",
             "imeAction": "Done",
             "label": [
               {
