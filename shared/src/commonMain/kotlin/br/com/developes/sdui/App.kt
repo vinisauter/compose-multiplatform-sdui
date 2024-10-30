@@ -46,7 +46,11 @@ var defaultError: @Composable (modifier: Modifier, throwable: Throwable) -> Unit
 @Composable
 fun App(lifecycleTracker: LifecycleTracker) {
     CompositionLocalProvider(LocalLifecycleTracker provides lifecycleTracker) {
-        MaterialTheme {
+        MaterialTheme(
+            colors = MaterialTheme.colors,
+            typography = MaterialTheme.typography,
+            shapes = MaterialTheme.shapes,
+        ) {
             ServerDrivenApp()
         }
     }

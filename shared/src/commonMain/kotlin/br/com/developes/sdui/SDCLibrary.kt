@@ -88,6 +88,7 @@ fun SDCLibrary(
 }
 
 var show_states: Boolean = false
+var states_visibility: Boolean = true
 val logger = SimpleLogger("server-driven")
 typealias NodeProvider = suspend (String) -> ServerDrivenNode
 
