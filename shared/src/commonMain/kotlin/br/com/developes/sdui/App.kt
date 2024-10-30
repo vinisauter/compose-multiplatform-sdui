@@ -59,10 +59,17 @@ fun App(lifecycleTracker: LifecycleTracker) {
 @Composable
 fun ServerDrivenApp() {
     SDCLibrary(debug = true) {
+        //Local
+//        val stateMap: MutableMap<String, String> = remember { mutableStateMapOf() }
+//        val graph = "files/navigation/app-navigation.json"
+//        val uiState by produceUiState {
+//            loadNodeTypeProvider("file").invoke(graph)
+//        }
+
         val stateMap: MutableMap<String, String> = remember { mutableStateMapOf() }
-        val graph = "files/navigation/app-navigation.json"
+        val graph = "app_nav"
         val uiState by produceUiState {
-            loadNodeTypeProvider("file").invoke(graph)
+            loadNodeTypeProvider("firestore").invoke(graph)
         }
         logger.i("UiState: $uiState")
         LoaderLayout(modifier = Modifier, state = uiState) { node ->

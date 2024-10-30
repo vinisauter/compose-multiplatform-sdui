@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.androidLibrary)
@@ -10,12 +12,16 @@ plugins {
 kotlin {
     androidTarget {
         compilations.all {
-            @Suppress("DEPRECATION")
-            kotlinOptions {
-                jvmTarget = "1.8"
+            compileTaskProvider {
+                compilerOptions {
+                    jvmTarget.set(JvmTarget.JVM_17)
+                    freeCompilerArgs.add("-Xjdk-release=${JavaVersion.VERSION_17}")
+                }
             }
         }
     }
+
+    jvm()
 
     listOf(
         iosX64(),
@@ -46,6 +52,7 @@ kotlin {
             implementation(libs.composeIcons.fontAwesome)
             implementation(libs.multiplatform.settings)
             implementation(libs.gitlive.firebase.auth)
+            implementation(libs.gitlive.firebase.firestore)
         }
         androidMain.dependencies {
             implementation(libs.androidx.activity.compose)
@@ -54,6 +61,7 @@ kotlin {
             implementation(libs.androidx.preference.ktx)
             implementation(libs.kotlinx.coroutines.android)
             implementation(libs.ktor.client.okhttp)
+            implementation(project.dependencies.platform(libs.firebase.bom))
         }
         iosMain.dependencies {
             implementation(libs.ktor.client.darwin)
@@ -82,7 +90,7 @@ android {
         minSdk = 24
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
 }

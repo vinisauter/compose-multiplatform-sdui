@@ -31,11 +31,13 @@ import br.com.developes.sdui.authentication.LogoutUseCase
 import br.com.developes.sdui.events.SDEvent
 import br.com.developes.sdui.layout.SDLayout
 import br.com.developes.sdui.navigation.SDNavigation
+import br.com.developes.sdui.provider.components.FirestoreNodeTypeProvider
 import br.com.developes.sdui.provider.components.JsonFileNodeTypeProvider
 import br.com.developes.sdui.provider.components.JsonNodeTypeProvider
 import br.com.developes.sdui.utils.AnimatedDialog
 import br.com.developes.sdui.utils.CoroutineScopeLocalProvider
 import br.com.developes.sdui.utils.SimpleLogger
+import dev.gitlive.firebase.Firebase
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Job
@@ -181,6 +183,9 @@ class SDCLibrary private constructor() {
                 },
             )
             SDCLibrary().apply {
+                registerNodeTypeProvider("firestore") { firestore ->
+                    FirestoreNodeTypeProvider(Firebase.firestore, "SD_APP_NAVIGATION", firestore, "1.0").node
+                }
                 registerNodeTypeProvider("json") { json ->
                     JsonNodeTypeProvider(json).node
                 }
