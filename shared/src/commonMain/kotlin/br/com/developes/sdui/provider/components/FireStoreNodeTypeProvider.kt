@@ -15,22 +15,21 @@ import kotlinx.serialization.json.JsonObject
  * */
 class FirestoreNodeTypeProvider(
     firebaseFirestore: FirebaseFirestore,
-    collection: String,
-    document: String,
-    item: String
+    firestorePath: String
 ) : NodeTypeProvider {
     override val node: ServerDrivenNode
+    val path = firestorePath.split("/")
 
     init {
         val json = runBlocking {
-            val dictionaryRef = firebaseFirestore.collection(collection)
-                .document(document)
+            val dictionaryRef = firebaseFirestore.collection(path[0])
+                .document(path[1])
             dictionaryRef.get().let { dictionary ->
                 if (dictionary.exists) {
                     val translationItems = dictionary.data<HashMap<String, String>>()
-                    translationItems[item]
+                    translationItems[path[2]]
                 } else {
-                    error("Firestore Item does not exist! $collection / $document / $item")
+                    error("Firestore Item does not exist! ${path[0]} / ${path[1]} / ${path[2]}")
                 }
             }
         }

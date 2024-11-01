@@ -38,6 +38,7 @@ import br.com.developes.sdui.utils.AnimatedDialog
 import br.com.developes.sdui.utils.CoroutineScopeLocalProvider
 import br.com.developes.sdui.utils.SimpleLogger
 import dev.gitlive.firebase.Firebase
+import dev.gitlive.firebase.firestore.firestore
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Job
@@ -184,8 +185,8 @@ class SDCLibrary private constructor() {
                 },
             )
             SDCLibrary().apply {
-                registerNodeTypeProvider("firestore") { firestore ->
-                    FirestoreNodeTypeProvider(Firebase.firestore, "SD_APP_NAVIGATION", firestore, "1.0").node
+                registerNodeTypeProvider("firestore") { firestorePath ->
+                    FirestoreNodeTypeProvider(Firebase.firestore, firestorePath).node
                 }
                 registerNodeTypeProvider("json") { json ->
                     JsonNodeTypeProvider(json).node

@@ -13,24 +13,24 @@
       "component": "navigation:node",
       "properties": {
         "name": "splash",
-        "type": "file",
-        "destiny": "files/layout/splash.json"
+        "type": "firestore",
+        "destiny": "SD_APP_LAYOUT/layout_splash/1.0"
       }
     },
     {
       "component": "navigation:node",
       "properties": {
         "name": "login-recurrent",
-        "type": "file",
-        "destiny": "files/layout/login-recurrent-poc.json"
+        "type": "firestore",
+        "destiny": "SD_APP_LAYOUT/layout_login_recurrent/1.0"
       }
     },
     {
       "component": "navigation:node",
       "properties": {
         "name": "login",
-        "type": "file",
-        "destiny": "files/layout/login-poc-kmp.json",
+        "type": "firestore",
+        "destiny": "SD_APP_LAYOUT/layout_login/1.0",
         "link": "../login"
       }
     },
@@ -46,16 +46,16 @@
       "component": "navigation:node",
       "properties": {
         "name": "menu",
-        "type": "file",
-        "destiny": "files/layout/menu.json"
+        "type": "firestore",
+        "destiny": "SD_APP_LAYOUT/layout_menu/1.0"
       }
     },
     {
       "component": "navigation:node",
       "properties": {
         "name": "main",
-        "type": "file",
-        "destiny": "files/layout/main-screen-poc.json"
+        "type": "firestore",
+        "destiny": "SD_APP_LAYOUT/layout_main/1.0"
       }
     },
     {
@@ -78,16 +78,16 @@
       "component": "navigation:node",
       "properties": {
         "name": "create-account",
-        "type": "file",
-        "destiny": "files/layout/create-account.json"
+        "type": "firestore",
+        "destiny": "SD_APP_LAYOUT/layout_create_account/1.0"
       }
     },
     {
       "component": "navigation:node",
       "properties": {
         "name": "home",
-        "type": "file",
-        "destiny": "files/layout/home.json"
+        "type": "firestore",
+        "destiny": "SD_APP_LAYOUT/layout_home/1.0"
       }
     }
   ]
