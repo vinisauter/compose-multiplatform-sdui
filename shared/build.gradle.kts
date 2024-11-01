@@ -21,6 +21,8 @@ kotlin {
         }
     }
 
+    jvm()
+
     listOf(
         iosX64(),
         iosArm64(),
@@ -50,6 +52,7 @@ kotlin {
             implementation(libs.composeIcons.fontAwesome)
             implementation(libs.multiplatform.settings)
             implementation(libs.gitlive.firebase.auth)
+            implementation(libs.gitlive.firebase.firestore)
         }
         androidMain.dependencies {
             implementation(libs.androidx.activity.compose)
@@ -58,6 +61,7 @@ kotlin {
             implementation(libs.androidx.preference.ktx)
             implementation(libs.kotlinx.coroutines.android)
             implementation(libs.ktor.client.okhttp)
+            implementation(project.dependencies.platform(libs.firebase.bom))
         }
         iosMain.dependencies {
             implementation(libs.ktor.client.darwin)
