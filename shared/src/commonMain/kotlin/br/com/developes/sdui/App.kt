@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.CircularProgressIndicator
-import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -18,8 +17,11 @@ import androidx.compose.ui.graphics.Color
 import br.com.developes.sdui.SDCLibrary.Companion.loadNodeTypeProvider
 import br.com.developes.sdui.events.lifecycle.LifecycleTracker
 import br.com.developes.sdui.events.lifecycle.LocalLifecycleTracker
+import br.com.developes.sdui.provider.components.FirestoreMaterialThemeProvider
 import br.com.developes.sdui.utils.LoaderLayout
 import br.com.developes.sdui.utils.produceUiState
+import dev.gitlive.firebase.Firebase
+import dev.gitlive.firebase.firestore.firestore
 import kotlin.native.concurrent.ThreadLocal
 
 @ThreadLocal
@@ -46,13 +48,7 @@ var defaultError: @Composable (modifier: Modifier, throwable: Throwable) -> Unit
 @Composable
 fun App(lifecycleTracker: LifecycleTracker) {
     CompositionLocalProvider(LocalLifecycleTracker provides lifecycleTracker) {
-        MaterialTheme(
-            colors = MaterialTheme.colors,
-            typography = MaterialTheme.typography,
-            shapes = MaterialTheme.shapes,
-        ) {
-            ServerDrivenApp()
-        }
+        ServerDrivenApp()
     }
 }
 
@@ -65,13 +61,24 @@ fun ServerDrivenApp() {
     SDCLibrary(debug = true) {
         val stateMap: MutableMap<String, String> = remember { mutableStateMapOf() }
         val firestorePath = "SD_APP_NAVIGATION/app_nav/4.0"
+        val themePath = "SD_CONFIG/cfg_theme/1.0"
+        val theme by produceUiState {
+            FirestoreMaterialThemeProvider(Firebase.firestore, themePath).result
+        }
+        logger.i("theme: $theme")
         val uiState by produceUiState {
             loadNodeTypeProvider("firestore").invoke(firestorePath)
         }
         logger.i("UiState: $uiState")
-        LoaderLayout(modifier = Modifier, state = uiState) { node ->
-            logger.i("Node: $node")
-            SDCLibrary.loadComponent(node, stateMap)
+
+        LoaderLayout(modifier = Modifier, state = theme) { materialTheme ->
+            logger.i("materialTheme: $materialTheme")
+            materialTheme.toMaterialTheme {
+                LoaderLayout(modifier = Modifier, state = uiState) { node ->
+                    logger.i("Node: $node")
+                    SDCLibrary.loadComponent(node, stateMap)
+                }
+            }
         }
     }
 }

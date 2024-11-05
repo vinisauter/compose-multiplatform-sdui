@@ -27,6 +27,7 @@ import br.com.developes.sdui.ServerDrivenNode
 import br.com.developes.sdui.layout.Layout
 import br.com.developes.sdui.resources.Res
 import br.com.developes.sdui.resources.ic_back_button_toolbar
+import br.com.developes.sdui.utils.hexToColor
 import org.jetbrains.compose.resources.vectorResource
 
 class SDCTopAppBar(val node: ServerDrivenNode, val state: MutableMap<String, String>) : Layout {

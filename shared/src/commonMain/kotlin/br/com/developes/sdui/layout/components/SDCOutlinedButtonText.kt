@@ -19,6 +19,7 @@ import br.com.developes.sdui.SDCLibrary.Companion.launchHandling
 import br.com.developes.sdui.ServerDrivenNode
 import br.com.developes.sdui.layout.Layout
 import br.com.developes.sdui.layout.dp
+import br.com.developes.sdui.utils.hexToRgbColor
 
 class SDCOutlinedButtonText(val node: ServerDrivenNode, val state: MutableMap<String, String>) : Layout {
     private var modifier = Modifier.fromNode(node)
