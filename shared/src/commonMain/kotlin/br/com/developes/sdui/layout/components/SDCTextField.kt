@@ -35,6 +35,7 @@ import br.com.developes.sdui.SDCLibrary
 import br.com.developes.sdui.SDCLibrary.Companion.launchHandling
 import br.com.developes.sdui.ServerDrivenNode
 import br.com.developes.sdui.layout.Layout
+import br.com.developes.sdui.utils.hexToColor
 import br.com.developes.sdui.utils.toColorInt
 import compose.icons.FeatherIcons
 import compose.icons.feathericons.Eye

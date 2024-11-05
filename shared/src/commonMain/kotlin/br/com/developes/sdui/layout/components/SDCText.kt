@@ -10,6 +10,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.sp
 import br.com.developes.sdui.ServerDrivenNode
 import br.com.developes.sdui.layout.Layout
+import br.com.developes.sdui.utils.hexToRgbColor
 
 class SDCText(node: ServerDrivenNode, state: MutableMap<String, String>) : Layout {
     val text by node.propertyState("text", state) { it ?: "" }
