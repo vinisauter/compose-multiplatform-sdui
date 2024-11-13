@@ -60,8 +60,8 @@ fun App(lifecycleTracker: LifecycleTracker) {
 fun ServerDrivenApp() {
     SDCLibrary(debug = true) {
         val stateMap: MutableMap<String, String> = remember { mutableStateMapOf() }
-        val firestorePath = "SD_APP_NAVIGATION/app_nav/4.0"
-        val themePath = "SD_CONFIG/cfg_theme/1.0"
+        val firestorePath = "SD_APP_NAVIGATION/app_nav/6.0"
+        val themePath = "SD_CONFIG/cfg_theme/2.0"
         val theme by produceUiState {
             FirestoreMaterialThemeProvider(Firebase.firestore, themePath).result
         }
