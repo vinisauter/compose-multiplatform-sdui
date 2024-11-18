@@ -31,7 +31,7 @@ jobs:
           SIGNING_STORE_PASSWORD: ${{ secrets.SIGNING_STORE_PASSWORD }}
 
       - name: Build iOS
-        run: xcodebuild -workspace iosApp/iosApp.xcworkspace -scheme iosApp -destination 'generic/platform=iOS' archive -archivePath build/iosApp.xcarchive
+        run: xcodebuild -project iosApp/iosApp.xcodeproj -scheme iosApp -destination 'generic/platform=iOS' archive -archivePath build/iosApp.xcarchive
 
       - name: Export iOS IPA
         run: xcodebuild -exportArchive -archivePath build/iosApp.xcarchive -exportPath build -exportOptionsPlist iosApp/ExportOptions.plist
