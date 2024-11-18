@@ -25,7 +25,7 @@ import androidx.compose.ui.graphics.TileMode
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import br.com.developes.sdui.ServerDrivenNode
-import br.com.developes.sdui.utils.hexToColor
+import br.com.developes.sdui.utils.toColor
 import br.com.developes.sdui.utils.toColorInt
 import kotlinx.serialization.json.float
 import kotlinx.serialization.json.jsonArray
@@ -56,7 +56,7 @@ class ModifierProperties(
     private val paddingTop = node.property("paddingTop")?.dp
     private val paddingEnd = node.property("paddingEnd")?.dp
     private val paddingBottom = node.property("paddingBottom")?.dp
-    private val backgroundColor = node.property("backgroundColor")?.hexToColor()
+    private val backgroundColor = node.property("backgroundColor")
     private val backgroundShape = node.property("backgroundShape")
     private val backgroundShapeSize = node.property("backgroundShapeSize")?.toIntOrNull()
     private val backgroundShapeTopStart = node.property("backgroundShapeTopStart")?.toIntOrNull()
@@ -178,17 +178,19 @@ class ModifierProperties(
             )
         }.ifNotNullThen(backgroundGradient) {
             background(brush = it)
-        }.ifNotNullThen(backgroundColor) {
-            background(
-                color = it,
-                shape = backgroundShape.toShape(
-                    size = backgroundShapeSize,
-                    topStart = backgroundShapeTopStart,
-                    topEnd = backgroundShapeTopEnd,
-                    bottomStart = backgroundShapeBottomStart,
-                    bottomEnd = backgroundShapeBottomEnd
+        }.composed {
+            ifNotNullThen(backgroundColor?.toColor()) {
+                background(
+                    color = it,
+                    shape = backgroundShape.toShape(
+                        size = backgroundShapeSize,
+                        topStart = backgroundShapeTopStart,
+                        topEnd = backgroundShapeTopEnd,
+                        bottomStart = backgroundShapeBottomStart,
+                        bottomEnd = backgroundShapeBottomEnd
+                    )
                 )
-            )
+            }
         }.conditional(verticalScroll) {
             composed {
                 val vScroll = rememberScrollState()

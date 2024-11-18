@@ -3,9 +3,10 @@ package br.com.developes.sdui.layout.components
 import androidx.compose.material.Divider
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import br.com.developes.sdui.ServerDrivenNode
 import br.com.developes.sdui.layout.Layout
-import br.com.developes.sdui.utils.hexToColor
+import br.com.developes.sdui.utils.toColor
 
 class SDCDivider(node: ServerDrivenNode, state: MutableMap<String, String>) : Layout {
     private val modifier = Modifier.fromNode(node)
@@ -15,7 +16,7 @@ class SDCDivider(node: ServerDrivenNode, state: MutableMap<String, String>) : La
     override fun Content() {
         Divider(
             modifier = modifier,
-            color = color.hexToColor()
+            color = color.toColor() ?: Color.White
         )
     }
 }

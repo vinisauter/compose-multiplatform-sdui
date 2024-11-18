@@ -8,7 +8,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import br.com.developes.sdui.utils.fromString
-import br.com.developes.sdui.utils.hexToColor
+import br.com.developes.sdui.utils.toColor
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -18,7 +18,8 @@ open class MaterialThemeNode(
     private val shapes: Map<String, Int?>? = null
 ) {
 
-    fun color(key: String) = colors?.get(key)?.hexToColor()
+    @Composable
+    fun color(key: String) = colors?.get(key)?.toColor()
 
     fun typography(key: String) = typography?.get(key)?.let {
         TextStyle.Default.copy(

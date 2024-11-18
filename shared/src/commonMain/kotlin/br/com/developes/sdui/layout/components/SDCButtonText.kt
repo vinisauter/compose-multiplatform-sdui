@@ -19,7 +19,7 @@ import br.com.developes.sdui.SDCLibrary.Companion.launchHandling
 import br.com.developes.sdui.ServerDrivenNode
 import br.com.developes.sdui.layout.Layout
 import br.com.developes.sdui.layout.dp
-import br.com.developes.sdui.utils.hexToColor
+import br.com.developes.sdui.utils.toColor
 
 class SDCButtonText(val node: ServerDrivenNode, val state: MutableMap<String, String>) : Layout {
     private var modifier = Modifier.fromNode(node)
@@ -27,11 +27,12 @@ class SDCButtonText(val node: ServerDrivenNode, val state: MutableMap<String, St
     private val text = node.propertyState("text", state)!!
     private val actions = node.propertyNodes("onClick")
     private val roundedCornerShape = node.property("roundedCornerShape")?.dp ?: 0.dp
-    private val backgroundColor = node.property("backgroundColor")?.hexToColor()
-    private val color = node.property("color")?.hexToColor()
+    private val backgroundColor = node.property("backgroundColor")
+    private val color = node.property("color")
 
     @Composable
     override fun Content() {
+
         var isEnabled by remember { mutableStateOf(enabled ?: true) }
         val action = SDCLibrary.loadActions(actions)
         // Creates a CoroutineScope bound to the Content's lifecycle
@@ -41,7 +42,7 @@ class SDCButtonText(val node: ServerDrivenNode, val state: MutableMap<String, St
             modifier = modifier,
             enabled = isEnabled,
             colors = ButtonDefaults.buttonColors(
-                backgroundColor = backgroundColor ?: MaterialTheme.colors.primary
+                backgroundColor = backgroundColor?.toColor() ?: MaterialTheme.colors.primary
             ),
             onClick = {
                 isEnabled = false
@@ -53,7 +54,7 @@ class SDCButtonText(val node: ServerDrivenNode, val state: MutableMap<String, St
         ) {
             Text(
                 text = text,
-                color = color ?: Color.Unspecified
+                color = color?.toColor() ?: MaterialTheme.colors.onPrimary
             )
         }
     }

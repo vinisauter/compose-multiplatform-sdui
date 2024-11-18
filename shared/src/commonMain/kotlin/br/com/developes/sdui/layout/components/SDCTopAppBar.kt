@@ -19,7 +19,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import br.com.developes.sdui.SDCLibrary
 import br.com.developes.sdui.SDCLibrary.Companion.launchHandling
@@ -27,7 +26,7 @@ import br.com.developes.sdui.ServerDrivenNode
 import br.com.developes.sdui.layout.Layout
 import br.com.developes.sdui.resources.Res
 import br.com.developes.sdui.resources.ic_back_button_toolbar
-import br.com.developes.sdui.utils.hexToColor
+import br.com.developes.sdui.utils.toColor
 import org.jetbrains.compose.resources.vectorResource
 
 class SDCTopAppBar(val node: ServerDrivenNode, val state: MutableMap<String, String>) : Layout {
@@ -35,8 +34,8 @@ class SDCTopAppBar(val node: ServerDrivenNode, val state: MutableMap<String, Str
     private val title by node.propertyState("title", state) { it ?: "" }
     private val actions = node.propertyNodes("onClick")
     private val enabled = node.propertyState("enabled", state)?.toBoolean()
-    private val backgroundColor = node.property("backgroundColor")?.hexToColor()
-    private val color = node.property("color")?.hexToColor()
+    private val backgroundColor = node.property("backgroundColor")
+    private val color = node.property("color")
 
     @Composable
     override fun Content() {
@@ -46,7 +45,7 @@ class SDCTopAppBar(val node: ServerDrivenNode, val state: MutableMap<String, Str
         val scope = rememberCoroutineScope()
 
         TopAppBar(
-            backgroundColor = backgroundColor ?: MaterialTheme.colors.primarySurface,
+            backgroundColor = backgroundColor?.toColor() ?: MaterialTheme.colors.primarySurface,
             navigationIcon = {
                 IconButton(onClick = {
                     scope.launchHandling(after = { isEnabled = true }) {
@@ -56,7 +55,7 @@ class SDCTopAppBar(val node: ServerDrivenNode, val state: MutableMap<String, Str
                     Icon(
                         imageVector = vectorResource(Res.drawable.ic_back_button_toolbar),
                         contentDescription = "",
-                        tint = color ?: LocalContentColor.current.copy(alpha = LocalContentAlpha.current)
+                        tint = color?.toColor() ?: LocalContentColor.current.copy(alpha = LocalContentAlpha.current)
                     )
                 }
             },
@@ -68,7 +67,7 @@ class SDCTopAppBar(val node: ServerDrivenNode, val state: MutableMap<String, Str
                     Text(
                         modifier = modifier,
                         text = title,
-                        color = color ?: Color.Unspecified
+                        color = color?.toColor() ?: MaterialTheme.colors.onPrimary
                     )
                 }
             },
