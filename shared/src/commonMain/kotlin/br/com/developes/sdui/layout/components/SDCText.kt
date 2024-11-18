@@ -10,13 +10,13 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.sp
 import br.com.developes.sdui.ServerDrivenNode
 import br.com.developes.sdui.layout.Layout
-import br.com.developes.sdui.utils.hexToRgbColor
+import br.com.developes.sdui.utils.toColor
 
 class SDCText(node: ServerDrivenNode, state: MutableMap<String, String>) : Layout {
     val text by node.propertyState("text", state) { it ?: "" }
     private val modifier = Modifier.fromNode(node)
     private val fontSize = node.property("fontSize")?.toFloatOrNull()?.sp ?: 16.sp
-    private val color = node.property("color")?.hexToRgbColor()
+    private val color = node.property("color")
     private val textAlign: TextAlign =
         when (node.property("textAlign")) {
             "Start" -> TextAlign.Start
@@ -42,7 +42,7 @@ class SDCText(node: ServerDrivenNode, state: MutableMap<String, String>) : Layou
             fontWeight = fontWeight,
             textAlign = textAlign,
             fontSize = fontSize,
-            color = color ?: Color.Unspecified
+            color = color?.toColor() ?: Color.Unspecified
         )
     }
 }

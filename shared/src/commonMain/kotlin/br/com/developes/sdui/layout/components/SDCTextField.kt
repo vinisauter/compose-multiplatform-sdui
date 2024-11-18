@@ -35,7 +35,7 @@ import br.com.developes.sdui.SDCLibrary
 import br.com.developes.sdui.SDCLibrary.Companion.launchHandling
 import br.com.developes.sdui.ServerDrivenNode
 import br.com.developes.sdui.layout.Layout
-import br.com.developes.sdui.utils.hexToColor
+import br.com.developes.sdui.utils.toColor
 import br.com.developes.sdui.utils.toColorInt
 import compose.icons.FeatherIcons
 import compose.icons.feathericons.Eye
@@ -47,8 +47,8 @@ class SDCTextField(val node: ServerDrivenNode, val state: MutableMap<String, Str
     private val onChangeUpdateState = node.property("onChangeUpdateState") ?: "TextField_${node.id}"
     private val text = node.property("text") ?: ""
     private val fontSize = node.property("fontSize")?.toFloatOrNull()?.sp ?: 16.sp
-    private val color = node.property("color")?.hexToColor()
-    private val backgroundColor = node.property("backgroundColor")?.hexToColor()
+    private val color = node.property("color")
+    private val backgroundColor = node.property("backgroundColor")
     private val enabled = node.propertyState("enabled", state)?.toBoolean()
     private val readOnly = node.propertyState("readOnly", state)?.toBoolean()
     private val isError = node.propertyState("isError", state)?.toBoolean()
@@ -172,12 +172,12 @@ class SDCTextField(val node: ServerDrivenNode, val state: MutableMap<String, Str
             },
             textStyle = TextStyle(
                 fontSize = fontSize,
-                color = color ?: Color.Unspecified
+                color = color?.toColor() ?: Color.Unspecified
             ),
             colors = TextFieldDefaults.textFieldColors(
-                backgroundColor = backgroundColor ?: MaterialTheme.colors.onSurface.copy(alpha = BackgroundOpacity),
+                backgroundColor = backgroundColor?.toColor() ?: MaterialTheme.colors.onSurface.copy(alpha = BackgroundOpacity),
                 textColor = textFieldColor ?: LocalContentColor.current.copy(LocalContentAlpha.current),
-                focusedIndicatorColor = color ?: MaterialTheme.colors.primary.copy(alpha = ContentAlpha.high),
+                focusedIndicatorColor = color?.toColor() ?: MaterialTheme.colors.primary.copy(alpha = ContentAlpha.high),
                 trailingIconColor = trailingIconColor ?: MaterialTheme.colors.onSurface.copy(alpha = IconOpacity),
                 unfocusedIndicatorColor = underLineColor ?: MaterialTheme.colors.onSurface.copy(alpha = UnfocusedIndicatorLineOpacity)
             ),
