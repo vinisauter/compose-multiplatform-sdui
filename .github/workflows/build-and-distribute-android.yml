@@ -2,17 +2,26 @@ name: Android Firebase App Distribution
 
 on:
   workflow_dispatch:
+    inputs:
+      build-number:
+        description: 'Build number'
+        required: true
+        default: ${{ github.run_id }}.${{ github.run_number }}.${{ github.run_attempt }}
 
 jobs:
   build_android:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
       - name: Set up JDK 17
         uses: actions/setup-java@v3
         with:
           java-version: '17'
           distribution: 'temurin'
+
       - name: Cache Gradle packages
         uses: actions/cache@v3
         with:
@@ -22,17 +31,27 @@ jobs:
           key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
           restore-keys: |
             ${{ runner.os }}-gradle-
+
+      - name: Decrypt Keystore
+        id: keystore_file
+        uses: timheuer/base64-to-file@v1.1
+        with:
+          fileName: "keystore.jks"
+          encodedString: ${{ secrets.KEYSTORE }}
+
       - name: Build Android Release APK
         run: ./gradlew :androidApp:packageReleaseUniversalApk
         env:
-          SIGNING_KEY_ALIAS: ${{ secrets.SIGNING_KEY_ALIAS }}
-          SIGNING_KEY_PASSWORD: ${{ secrets.SIGNING_KEY_PASSWORD }}
-          SIGNING_STORE_PASSWORD: ${{ secrets.SIGNING_STORE_PASSWORD }}
+          KEYSTORE_FILE: ${{ steps.keystore_file.outputs.filePath }}
+          KEYSTORE_PASSWORD: ${{ secrets.SIGNING_STORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.SIGNING_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.SIGNING_KEY_PASSWORD }}
+
       - name: Upload Android APK
         uses: actions/upload-artifact@v3
         with:
           name: android-apk
-          path: androidApp/build/outputs/apk_from_bundle/release/androidApp-release-universal.apk
+          path: androidApp/build/outputs/
 
   distribute_to_firebase:
     needs: [ build_android ]
