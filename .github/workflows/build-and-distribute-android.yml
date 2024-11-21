@@ -1,4 +1,4 @@
-name: Build and Distribute Android App to Firebase App Distribution
+name: Android Firebase App Distribution
 
 on:
   workflow_dispatch:
@@ -23,7 +23,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-gradle-
       - name: Build Android Release APK
-        run: ./gradlew :androidApp:assembleRelease
+        run: ./gradlew :androidApp:packageReleaseUniversalApk
         env:
           SIGNING_KEY_ALIAS: ${{ secrets.SIGNING_KEY_ALIAS }}
           SIGNING_KEY_PASSWORD: ${{ secrets.SIGNING_KEY_PASSWORD }}
@@ -32,13 +32,13 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: android-apk
-          path: androidApp/build/outputs/apk/release/androidApp-release.apk
+#          path: androidApp/build/outputs/apk/release/androidApp-release.apk
+#          path: androidApp/build/outputs/apk_from_bundle/release/androidApp-release-universal.apk
 
-  distribute_android_to_firebase:
+  distribute_to_firebase:
     needs: [ build_android ]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
       - name: Download Android APK
         uses: actions/download-artifact@v3
         with:
