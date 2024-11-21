@@ -68,4 +68,4 @@ jobs:
           appId: br.com.developes.sdui.android
           token: ${{ secrets.FIREBASE_TOKEN }}
           groups: testers
-          file: android-apk/androidApp-release.apk
+          file: /home/runner/work/compose-multiplatform-sdui/compose-multiplatform-sdui/androidApp/build/outputs/apk_from_bundle/release/androidApp-release-universal-unsigned.apk
