@@ -32,8 +32,7 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: android-apk
-#          path: androidApp/build/outputs/apk/release/androidApp-release.apk
-#          path: androidApp/build/outputs/apk_from_bundle/release/androidApp-release-universal.apk
+          path: androidApp/build/outputs/apk_from_bundle/release/androidApp-release-universal.apk
 
   distribute_to_firebase:
     needs: [ build_android ]
