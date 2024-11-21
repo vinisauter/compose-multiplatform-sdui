@@ -70,4 +70,4 @@ jobs:
           # TODO: https://github.com/wzieba/Firebase-Distribution-Github-Action/wiki/FIREBASE_TOKEN-migration
           token: ${{ secrets.FIREBASE_TOKEN }}
           groups: testers
-          file: /apk_from_bundle/release/androidApp-release-universal-unsigned.apk
+          file: /home/runner/work/compose-multiplatform-sdui/compose-multiplatform-sdui/apk_from_bundle/release/androidApp-release-universal-unsigned.apk
