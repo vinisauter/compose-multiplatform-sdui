@@ -6,7 +6,7 @@ on:
       build-number:
         description: 'Build number'
         required: true
-        default: ${{ github.run_id }}.${{ github.run_number }}.${{ github.run_attempt }}
+        default: '1'
 
 jobs:
   build_android:
