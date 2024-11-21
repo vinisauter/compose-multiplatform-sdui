@@ -38,7 +38,7 @@ jobs:
         with:
           fileName: "keystore.jks"
           fileDir: './main/folder/subfolder/'
-          encodedString: ${{ secrets.KEYSTORE }}
+          encodedString: ${{ secrets.KEYSTORE_ENCODED }}
 
       - name: Build Android Release APK
         run: ./gradlew :androidApp:packageReleaseUniversalApk
