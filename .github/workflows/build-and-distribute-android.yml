@@ -66,6 +66,7 @@ jobs:
         uses: wzieba/Firebase-Distribution-Github-Action@v1
         with:
           appId: br.com.developes.sdui.android
+          # TODO: https://github.com/wzieba/Firebase-Distribution-Github-Action/wiki/FIREBASE_TOKEN-migration
           token: ${{ secrets.FIREBASE_TOKEN }}
           groups: testers
           file: /home/runner/work/compose-multiplatform-sdui/compose-multiplatform-sdui/androidApp/build/outputs/apk_from_bundle/release/androidApp-release-universal-unsigned.apk
