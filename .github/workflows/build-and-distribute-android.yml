@@ -76,11 +76,7 @@ jobs:
         run: echo "path=$(find . -regex '^./outputs/.*\.apk' -type f | head -1)" >> $GITHUB_OUTPUT
 
       - name: Distribute to Firebase App Distribution
-        uses: wzieba/Firebase-Distribution-Github-Action@v1
+        uses: w9jds/setup-firebase@main
         with:
-          appId: br.com.developes.sdui.android
-          # TODO: https://github.com/wzieba/Firebase-Distribution-Github-Action/wiki/FIREBASE_TOKEN-migration
-          #serviceCredentialsFileContent: ${{ secrets.CREDENTIAL_FILE_CONTENT }}
-          token: ${{ secrets.FIREBASE_TOKEN }}
-          groups: testers
-          file: ${{ steps.apk-path.outputs.path }}
+          firebase_token: ${{ secrets.FIREBASE_TOKEN }}
+      - run: firebase appdistribution:distribute ${{ steps.apk-path.outputs.path }} --app ${{ secrets.FIREBASE_ANDROID_APP_ID }} --groups testers
