@@ -65,6 +65,13 @@ jobs:
     needs: [ build_android ]
     runs-on: ubuntu-latest
     steps:
+      - name: Download Android AAB
+        id: android-aab
+        uses: actions/download-artifact@v3
+        with:
+          name: android-aab
+          path: "./outputs/"
+
       - name: Download Android APK
         id: android-apk
         uses: actions/download-artifact@v3
