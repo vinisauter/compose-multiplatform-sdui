@@ -90,19 +90,19 @@ jobs:
         id: apk-path
         run: echo "path=$(find . -regex '^.*/outputs/.*\.apk$' -type f | head -1)" >> $GITHUB_OUTPUT
 
-#      - name: Setup Firebase App Distribution
-#        uses: w9jds/setup-firebase@main
-#        with:
-#          firebase_token: ${{ secrets.FIREBASE_TOKEN }}
+      - name: Setup Firebase App Distribution
+        uses: w9jds/setup-firebase@main
+        with:
+          firebase_token: ${{ secrets.FIREBASE_TOKEN }}
 
-      - name: Install Yarn
-        run: npm install yarn@latest -g
-      - name: Install Firebase Tools
-        run: npm install firebase-tools -g
-      - name: Install dependencies
-        run: yarn
+#      - name: Install Yarn
+#        run: npm install yarn@latest -g
+#      - name: Install Firebase Tools
+#        run: npm install firebase-tools -g
+#      - name: Install dependencies
+#        run: yarn
 
-      - name: AAB Firebase App Distribution
-        run: firebase appdistribution:distribute "${{ steps.aab-path.outputs.path }}" --app "${{ secrets.FIREBASE_ANDROID_APP_ID }}" --groups testers --token "${{ secrets.FIREBASE_TOKEN }}"
+#      - name: AAB Firebase App Distribution # Os arquivos AAB precisam ser vinculados.
+#        run: firebase appdistribution:distribute "${{ steps.aab-path.outputs.path }}" --app "${{ secrets.FIREBASE_ANDROID_APP_ID }}" --groups testers
       - name: APK Firebase App Distribution
-        run: firebase appdistribution:distribute "${{ steps.apk-path.outputs.path }}" --app "${{ secrets.FIREBASE_ANDROID_APP_ID }}" --groups testers --token "${{ secrets.FIREBASE_TOKEN }}"
+        run: firebase appdistribution:distribute "${{ steps.apk-path.outputs.path }}" --app "${{ secrets.FIREBASE_ANDROID_APP_ID }}" --groups testers
