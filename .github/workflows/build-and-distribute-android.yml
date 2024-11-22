@@ -34,6 +34,7 @@ jobs:
 
       - name: Build with Gradle
         run: ./gradlew androidApp:bundleRelease
+
       - name: Get AAB file path
         id: aab-path
         run: echo "path=$(find . -regex '^.*/build/outputs/bundle/.*\.aab$' -type f | head -1)" >> $GITHUB_OUTPUT
@@ -53,10 +54,26 @@ jobs:
           key-alias: ${{ secrets.SIGNING_KEY_ALIAS }}
           key-password: ${{ secrets.SIGNING_KEY_PASSWORD }}
 
-      - name: Upload APK file to Artifacts
+      - name: Upload Android APK
         uses: actions/upload-artifact@v3
         with:
-          path: ${{ steps.apk-generate.outputs.apk-path }}
+          name: android-apk
+          path: androidApp/build/outputs/
+
+  distribute_to_firebase:
+    needs: [ build_android ]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download Android APK
+        id: android-apk
+        uses: actions/download-artifact@v3
+        with:
+          name: android-apk
+          path: "./outputs/"
+
+      - name: Get APK file path
+        id: apk-path
+        run: echo "path=$(find . -regex '^./outputs/.*\.apk' -type f | head -1)" >> $GITHUB_OUTPUT
 
       - name: Distribute to Firebase App Distribution
         uses: wzieba/Firebase-Distribution-Github-Action@v1
@@ -66,4 +83,4 @@ jobs:
           #serviceCredentialsFileContent: ${{ secrets.CREDENTIAL_FILE_CONTENT }}
           token: ${{ secrets.FIREBASE_TOKEN }}
           groups: testers
-          file: ${{ steps.apk-generate.outputs.apk-path }}
+          file: ${{ steps.apk-path.outputs.path }}
