@@ -32,26 +32,38 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-gradle-
 
-      - name: Decrypt Keystore
-        id: keystore_file
-        uses: timheuer/base64-to-file@v1.2
-        with:
-          fileName: "keystore.jks"
-          fileDir: './main/folder/subfolder/'
-          encodedString: ${{ secrets.KEYSTORE_ENCODED }}
+      - name: Build with Gradle
+        run: ./gradlew androidApp:bundleRelease
+      - name: Get AAB file path
+        id: aab-path
+        run: echo "path=$(find . -regex '^.*/build/outputs/bundle/.*\.aab$' -type f | head -1)" >> $GITHUB_OUTPUT
 
-      - name: Build Android Release APK
-        run: ./gradlew :androidApp:packageReleaseUniversalApk
-        env:
-          KEYSTORE_FILE: ${{ steps.keystore_file.outputs.filePath }}
-          KEYSTORE_PASSWORD: ${{ secrets.SIGNING_STORE_PASSWORD }}
-          KEY_ALIAS: ${{ secrets.SIGNING_KEY_ALIAS }}
-          KEY_PASSWORD: ${{ secrets.SIGNING_KEY_PASSWORD }}
+      - name: Upload AAB file to Artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          path: ${{ steps.aab-path.outputs.path }}
+
+      - name: Generate Universal APK file
+        uses: snnaplab/universal-apk-generate-action@v1
+        id: apk-generate
+        with:
+          aab-path: ${{ steps.aab-path.outputs.path }}
+          keystore-base64: ${{ secrets.KEYSTORE_ENCODED }}
+          keystore-password: ${{ secrets.SIGNING_STORE_PASSWORD }}
+          key-alias: ${{ secrets.SIGNING_KEY_ALIAS }}
+          key-password: ${{ secrets.SIGNING_KEY_PASSWORD }}
+
+      - name: Upload APK file to Artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          path: ${{ steps.apk-generate.outputs.apk-path }}
+
       - name: Distribute to Firebase App Distribution
         uses: wzieba/Firebase-Distribution-Github-Action@v1
         with:
           appId: br.com.developes.sdui.android
           # TODO: https://github.com/wzieba/Firebase-Distribution-Github-Action/wiki/FIREBASE_TOKEN-migration
+          #serviceCredentialsFileContent: ${{ secrets.CREDENTIAL_FILE_CONTENT }}
           token: ${{ secrets.FIREBASE_TOKEN }}
           groups: testers
-          file: /home/runner/work/compose-multiplatform-sdui/compose-multiplatform-sdui/androidApp/build/outputs/apk_from_bundle/release/androidApp-release-universal-unsigned.apk
+          file: ${{ steps.apk-generate.outputs.apk-path }}
