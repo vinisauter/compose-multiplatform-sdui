@@ -96,6 +96,6 @@ jobs:
           firebase_token: ${{ secrets.FIREBASE_TOKEN }}
 
       - name: AAB Firebase App Distribution
-        run: firebase appdistribution:distribute "${{ steps.aab-path.outputs.path }}" --app "${{ secrets.FIREBASE_ANDROID_APP_ID }}" --groups testers
+        run: firebase appdistribution:distribute "${{ steps.aab-path.outputs.path }}" --app "${{ secrets.FIREBASE_ANDROID_APP_ID }}" --groups testers --token "${{ secrets.FIREBASE_TOKEN }}"
       - name: APK Firebase App Distribution
         run: firebase appdistribution:distribute "${{ steps.apk-path.outputs.path }}" --app "${{ secrets.FIREBASE_ANDROID_APP_ID }}" --groups testers
