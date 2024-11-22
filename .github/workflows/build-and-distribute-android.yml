@@ -42,6 +42,7 @@ jobs:
       - name: Upload AAB file to Artifacts
         uses: actions/upload-artifact@v3
         with:
+          name: android-aab
           path: ${{ steps.aab-path.outputs.path }}
 
       - name: Generate Universal APK file
@@ -58,7 +59,7 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: android-apk
-          path: androidApp/build/outputs/
+          path: ${{ steps.apk-generate.outputs.apk-path }}
 
   distribute_to_firebase:
     needs: [ build_android ]
@@ -82,9 +83,12 @@ jobs:
         id: apk-path
         run: echo "path=$(find . -regex '^.*/outputs/.*\.apk$' -type f | head -1)" >> $GITHUB_OUTPUT
 
-      - name: APK Firebase App Distribution
+      - name: Setup Firebase App Distribution
         uses: w9jds/setup-firebase@main
         with:
           firebase_token: ${{ secrets.FIREBASE_TOKEN }}
-      - run: firebase appdistribution:distribute "${{ steps.aab-path.outputs.path }}" --app "${{ secrets.FIREBASE_ANDROID_APP_ID }}" --groups testers
-      - run: firebase appdistribution:distribute "${{ steps.apk-path.outputs.path }}" --app "${{ secrets.FIREBASE_ANDROID_APP_ID }}" --groups testers
+
+      - name: AAB Firebase App Distribution
+        run: firebase appdistribution:distribute "${{ steps.aab-path.outputs.path }}" --app "${{ secrets.FIREBASE_ANDROID_APP_ID }}" --groups testers
+      - name: APK Firebase App Distribution
+        run: firebase appdistribution:distribute "${{ steps.apk-path.outputs.path }}" --app "${{ secrets.FIREBASE_ANDROID_APP_ID }}" --groups testers
