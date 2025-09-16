@@ -16,7 +16,7 @@
       "id": "btEnter",
       "component": "layout:column",
       "properties": {
-        "backgroundColor": "00FF0000"
+        "backgroundColor": "#00FF0000"
       },
       "children": [
         {
@@ -29,8 +29,8 @@
             "height": "70",
             "roundedCornerShape": "7",
             "text": "Entrar",
-            "textColor": "233C67",
-            "lineBorderColor": "233C67",
+            "textColor": "#233C67",
+            "lineBorderColor": "#233C67",
             "onClick": [
               {
                 "component": "action:method",
@@ -44,7 +44,7 @@
         {
           "component": "layout:text",
           "properties": {
-            "color": "9AAED2",
+            "color": "#9AAED2",
             "textAlign": "End",
             "text": "Versão 0.0.1",
             "paddingHorizontal": "5",
@@ -103,14 +103,14 @@
             "width": 160,
             "height": 160,
             "paddingAll": 16,
-            "backgroundColor": "FFFFFFFF",
+            "backgroundColor": "#FFFFFFFF",
             "backgroundShape": "CircleShape"
           },
           "children": [
             {
               "component": "layout:text",
               "properties": {
-                "color": "244F9D",
+                "color": "#244F9D",
                 "text": "FS",
                 "fontWeight": "Thin",
                 "fontSize": "60"
@@ -123,7 +123,7 @@
           "properties": {
             "text": "Fulano Silva",
             "fontWeight": "ExtraBold",
-            "color": "FFFFFFFF",
+            "color": "#FFFFFFFF",
             "paddingTop": "12"
           }
         },
@@ -131,7 +131,7 @@
           "component": "layout:text",
           "properties": {
             "text": "99909990-1",
-            "color": "FFFFFF"
+            "color": "#FFFFFF"
           }
         }
       ]
@@ -156,13 +156,13 @@
             "textFieldColor": "#9AAED2",
             "trailingIconColor": "#9AAED2",
             "underLineColor": "#9AAED2",
-            "backgroundColor": "00000000",
+            "backgroundColor": "#00000000",
             "imeAction": "Done",
             "label": [
               {
                 "component": "layout:text",
                 "properties": {
-                  "color": "9AAED2",
+                  "color": "#9AAED2",
                   "text": "Senha"
                 }
               }
@@ -191,7 +191,7 @@
               "component": "layout:text",
               "properties": {
                 "text": "Esqueci a senha",
-                "color": "9AAED2",
+                "color": "#9AAED2",
                 "onClick": [
                   {
                     "component": "navigation:goTo",
@@ -212,7 +212,7 @@
         "verticalAlignment": "Bottom",
         "fillMaxWidth": "1",
         "paddingAll": "20",
-        "backgroundColor": "000000FF"
+        "backgroundColor": "#000000FF"
       },
       "children": [
         {
