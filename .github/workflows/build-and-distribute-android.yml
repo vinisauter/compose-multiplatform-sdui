@@ -1,0 +1,108 @@
+name: Android Firebase App Distribution
+
+on:
+  workflow_dispatch:
+    inputs:
+      build-number:
+        description: 'Build number'
+        required: true
+        default: '1'
+
+jobs:
+  build_android:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Cache Gradle packages
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      - name: Build with Gradle
+        run: ./gradlew androidApp:bundleRelease
+
+      - name: Get AAB file path
+        id: aab-path
+        run: echo "path=$(find . -regex '^.*/build/outputs/bundle/.*\.aab$' -type f | head -1)" >> $GITHUB_OUTPUT
+
+      - name: Upload AAB file to Artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: android-aab
+          path: ${{ steps.aab-path.outputs.path }}
+
+      - name: Generate Universal APK file
+        uses: snnaplab/universal-apk-generate-action@v1
+        id: apk-generate
+        with:
+          aab-path: ${{ steps.aab-path.outputs.path }}
+          keystore-base64: ${{ secrets.KEYSTORE_ENCODED }}
+          keystore-password: ${{ secrets.SIGNING_STORE_PASSWORD }}
+          key-alias: ${{ secrets.SIGNING_KEY_ALIAS }}
+          key-password: ${{ secrets.SIGNING_KEY_PASSWORD }}
+
+      - name: Upload Android APK
+        uses: actions/upload-artifact@v3
+        with:
+          name: android-apk
+          path: ${{ steps.apk-generate.outputs.apk-path }}
+
+  distribute_to_firebase:
+    needs: [ build_android ]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download Android AAB
+        id: android-aab
+        uses: actions/download-artifact@v3
+        with:
+          name: android-aab
+          path: "./outputs/"
+
+      - name: Download Android APK
+        id: android-apk
+        uses: actions/download-artifact@v3
+        with:
+          name: android-apk
+          path: "./outputs/"
+
+      - name: All downloaded files
+        run: echo "Downloaded file paths = $(find ./outputs/ -type f)"
+
+      - name: Get AAB file path
+        id: aab-path
+        run: echo "path=$(find . -regex '^.*/outputs/.*\.aab$' -type f | head -1)" >> $GITHUB_OUTPUT
+
+      - name: Get APK file path
+        id: apk-path
+        run: echo "path=$(find . -regex '^.*/outputs/.*\.apk$' -type f | head -1)" >> $GITHUB_OUTPUT
+
+      - name: Setup Firebase App Distribution
+        uses: w9jds/setup-firebase@main
+        with:
+          firebase_token: ${{ secrets.FIREBASE_TOKEN }}
+
+#      - name: Install Yarn
+#        run: npm install yarn@latest -g
+#      - name: Install Firebase Tools
+#        run: npm install firebase-tools -g
+#      - name: Install dependencies
+#        run: yarn
+
+#      - name: AAB Firebase App Distribution # Os arquivos AAB precisam ser vinculados.
+#        run: firebase appdistribution:distribute "${{ steps.aab-path.outputs.path }}" --app "${{ secrets.FIREBASE_ANDROID_APP_ID }}" --groups testers
+      - name: APK Firebase App Distribution
+        run: firebase appdistribution:distribute "${{ steps.apk-path.outputs.path }}" --app "${{ secrets.FIREBASE_ANDROID_APP_ID }}" --groups testers

@@ -25,6 +25,7 @@ import androidx.compose.ui.graphics.TileMode
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import br.com.developes.sdui.ServerDrivenNode
+import br.com.developes.sdui.utils.toColor
 import br.com.developes.sdui.utils.toColorInt
 import kotlinx.serialization.json.float
 import kotlinx.serialization.json.jsonArray
@@ -55,7 +56,7 @@ class ModifierProperties(
     private val paddingTop = node.property("paddingTop")?.dp
     private val paddingEnd = node.property("paddingEnd")?.dp
     private val paddingBottom = node.property("paddingBottom")?.dp
-    private val backgroundColor = node.property("backgroundColor")?.hexToColor()
+    private val backgroundColor = node.property("backgroundColor")
     private val backgroundShape = node.property("backgroundShape")
     private val backgroundShapeSize = node.property("backgroundShapeSize")?.toIntOrNull()
     private val backgroundShapeTopStart = node.property("backgroundShapeTopStart")?.toIntOrNull()
@@ -177,17 +178,19 @@ class ModifierProperties(
             )
         }.ifNotNullThen(backgroundGradient) {
             background(brush = it)
-        }.ifNotNullThen(backgroundColor) {
-            background(
-                color = it,
-                shape = backgroundShape.toShape(
-                    size = backgroundShapeSize,
-                    topStart = backgroundShapeTopStart,
-                    topEnd = backgroundShapeTopEnd,
-                    bottomStart = backgroundShapeBottomStart,
-                    bottomEnd = backgroundShapeBottomEnd
+        }.composed {
+            ifNotNullThen(backgroundColor?.toColor()) {
+                background(
+                    color = it,
+                    shape = backgroundShape.toShape(
+                        size = backgroundShapeSize,
+                        topStart = backgroundShapeTopStart,
+                        topEnd = backgroundShapeTopEnd,
+                        bottomStart = backgroundShapeBottomStart,
+                        bottomEnd = backgroundShapeBottomEnd
+                    )
                 )
-            )
+            }
         }.conditional(verticalScroll) {
             composed {
                 val vScroll = rememberScrollState()
@@ -225,17 +228,6 @@ fun <T> Modifier.ifNotNullThen(value: T?, modifier: Modifier.(T) -> Modifier): M
     } else {
         this
     }
-}
-
-/**
- * Supports colors in hex format AARRGGBB
- * */
-private fun String.hexToColor(): Color {
-    val alpha = this.substring(0, 2).toInt(16)
-    val red = this.substring(2, 4).toInt(16)
-    val green = this.substring(4, 6).toInt(16)
-    val blue = this.substring(6, 8).toInt(16)
-    return Color(alpha = alpha, red = red, green = green, blue = blue)
 }
 
 private fun String?.toShape(

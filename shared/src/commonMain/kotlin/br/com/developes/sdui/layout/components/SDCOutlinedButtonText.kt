@@ -19,11 +19,14 @@ import br.com.developes.sdui.SDCLibrary.Companion.launchHandling
 import br.com.developes.sdui.ServerDrivenNode
 import br.com.developes.sdui.layout.Layout
 import br.com.developes.sdui.layout.dp
+import br.com.developes.sdui.utils.toColor
 
 class SDCOutlinedButtonText(val node: ServerDrivenNode, val state: MutableMap<String, String>) : Layout {
     private var modifier = Modifier.fromNode(node)
     private val enabled = node.propertyState("enabled", state)?.toBoolean()
     private val text = node.propertyState("text", state)!!
+    private val textColor = node.property("textColor")
+    private val lineBorderColor = node.property("lineBorderColor")
     private val actions = node.propertyNodes("onClick")
     private val roundedCornerShape = node.property("roundedCornerShape")?.dp ?: 0.dp
 
@@ -38,7 +41,7 @@ class SDCOutlinedButtonText(val node: ServerDrivenNode, val state: MutableMap<St
             modifier = modifier
                 .border(
                     width = 1.dp,
-                    color = if (isEnabled) Color.Blue else Color.Gray,
+                    color = lineBorderColor?.toColor() ?: Color.Unspecified,
                     shape = RoundedCornerShape(roundedCornerShape)
                 ),
             enabled = isEnabled,
@@ -55,7 +58,8 @@ class SDCOutlinedButtonText(val node: ServerDrivenNode, val state: MutableMap<St
             shape = RoundedCornerShape(roundedCornerShape)
         ) {
             Text(
-                text = text
+                text = text,
+                color = textColor?.toColor() ?: Color.Unspecified,
             )
         }
     }

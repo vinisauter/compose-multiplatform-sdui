@@ -61,7 +61,7 @@
               {
                 "component": "navigation:goTo",
                 "properties": {
-                  "destiny": "login",
+                  "destiny": "main",
                   "popStack": true
                 }
               }

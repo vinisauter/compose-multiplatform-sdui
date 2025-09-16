@@ -2,9 +2,17 @@ package br.com.developes.sdui.layout.components
 
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.ContentAlpha
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
+import androidx.compose.material.LocalContentAlpha
+import androidx.compose.material.LocalContentColor
+import androidx.compose.material.MaterialTheme
 import androidx.compose.material.TextField
+import androidx.compose.material.TextFieldDefaults
+import androidx.compose.material.TextFieldDefaults.BackgroundOpacity
+import androidx.compose.material.TextFieldDefaults.IconOpacity
+import androidx.compose.material.TextFieldDefaults.UnfocusedIndicatorLineOpacity
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -12,7 +20,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
@@ -20,10 +30,13 @@ import androidx.compose.ui.text.input.OffsetMapping
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.TransformedText
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.unit.sp
 import br.com.developes.sdui.SDCLibrary
 import br.com.developes.sdui.SDCLibrary.Companion.launchHandling
 import br.com.developes.sdui.ServerDrivenNode
 import br.com.developes.sdui.layout.Layout
+import br.com.developes.sdui.utils.toColor
+import br.com.developes.sdui.utils.toColorInt
 import compose.icons.FeatherIcons
 import compose.icons.feathericons.Eye
 import compose.icons.feathericons.EyeOff
@@ -33,6 +46,9 @@ class SDCTextField(val node: ServerDrivenNode, val state: MutableMap<String, Str
     private val modifier = Modifier.fromNode(node)
     private val onChangeUpdateState = node.property("onChangeUpdateState") ?: "TextField_${node.id}"
     private val text = node.property("text") ?: ""
+    private val fontSize = node.property("fontSize")?.toFloatOrNull()?.sp ?: 16.sp
+    private val color = node.property("color")
+    private val backgroundColor = node.property("backgroundColor")
     private val enabled = node.propertyState("enabled", state)?.toBoolean()
     private val readOnly = node.propertyState("readOnly", state)?.toBoolean()
     private val isError = node.propertyState("isError", state)?.toBoolean()
@@ -40,6 +56,15 @@ class SDCTextField(val node: ServerDrivenNode, val state: MutableMap<String, Str
     private val singleLine = node.property("singleLine")?.toBoolean()
     private val maxLines = node.property("maxLines")?.toInt()
     private val minLines = node.property("minLines")?.toInt()
+    private val textFieldColor = node.property("textFieldColor")?.toColorInt()?.let {
+        Color(it)
+    }
+    private val trailingIconColor = node.property("trailingIconColor")?.toColorInt()?.let {
+        Color(it)
+    }
+    private val underLineColor = node.property("underLineColor")?.toColorInt()?.let {
+        Color(it)
+    }
     private val capitalization = node.property("capitalization")?.let {
         when (it) {
             "None" -> KeyboardCapitalization.None
@@ -108,7 +133,6 @@ class SDCTextField(val node: ServerDrivenNode, val state: MutableMap<String, Str
 
         }
     }
-
     private val trailingIcon: @Composable (() -> Unit)? = node.propertyNodes("trailingIcon").let {
         if (it.isEmpty()) return@let null
         return@let {
@@ -146,6 +170,18 @@ class SDCTextField(val node: ServerDrivenNode, val state: MutableMap<String, Str
                 if (maxLength == null || it.length <= maxLength)
                     state[onChangeUpdateState] = it
             },
+            textStyle = TextStyle(
+                fontSize = fontSize,
+                color = color?.toColor() ?: Color.Unspecified
+            ),
+            colors = TextFieldDefaults.textFieldColors(
+                backgroundColor = backgroundColor?.toColor() ?: MaterialTheme.colors.onSurface.copy(alpha = BackgroundOpacity),
+                textColor = textFieldColor ?: LocalContentColor.current.copy(LocalContentAlpha.current),
+                focusedIndicatorColor = color?.toColor() ?: MaterialTheme.colors.primary.copy(alpha = ContentAlpha.high),
+                trailingIconColor = trailingIconColor ?: MaterialTheme.colors.onSurface.copy(alpha = IconOpacity),
+                unfocusedIndicatorColor = underLineColor ?: MaterialTheme.colors.onSurface.copy(alpha = UnfocusedIndicatorLineOpacity)
+            ),
+
             modifier = modifier,
             enabled = isEnabled,
             readOnly = readOnly ?: false,
@@ -216,10 +252,6 @@ class SDCTextField(val node: ServerDrivenNode, val state: MutableMap<String, Str
             label = label,
             placeholder = placeholder,
             leadingIcon = leadingIcon,
-//            textStyle = node.property("textStyle")?.let { LocalTextStyle.current },
-//            interactionSource = interactionSource ?: remember { MutableInteractionSource() },
-//            shape = shape ?: MaterialTheme.shapes.small.copy(bottomEnd = ZeroCornerSize, bottomStart = ZeroCornerSize),
-//            colors = colors ?: TextFieldDefaults.textFieldColors()
         )
     }
 

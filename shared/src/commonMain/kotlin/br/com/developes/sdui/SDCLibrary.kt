@@ -24,16 +24,21 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import br.com.developes.sdui.action.SDAction
+import br.com.developes.sdui.authentication.AuthenticationRecurrentUseCase
+import br.com.developes.sdui.authentication.AuthenticationUseCase
+import br.com.developes.sdui.authentication.CheckIfUserExistsUseCase
+import br.com.developes.sdui.authentication.LogoutUseCase
 import br.com.developes.sdui.events.SDEvent
 import br.com.developes.sdui.layout.SDLayout
 import br.com.developes.sdui.navigation.SDNavigation
+import br.com.developes.sdui.provider.components.FirestoreNodeTypeProvider
 import br.com.developes.sdui.provider.components.JsonFileNodeTypeProvider
 import br.com.developes.sdui.provider.components.JsonNodeTypeProvider
 import br.com.developes.sdui.utils.AnimatedDialog
 import br.com.developes.sdui.utils.CoroutineScopeLocalProvider
 import br.com.developes.sdui.utils.SimpleLogger
 import dev.gitlive.firebase.Firebase
-import dev.gitlive.firebase.auth.auth
+import dev.gitlive.firebase.firestore.firestore
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Job
@@ -86,6 +91,7 @@ fun SDCLibrary(
 }
 
 var show_states: Boolean = false
+var states_visibility: Boolean = true
 val logger = SimpleLogger("server-driven")
 typealias NodeProvider = suspend (String) -> ServerDrivenNode
 
@@ -150,25 +156,38 @@ class SDCLibrary private constructor() {
                         delay(2000)
                         states["isAppReady"] = true.toString()
                     }
+                    it.registerMethod("loginRecurrent") { node, states ->
+                        val password = states["password"]
+                        states["userLogged"] = AuthenticationRecurrentUseCase()
+                            .login(password)
+                            .toString()
+                    }
                     it.registerMethod("existsUser") { node, states ->
-                        val auth = Firebase.auth
-                        val userExists = auth.currentUser != null
-                        states["userExists"] = userExists.toString()
+                        states["userExists"] = CheckIfUserExistsUseCase()
+                            .check()
+                            .toString()
                     }
                     it.registerMethod("login") { node, states ->
-//                        states["cpf"] = "teste@gmail.com"
-//                        states["password"] = "1234567"
-                        // TODO: validate data and create UseCase
-                        val auth = Firebase.auth
-                        val email = states["cpf"]
+                        val email = states["email"]
                         val password = states["password"]
-                        val signInResult = auth.signInWithEmailAndPassword(email!!, password!!)
-                        val userExists = signInResult.user != null
-                        states["userExists"] = userExists.toString()
+
+                        states["userExists"] = AuthenticationUseCase()
+                            .login(email, password)
+                            .toString()
+                    }
+                    it.registerMethod("logout") { node, states ->
+                        states["userExists"] = LogoutUseCase()
+                            .logout().toString()
+                    }
+                    it.registerMethod("endSession") { node, states ->
+                        states["userLogged"] = ""
                     }
                 },
             )
             SDCLibrary().apply {
+                registerNodeTypeProvider("firestore") { firestorePath ->
+                    FirestoreNodeTypeProvider(Firebase.firestore, firestorePath).node
+                }
                 registerNodeTypeProvider("json") { json ->
                     JsonNodeTypeProvider(json).node
                 }
