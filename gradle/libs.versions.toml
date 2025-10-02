@@ -1,104 +1,96 @@
 [versions]
-agp = "8.3.0"
-android-compileSdk = "34"
-android-minSdk = "24"
-android-targetSdk = "34"
-firebaseAuth = "21.0.0"
-firebaseBom = "33.4.0"
-gitlive = "2.1.0"
-kotlin = "2.0.20"
-compose = "1.7.0-beta01"
-compose-ui = "1.7.0"
-compose-material3 = "1.1.2"
-androidx-activityCompose = "1.9.1"
-androidx-appcompat = "1.7.0"
-androidx-uiTest = "1.6.8"
-apollo = "4.0.0"
-buildConfig = "5.4.0"
-coil = "3.0.0-alpha10"
-compose-uitooling = "1.6.8"
-composeIcons = "1.1.0"
-composeImageLoader = "1.7.1"
-coreKtx = "1.13.1"
-koin = "4.0.0-RC1"
-kotlinx-coroutines = "1.9.0-RC.2"
-kotlinx-datetime = "0.6.1"
-kotlinx-serialization = "1.7.2"
-kstore = "0.8.0"
-ktor = "3.0.0-beta-2"
-libres = "1.2.2"
-moko-mvvm = "0.16.1"
-multiplatformSettings = "1.1.1"
-napier = "2.7.1"
-preferenceKtx = "1.2.1"
-runtime = "1.5.5"
-sqlDelight = "2.0.2"
-voyager = "1.1.0-beta02"
-uiToolingPreviewDesktop = "1.6.8"
-gservices = "4.4.2"
 
+coilCompose = "3.3.0"
+kotlin = "2.2.0"
+agp = "8.10.0"
+maven-publish = "0.34.0"
+compose = "1.8.2"
+composeIcons = "1.1.1"
+kotlinx-coroutines = "1.10.2"
+kotlinx-serialization = "1.9.0"
+kotlinx-datetime = "0.7.1"
+kermit = "2.0.6"
+koin = "4.1.1"
+ktor = "3.2.2"
+sqlDelight = "2.1.0"
+multiplatformSettings = "1.3.0"
+buildConfig = "5.6.7"
+androidx-activityCompose = "1.10.1"
+androidx-LifecycleCompose = "2.9.3"
+androidx-navigation = "2.9.0-rc01"
 
 [libraries]
-firebase-bom = { module = "com.google.firebase:firebase-bom", version.ref = "firebaseBom" }
-gitlive-firebase-auth = { module = "dev.gitlive:firebase-auth", version.ref = "gitlive" }
-gitlive-firebase-firestore = { module = "dev.gitlive:firebase-firestore", version.ref = "gitlive" }
-kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
-androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "androidx-activityCompose" }
-compose-ui = { module = "androidx.compose.ui:ui", version.ref = "compose-ui" }
-compose-ui-tooling = { module = "androidx.compose.ui:ui-tooling", version.ref = "compose-ui" }
-compose-ui-tooling-preview = { module = "androidx.compose.ui:ui-tooling-preview", version.ref = "compose-ui" }
-compose-foundation = { module = "androidx.compose.foundation:foundation", version.ref = "compose" }
-compose-material3 = { module = "androidx.compose.material3:material3", version.ref = "compose-material3" }
-napier = { module = "io.github.aakira:napier", version.ref = "napier" }
+coil-compose = { module = "io.coil-kt.coil3:coil-compose", version.ref = "coilCompose" }
+coil-network-okhttp = { module = "io.coil-kt.coil3:coil-network-okhttp", version.ref = "coilCompose" }
+compose-icons-cssGg = { module = "br.com.devsrsouza.compose.icons:css-gg", version.ref = "composeIcons" }
+compose-icons-weatherIcons = { module = "br.com.devsrsouza.compose.icons:erikflowers-weather-icons", version.ref = "composeIcons" }
+compose-icons-evaIcons = { module = "br.com.devsrsouza.compose.icons:eva-icons", version.ref = "composeIcons" }
+compose-icons-feather = { module = "br.com.devsrsouza.compose.icons:feather", version.ref = "composeIcons" }
+compose-icons-fontAwesome = { module = "br.com.devsrsouza.compose.icons:font-awesome", version.ref = "composeIcons" }
+compose-icons-lineAwesome = { module = "br.com.devsrsouza.compose.icons:line-awesome", version.ref = "composeIcons" }
+compose-icons-linea = { module = "br.com.devsrsouza.compose.icons:linea", version.ref = "composeIcons" }
+compose-icons-octicons = { module = "br.com.devsrsouza.compose.icons:octicons", version.ref = "composeIcons" }
+compose-icons-simpleIcons = { module = "br.com.devsrsouza.compose.icons:simple-icons", version.ref = "composeIcons" }
+compose-icons-tablerIcons = { module = "br.com.devsrsouza.compose.icons:tabler-icons", version.ref = "composeIcons" }
+
+jackson-module-kotlin = { module = "com.fasterxml.jackson.module:jackson-module-kotlin" }
+junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher" }
+kotlin-reflect = { module = "org.jetbrains.kotlin:kotlin-reflect" }
+kotlin-test-junit5 = { module = "org.jetbrains.kotlin:kotlin-test-junit5" }
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinx-coroutines" }
 kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "kotlinx-coroutines" }
 kotlinx-coroutines-swing = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-swing", version.ref = "kotlinx-coroutines" }
-moko-mvvm = { module = "dev.icerock.moko:mvvm-compose", version.ref = "moko-mvvm" }
-ktor-core = { module = "io.ktor:ktor-client-core", version.ref = "ktor" }
-ktor-client-darwin = { module = "io.ktor:ktor-client-darwin", version.ref = "ktor" }
-ktor-client-okhttp = { module = "io.ktor:ktor-client-okhttp", version.ref = "ktor" }
+kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "kotlinx-coroutines" }
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinx-serialization" }
 kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "kotlinx-datetime" }
-multiplatform-settings = { module = "com.russhwolf:multiplatform-settings", version.ref = "multiplatformSettings" }
-androidx-appcompat = { module = "androidx.appcompat:appcompat", version.ref = "androidx-appcompat" }
-androidx-core-ktx = { module = "androidx.core:core-ktx", version.ref = "coreKtx" }
-androidx-preference-ktx = { module = "androidx.preference:preference-ktx", version.ref = "preferenceKtx" }
-libres = { module = "io.github.skeptick.libres:libres-compose", version.ref = "libres" }
-voyager-navigator = { module = "cafe.adriel.voyager:voyager-navigator", version.ref = "voyager" }
-composeImageLoader = { module = "io.github.qdsfdhvh:image-loader", version.ref = "composeImageLoader" }
+kermit = { module = "co.touchlab:kermit", version.ref = "kermit" }
+koin-android = { module = "io.insert-koin:koin-android", version.ref = "koin" }
 koin-core = { module = "io.insert-koin:koin-core", version.ref = "koin" }
-kstore = { module = "io.github.xxfast:kstore", version.ref = "kstore" }
-sqlDelight-driver-runtime = { module = "com.squareup.sqldelight:runtime", version.ref = "runtime" }
+koin-compose = { module = "io.insert-koin:koin-androidx-compose", version.ref = "koin" }
+koin-compose-viewmodel = { module = "io.insert-koin:koin-koin-compose-viewmodel", version.ref = "koin" }
+koin-compose-viewmodel-navigation = { module = "io.insert-koin:koin-koin-compose-viewmodel-navigation", version.ref = "koin" }
+ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktor" }
+ktor-client-content-negotiation = { module = "io.ktor:ktor-client-content-negotiation", version.ref = "ktor" }
+ktor-client-serialization = { module = "io.ktor:ktor-client-serialization", version.ref = "ktor" }
+ktor-serialization-json = { module = "io.ktor:ktor-serialization-kotlinx-json", version.ref = "ktor" }
+ktor-client-logging = { module = "io.ktor:ktor-client-logging", version.ref = "ktor" }
+ktor-client-darwin = { module = "io.ktor:ktor-client-darwin", version.ref = "ktor" }
+ktor-client-okhttp = { module = "io.ktor:ktor-client-okhttp", version.ref = "ktor" }
+ktor-client-js = { module = "io.ktor:ktor-client-js", version.ref = "ktor" }
+ktor-client-curl = { module = "io.ktor:ktor-client-curl", version.ref = "ktor" }
+ktor-client-winhttp = { module = "io.ktor:ktor-client-winhttp", version.ref = "ktor" }
+spring-boot-starter-graphql = { module = "org.springframework.boot:spring-boot-starter-graphql" }
+spring-boot-starter-webflux = { module = "org.springframework.boot:spring-boot-starter-webflux" }
+reactor-kotlin-extensions = { module = "io.projectreactor.kotlin:reactor-kotlin-extensions" }
+kotlin-stdlib-jdk8 = { module = "org.jetbrains.kotlin:kotlin-stdlib-jdk8" }
+kotlinx-coroutines-reactor = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-reactor" }
+spring-boot-devtools = { module = "org.springframework.boot:spring-boot-devtools" }
+spring-boot-starter-test = { module = "org.springframework.boot:spring-boot-starter-test" }
+reactor-test = { module = "io.projectreactor:reactor-test" }
+graphql-kotlin-spring-server = { module = "com.expediagroup:graphql-kotlin-spring-server", version = "8.8.1" }
+graphql-kotlin-federation = { module = "com.expediagroup:graphql-kotlin-federation", version = "8.8.1" }
 sqlDelight-driver-sqlite = { module = "app.cash.sqldelight:sqlite-driver", version.ref = "sqlDelight" }
 sqlDelight-driver-android = { module = "app.cash.sqldelight:android-driver", version.ref = "sqlDelight" }
 sqlDelight-driver-native = { module = "app.cash.sqldelight:native-driver", version.ref = "sqlDelight" }
 sqlDelight-driver-js = { module = "app.cash.sqldelight:web-worker-driver", version.ref = "sqlDelight" }
-apollo-runtime = { module = "com.apollographql.apollo3:apollo-runtime", version.ref = "apollo" }
-apollo-adapters = { module = "com.apollographql.apollo3:apollo-adapters", version.ref = "apollo" }
-composeIcons-cssGg = { module = "br.com.devsrsouza.compose.icons:css-gg", version.ref = "composeIcons" }
-composeIcons-weatherIcons = { module = "br.com.devsrsouza.compose.icons:erikflowers-weather-icons", version.ref = "composeIcons" }
-composeIcons-evaIcons = { module = "br.com.devsrsouza.compose.icons:eva-icons", version.ref = "composeIcons" }
-composeIcons-feather = { module = "br.com.devsrsouza.compose.icons:feather", version.ref = "composeIcons" }
-composeIcons-fontAwesome = { module = "br.com.devsrsouza.compose.icons:font-awesome", version.ref = "composeIcons" }
-composeIcons-lineAwesome = { module = "br.com.devsrsouza.compose.icons:line-awesome", version.ref = "composeIcons" }
-composeIcons-linea = { module = "br.com.devsrsouza.compose.icons:linea", version.ref = "composeIcons" }
-composeIcons-octicons = { module = "br.com.devsrsouza.compose.icons:octicons", version.ref = "composeIcons" }
-composeIcons-simpleIcons = { module = "br.com.devsrsouza.compose.icons:simple-icons", version.ref = "composeIcons" }
-composeIcons-tablerIcons = { module = "br.com.devsrsouza.compose.icons:tabler-icons", version.ref = "composeIcons" }
-androidx-ui-tooling-preview-desktop = { group = "androidx.compose.ui", name = "ui-tooling-preview-desktop", version.ref = "uiToolingPreviewDesktop" }
+multiplatformSettings = { module = "com.russhwolf:multiplatform-settings-no-arg", version.ref = "multiplatformSettings" }
+androidx-activityCompose = { module = "androidx.activity:activity-compose", version.ref = "androidx-activityCompose" }
+lifecycle-viewmodel-compose = { module = "org.jetbrains.androidx.lifecycle:lifecycle-viewmodel-compose", version.ref = "androidx-LifecycleCompose" }
+navigation-compose = { module = "org.jetbrains.androidx.navigation:navigation-compose", version.ref = "androidx-navigation" }
 
 [plugins]
-androidApplication = { id = "com.android.application", version.ref = "agp" }
-androidLibrary = { id = "com.android.library", version.ref = "agp" }
-kotlinAndroid = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
-kotlinMultiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
-kotlinCocoapods = { id = "org.jetbrains.kotlin.native.cocoapods", version.ref = "kotlin" }
-compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+
+multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
+android-library = { id = "com.android.library", version.ref = "agp" }
+maven-publish = { id = "com.vanniktech.maven.publish", version.ref = "maven-publish" }
 compose = { id = "org.jetbrains.compose", version.ref = "compose" }
-kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
-libres = { id = "io.github.skeptick.libres", version.ref = "libres" }
-buildConfig = { id = "com.github.gmazzo.buildconfig", version.ref = "buildConfig" }
+compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 kotlinx-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 sqlDelight = { id = "app.cash.sqldelight", version.ref = "sqlDelight" }
-apollo = { id = "com.apollographql.apollo3", version.ref = "apollo" }
-googleServices = { id = "com.google.gms.google-services", version.ref = "gservices"}
+buildConfig = { id = "com.github.gmazzo.buildconfig", version.ref = "buildConfig" }
+android-application = { id = "com.android.application", version.ref = "agp" }
+kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version = "2.2.10" }
+kotlin-spring = { id = "org.jetbrains.kotlin.plugin.spring", version = "2.2.10" }
+spring-boot = { id = "org.springframework.boot", version = "3.5.5" }
+spring-dependency-management = { id = "io.spring.dependency-management", version = "1.1.7" }
+dgs-codegen = { id = "com.netflix.dgs.codegen", version = "8.1.1" }

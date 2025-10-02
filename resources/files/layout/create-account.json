@@ -1,0 +1,162 @@
+{
+  "id": "create-account",
+  "component": "layout:scaffold",
+  "properties": {
+    "topBar": {
+      "component": "layout:topAppBar",
+      "properties": {
+        "title": "CRIAR CONTA",
+        "horizontalArrangement": "Center"
+      }
+    },
+    "bottomBar": {
+      "id": "btCreateAccount",
+      "component": "layout:textButton",
+      "properties": {
+        "fillMaxWidth": "1",
+        "height": "56",
+        "text": "AVANÇAR",
+        "onClick": [
+          {
+            "component": "action:method",
+            "properties": {
+              "method": "createUser"
+            }
+          }
+        ]
+      }
+    }
+  },
+  "children": [
+    {
+      "component": "layout:text",
+      "properties": {
+        "text": "O primeiro passo para abrir sua conta é informar seus dados ;)",
+        "textAlign": "Center",
+        "paddingTop": "12",
+        "color": "theme.primary"
+      }
+    },
+    {
+      "id": "tfName",
+      "component": "layout:textField",
+      "properties": {
+        "fillMaxWidth": "1",
+        "paddingTop": "10",
+        "paddingHorizontal": "10",
+        "onChangeUpdateState": "name",
+        "backgroundColor": "#00FFFFFF",
+        "label": [
+          {
+            "component": "layout:text",
+            "properties": {
+              "text": "Nome",
+              "color": "theme.primaryVariant"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "tfEmail",
+      "component": "layout:textField",
+      "properties": {
+        "fillMaxWidth": "1",
+        "paddingTop": "10",
+        "paddingHorizontal": "10",
+        "onChangeUpdateState": "email",
+        "backgroundColor": "#00FFFFFF",
+        "label": [
+          {
+            "component": "layout:text",
+            "properties": {
+              "text": "E-mail",
+              "color": "theme.primaryVariant"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "tfCellphone",
+      "component": "layout:textField",
+      "properties": {
+        "fillMaxWidth": "1",
+        "paddingTop": "10",
+        "paddingHorizontal": "10",
+        "onChangeUpdateState": "cellphone",
+        "backgroundColor": "#00FFFFFF",
+        "label": [
+          {
+            "component": "layout:text",
+            "properties": {
+              "text": "Celular",
+              "color": "theme.primaryVariant"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "tfPassword",
+      "component": "layout:textField",
+      "properties": {
+        "fillMaxWidth": "1",
+        "paddingTop": "10",
+        "paddingHorizontal": "10",
+        "keyboardType": "NumberPassword",
+        "onChangeUpdateState": "password",
+        "backgroundColor": "#00FFFFFF",
+        "label": [
+          {
+            "component": "layout:text",
+            "properties": {
+              "text": "Senha",
+              "color": "theme.primaryVariant"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "tfConfirmPassword",
+      "component": "layout:textField",
+      "properties": {
+        "fillMaxWidth": "1",
+        "paddingTop": "10",
+        "paddingHorizontal": "10",
+        "keyboardType": "NumberPassword",
+        "onChangeUpdateState": "confirm-password",
+        "backgroundColor": "#00FFFFFF",
+        "label": [
+          {
+            "component": "layout:text",
+            "properties": {
+              "text": "Confirme a Senha",
+              "color": "theme.primaryVariant"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "component": "event:loader",
+      "properties": {
+        "ifState": [
+          {
+            "state": "userLogged",
+            "then": [
+              {
+                "component": "navigation:goTo",
+                "properties": {
+                  "destiny": "home",
+                  "popStack": true
+                }
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

@@ -1,37 +1,38 @@
-enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
+rootProject.name = "HummingUI"
+
 pluginManagement {
     repositories {
-        google()
+        google {
+            content { 
+              	includeGroupByRegex("com\\.android.*")
+              	includeGroupByRegex("com\\.google.*")
+              	includeGroupByRegex("androidx.*")
+              	includeGroupByRegex("android.*")
+            }
+        }
         gradlePluginPortal()
         mavenCentral()
-//        maven {
-//            url = uri("https://nexus.prebanco.com.br/nexus/repository/next_mobile-build/")
-//            credentials {
-//                username = "next-mobile"
-//                password = "next-mobile@nexus"
-//            }
-//            isAllowInsecureProtocol = true
-//        }
     }
 }
 
 dependencyResolutionManagement {
     repositories {
-        google()
+        google {
+            content { 
+              	includeGroupByRegex("com\\.android.*")
+              	includeGroupByRegex("com\\.google.*")
+              	includeGroupByRegex("androidx.*")
+              	includeGroupByRegex("android.*")
+            }
+        }
         mavenCentral()
-//        maven {
-//            url = uri("https://nexus.prebanco.com.br/nexus/repository/next_mobile-build/")
-//            credentials {
-//                username = "next-mobile"
-//                password = "next-mobile@nexus"
-//            }
-//            isAllowInsecureProtocol = true
-//        }
     }
 }
 
-rootProject.name = "SDUI-ComposeApplication"
+include(":humming-core")
+include(":humming-actions")
+include(":humming-navigation")
+include(":humming-layout-material3")
 
-include(":androidApp")
-include(":iosApp")
-include(":shared")
+include(":sample:composeApp")
+include(":sample:iosApp")
