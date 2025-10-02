@@ -13,25 +13,24 @@
       "component": "navigation:node",
       "properties": {
         "name": "splash",
-        "type": "firestore",
-        "destiny": "SD_APP_LAYOUT/layout_splash/2.0"
+        "type": "url",
+        "destiny": "https://raw.githubusercontent.com/vinisauter/compose-multiplatform-sdui/refs/heads/v2/resources/files/layout/splash.json"
       }
     },
     {
       "component": "navigation:node",
       "properties": {
         "name": "login-recurrent",
-        "type": "firestore",
-        "destiny": "SD_APP_LAYOUT/layout_login_recurrent/2.0"
+        "type": "url",
+        "destiny": "https://raw.githubusercontent.com/vinisauter/compose-multiplatform-sdui/refs/heads/v2/resources/files/layout/login-recurrent-poc.json"
       }
     },
     {
       "component": "navigation:node",
       "properties": {
         "name": "login",
-        "type": "firestore",
-        "destiny": "SD_APP_LAYOUT/layout_login/2.0",
-        "link": "../login"
+        "type": "url",
+        "destiny": "https://raw.githubusercontent.com/vinisauter/compose-multiplatform-sdui/refs/heads/v2/resources/files/layout/login-poc-kmp.json",
       }
     },
     {
@@ -46,16 +45,16 @@
       "component": "navigation:node",
       "properties": {
         "name": "menu",
-        "type": "firestore",
-        "destiny": "SD_APP_LAYOUT/layout_menu/2.0"
+        "type": "url",
+        "destiny": "https://raw.githubusercontent.com/vinisauter/compose-multiplatform-sdui/refs/heads/v2/resources/files/layout/home.json"
       }
     },
     {
       "component": "navigation:node",
       "properties": {
         "name": "main",
-        "type": "firestore",
-        "destiny": "SD_APP_LAYOUT/layout_main/2.0"
+        "type": "url",
+        "destiny": "https://raw.githubusercontent.com/vinisauter/compose-multiplatform-sdui/refs/heads/v2/resources/files/layout/main-screen-poc.json"
       }
     },
     {

@@ -6,6 +6,7 @@ data class ErrorData(val code: String, val message: String) {
             "MISSING_PROVIDER",
             "Provider type '$namespace' is not registered. Please, make sure you have the correct SDUI NodeProvider installed and registered."
         )
+
         fun missingComponent(componentName: String) = ErrorData(
             "MISSING_COMPONENT",
             "Component '$componentName' is not registered. Please, make sure you have the correct SDUI Library installed and registered."
@@ -19,6 +20,11 @@ data class ErrorData(val code: String, val message: String) {
         fun actionError(actionName: String, errorMessage: String) = ErrorData(
             "ACTION_ERROR",
             "Action '$actionName' failed to execute. Error: $errorMessage"
+        )
+
+        fun taskError(message: String) = ErrorData(
+            "TASK_ERROR",
+            "An error occurred while executing a task. Error: $message"
         )
     }
 }

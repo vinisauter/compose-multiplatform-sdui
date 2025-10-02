@@ -40,10 +40,14 @@ class SDUIFormViewModel(
         }
     }
 
-    fun runTask(block: () -> Unit) {
+    fun runTask(block: suspend () -> Unit, onError: (Throwable) -> ErrorData? = { null }) {
         viewModelScope.launch {
             _runningTasks.value++
-            block()
+            try {
+                block()
+            } catch (e: Throwable) {
+                setError(onError(e) ?: ErrorData.taskError(e.message ?: ""))
+            }
             _runningTasks.value--
         }
     }
@@ -130,9 +134,11 @@ class SDUIFormViewModel(
         return try {
             nodeTypeProviders[nodeType]!!
         } catch (e: Exception) {
-            println("Server Driven Node Provider not found: $nodeType\n" +
-                    "Message: ${e.message}\n" +
-                    "StackTrace: ${e.stackTraceToString()}")
+            println(
+                "Server Driven Node Provider not found: $nodeType\n" +
+                        "Message: ${e.message}\n" +
+                        "StackTrace: ${e.stackTraceToString()}"
+            )
             setError(ErrorData.missingProvider(nodeType))
             null
         }
@@ -145,9 +151,11 @@ class SDUIFormViewModel(
                 loadComponent(it)
             }
         } catch (e: Exception) {
-            println("Server Driven Component Node Provider not found: $nodeType\n" +
-                    "Message: ${e.message}\n" +
-                    "StackTrace: ${e.stackTraceToString()}")
+            println(
+                "Server Driven Component Node Provider not found: $nodeType\n" +
+                        "Message: ${e.message}\n" +
+                        "StackTrace: ${e.stackTraceToString()}"
+            )
             setError(ErrorData.missingProvider(nodeType))
             null
         } finally {
@@ -179,9 +187,11 @@ class SDUIFormViewModel(
         try {
             return component!!.invoke(node, this)
         } catch (e: Exception) {
-            println("Server Driven Component not found: $nodeComponent\n" +
-                    "Message: ${e.message}\n" +
-                    "StackTrace: ${e.stackTraceToString()}")
+            println(
+                "Server Driven Component not found: $nodeComponent\n" +
+                        "Message: ${e.message}\n" +
+                        "StackTrace: ${e.stackTraceToString()}"
+            )
             setError(ErrorData.missingComponent(nodeComponent))
             return null
         }
@@ -216,9 +226,11 @@ class SDUIFormViewModel(
                         setError(ErrorData.missingAction(nodeComponent))
                     }
                 } catch (e: Throwable) {
-                    println("Error invoking action for component: ${action.component}\n" +
-                            "Message: ${e.message}\n" +
-                            "StackTrace: ${e.stackTraceToString()}")
+                    println(
+                        "Error invoking action for component: ${action.component}\n" +
+                                "Message: ${e.message}\n" +
+                                "StackTrace: ${e.stackTraceToString()}"
+                    )
                     setError(ErrorData.actionError(action.component, e.message ?: ""))
                 }
             }
