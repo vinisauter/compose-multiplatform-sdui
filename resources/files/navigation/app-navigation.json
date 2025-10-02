@@ -30,7 +30,7 @@
       "properties": {
         "name": "login",
         "type": "url",
-        "destiny": "https://raw.githubusercontent.com/vinisauter/compose-multiplatform-sdui/refs/heads/v2/resources/files/layout/login-poc-kmp.json",
+        "destiny": "https://raw.githubusercontent.com/vinisauter/compose-multiplatform-sdui/refs/heads/v2/resources/files/layout/login-poc-kmp.json"
       }
     },
     {
