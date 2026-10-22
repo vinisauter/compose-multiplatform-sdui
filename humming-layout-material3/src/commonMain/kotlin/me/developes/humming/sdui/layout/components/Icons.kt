@@ -1907,7 +1907,7 @@ import compose.icons.fontawesomeicons.solid.YinYang
 
 object Icons {
 
-    fun getIcons(name: String): ImageVector? = allIcons[name]
+    fun getIcon(name: String): ImageVector? = allIcons[name]
 
     val regularIcons: Map<String, ImageVector> by lazy {
         mapOf(

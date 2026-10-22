@@ -1,0 +1,240 @@
+{
+  "id": "login-poc",
+  "component": "layout:scaffold",
+  "properties": {
+    "fillMaxSize": "1",
+    "horizontalAlignment": "Center",
+    "verticalScroll": "true",
+    "backgroundGradient": {
+      "type": "linear",
+      "colors": [
+        "#244F9D",
+        "#0F2142"
+      ]
+    },
+    "bottomBar": {
+      "id": "btEnter",
+      "component": "layout:column",
+      "properties": {
+        "backgroundColor": "#FF0000"
+      },
+      "children": [
+        {
+          "id": "btEnter",
+          "component": "layout:outlinedButton",
+          "properties": {
+            "paddingHorizontal": "5",
+            "paddingBottom": "12",
+            "fillMaxWidth": "1",
+            "height": "70",
+            "roundedCornerShape": "7",
+            "text": "Entrar",
+            "textColor": "233C67",
+            "lineBorderColor": "233C67",
+            "onClick": [
+              {
+                "component": "action:method",
+                "properties": {
+                  "method": "loginRecurrent"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "component": "layout:text",
+          "properties": {
+            "color": "9AAED2",
+            "textAlign": "End",
+            "text": "Versão 0.0.1",
+            "paddingHorizontal": "5",
+            "fontSize": "12",
+            "fillMaxWidth": "1"
+          }
+        }
+      ]
+    }
+  },
+  "children": [
+    {
+      "component": "layout:column",
+      "properties": {
+        "fillMaxWidth": "1",
+        "horizontalAlignment": "Center"
+      },
+      "children": [
+        {
+          "component": "layout:column",
+          "properties": {
+            "fillMaxWidth": "1",
+            "horizontalAlignment": "Start",
+            "paddingHorizontal": "20"
+          },
+          "children": [
+            {
+              "component": "layout:image",
+              "properties": {
+                "onClick": [
+                  {
+                    "component": "action:method",
+                    "properties": {
+                      "method": "logout",
+                      "popStack": true
+                    }
+                  }
+                ],
+                "painterResource": "drawable/ic_logout.xml",
+                "paddingTop": "16"
+              }
+            }
+          ]
+        },
+        {
+          "component": "layout:image",
+          "properties": {
+            "painterResource": "drawable/ic_logo_light_mini.xml",
+            "contentDescription": "LOGO"
+          }
+        },
+        {
+          "component": "layout:box",
+          "properties": {
+            "contentAlignment": "Center",
+            "width": 160,
+            "height": 160,
+            "paddingAll": 16,
+            "backgroundColor": "FFFFFFFF",
+            "backgroundShape": "CircleShape"
+          },
+          "children": [
+            {
+              "component": "layout:text",
+              "properties": {
+                "color": "244F9D",
+                "text": "FS",
+                "fontWeight": "Thin",
+                "fontSize": "60"
+              }
+            }
+          ]
+        },
+        {
+          "component": "layout:text",
+          "properties": {
+            "text": "Fulano Silva",
+            "fontWeight": "ExtraBold",
+            "color": "FFFFFFFF",
+            "paddingTop": "12"
+          }
+        },
+        {
+          "component": "layout:text",
+          "properties": {
+            "text": "99909990-1",
+            "color": "FFFFFF"
+          }
+        }
+      ]
+    },
+    {
+      "component": "layout:column",
+      "properties": {
+        "paddingAll": "5",
+        "verticalArrangement": "Center",
+        "spacedBy": "12"
+      },
+      "children": [
+        {
+          "id": "tfPassword",
+          "component": "layout:textField",
+          "properties": {
+            "fillMaxWidth": "1",
+            "paddingTop": "10",
+            "paddingHorizontal": "10",
+            "keyboardType": "NumberPassword",
+            "onChangeUpdateState": "password",
+            "textFieldColor": "#9AAED2",
+            "trailingIconColor": "#9AAED2",
+            "underLineColor": "#9AAED2",
+            "backgroundColor": "00000000",
+            "imeAction": "Done",
+            "label": [
+              {
+                "component": "layout:text",
+                "properties": {
+                  "color": "9AAED2",
+                  "text": "Senha"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "component": "layout:row",
+          "properties": {
+            "fillMaxWidth": "",
+            "horizontalArrangement": "End",
+            "verticalAlignment": "Center",
+            "paddingVertical": "20",
+            "paddingEnd": "12"
+          },
+          "children": [
+            {
+              "component": "layout:image",
+              "properties": {
+                "paddingEnd": "10",
+                "painterResource": "drawable/ic_back_right_dark.xml",
+                "contentDescription": "LOGO"
+              }
+            },
+            {
+              "component": "layout:text",
+              "properties": {
+                "text": "Esqueci a senha",
+                "color": "9AAED2",
+                "onClick": [
+                  {
+                    "component": "navigation:goTo",
+                    "properties": {
+                      "destiny": "menu"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "component": "layout:row",
+      "properties": {
+        "verticalAlignment": "Bottom",
+        "fillMaxWidth": "1",
+        "paddingAll": "20",
+        "backgroundColor": "000000FF"
+      },
+      "children": [
+        {
+          "component": "event:loader",
+          "properties": {
+            "ifState": [
+              {
+                "state": "userLogged",
+                "then": [
+                  {
+                    "component": "navigation:goTo",
+                    "properties": {
+                      "destiny": "home",
+                      "popStack": true
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

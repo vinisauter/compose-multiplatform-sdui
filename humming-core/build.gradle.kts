@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.gradle.plugin.mpp.apple.XCFramework
+
 plugins {
     alias(libs.plugins.multiplatform)
     alias(libs.plugins.android.library)
@@ -8,19 +10,31 @@ plugins {
 }
 
 kotlin {
-//    jvmToolchain(11)
+    jvmToolchain(25)
 
     androidTarget { publishLibraryVariants("release") }
     jvm()
-    js { browser() }
-    wasmJs { browser() }
-    iosX64()
-    iosArm64()
-    iosSimulatorArm64()
-    macosX64()
-    macosArm64()
 //    linuxX64()
 //    mingwX64()
+    js { browser() }
+    wasmJs { browser() }
+
+    val xcframeworkName = "HummingUI-Core"
+    val xcf = XCFramework(xcframeworkName)
+    listOf(
+        iosX64(),
+        iosArm64(),
+        iosSimulatorArm64(),
+        macosX64(),
+        macosArm64(),
+    ).forEach {
+        it.binaries.framework {
+            baseName = xcframeworkName
+            binaryOption("bundleId", "me.developes.humming.sdui.${xcframeworkName}")
+            xcf.add(this)
+            isStatic = true
+        }
+    }
 
     sourceSets {
         commonMain.dependencies {
@@ -36,8 +50,6 @@ kotlin {
             implementation(libs.kotlinx.datetime)
             implementation(libs.kermit)
             implementation(libs.multiplatformSettings)
-            api(libs.koin.core)
-            implementation(libs.koin.compose)
         }
 
 //        commonTest.dependencies {
@@ -47,7 +59,6 @@ kotlin {
         androidMain.dependencies {
             implementation(libs.androidx.activityCompose)
             implementation(libs.kotlinx.coroutines.android)
-            implementation(libs.koin.android)
         }
 
         jvmMain.dependencies {
@@ -68,10 +79,15 @@ kotlin {
 
 android {
     namespace = "me.developes.humming.sdui"
-    compileSdk = 36
+    compileSdk = libs.versions.androidSdk.get().toInt()
 
     defaultConfig {
-        minSdk = 21
+        minSdk = libs.versions.androidMinSdk.get().toInt()
+    }
+
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
 }
 

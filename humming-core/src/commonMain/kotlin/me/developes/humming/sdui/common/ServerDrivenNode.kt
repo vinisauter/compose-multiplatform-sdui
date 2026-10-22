@@ -33,6 +33,22 @@ open class ServerDrivenNode(
     }
 
     /**
+     * retrieves a string value from a map based on a provided key,
+     * then uses a provided calculation function to transform that string into a value of the desired type.
+     *
+     * @param key: [String]: This parameter represents a unique key used to identify the property within the properties map.
+     * @param calculation: ([String]?) -> [T]: This parameter is a lambda function that takes a nullable string as input and returns a value of type [T]. This function is used to compute the final value based on the string retrieved from the properties map.
+     *
+     * @return [T] This line calculates the final value by invoking the calculation lambda function with the text retrieved from the properties map.
+     * **/
+    fun <T> property(
+        key: String,
+        calculation: (String?) -> T
+    ): T {
+        return calculation(properties?.get(key))
+    }
+
+    /**
      * tries to get a JSON string from a property. If successful, it deserializes the string into a JsonObject and returns it.
      * If it fails to get the JSON string, it returns null.
      * */

@@ -9,7 +9,7 @@ plugins {
 }
 
 kotlin {
-//    jvmToolchain(11)
+    jvmToolchain(25)
 
     androidTarget()
     jvm()
@@ -37,6 +37,7 @@ kotlin {
             implementation(compose.runtime)
             implementation(compose.ui)
             implementation(compose.foundation)
+            implementation(compose.components.resources)
             implementation(project(":humming-core"))
             implementation(project(":humming-actions"))
             implementation(project(":humming-navigation"))
@@ -81,17 +82,23 @@ kotlin {
     }
 }
 
+
+
 android {
     namespace = "sample.app"
-    compileSdk = 35
+    compileSdk = libs.versions.androidSdk.get().toInt()
 
     defaultConfig {
-        minSdk = 21
-        targetSdk = 35
-
         applicationId = "sample.app.androidApp"
+        minSdk = libs.versions.androidMinSdk.get().toInt()
+        targetSdk = libs.versions.androidSdk.get().toInt()
         versionCode = 1
         versionName = "1.0.0"
+    }
+
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
 }
 
@@ -107,7 +114,11 @@ compose.desktop {
     }
 }
 
-
+compose.resources {
+    publicResClass = true
+    packageOfResClass = "br.com.developes.sdui.resources"
+    generateResClass = always
+}
 
 
 

@@ -1,0 +1,108 @@
+{
+  "id": "template",
+  "component": "layout:column",
+  "properties": {
+    "fillMaxWidth": "1.0",
+    "horizontalAlignment": "Center",
+    "fillMaxHeight": "1"
+  },
+  "children": [
+    {
+      "component": "layout:textField",
+      "properties": {
+        "text": "Ana",
+        "onChangeUpdateState": "name",
+        "label": [
+          {
+            "component": "layout:text",
+            "properties": {
+              "text": "Name"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "component": "layout:button",
+      "properties": {
+        "onClick": [
+          {
+            "component": "action:method",
+            "properties": {
+              "state": "platform",
+              "invoke": "getPlatformName"
+            }
+          },
+          {
+            "component": "action:update",
+            "properties": {
+              "state": "greetingText",
+              "value": "Hello, #{platform}"
+            }
+          },
+          {
+            "component": "action:not",
+            "properties": {
+              "state": "showImage",
+              "param1": "#{showImage}"
+            }
+          }
+        ]
+      },
+      "children": [
+        {
+          "component": "layout:text",
+          "properties": {
+            "text": "Hello, #{name} from #{platform}"
+          }
+        }
+      ]
+    },
+    {
+      "component": "layout:button",
+      "properties": {
+        "onClick": {
+          "component": "navigation:goToUrl",
+          "properties": {
+            "url": "https://www.google.com.br/"
+          }
+        }
+      },
+      "children": [
+        {
+          "component": "layout:text",
+          "properties": {
+            "text": "Open Google"
+          }
+        }
+      ]
+    },
+    {
+      "component": "layout:animatedVisibility",
+      "properties": {
+        "visible": "#{showImage}"
+      },
+      "children": [
+        {
+          "component": "layout:image",
+          "properties": {
+            "imageUrl": "https://riosalado.audubon.org/sites/default/files/styles/bean_wysiwyg_full_width/public/elaine_r._wilson_hummingbird.jpg",
+            "contentDescription": null
+          }
+        }
+      ]
+    },
+    {
+      "id": "btGoBack",
+      "component": "layout:iconButton",
+      "properties": {
+        "paddingHorizontal": "5",
+        "imageVector": "ArrowBack",
+        "text": "Back",
+        "onClick": {
+          "component": "navigation:goBack"
+        }
+      }
+    }
+  ]
+}

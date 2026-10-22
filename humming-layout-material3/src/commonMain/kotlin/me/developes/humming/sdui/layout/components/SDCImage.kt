@@ -1,7 +1,9 @@
 package me.developes.humming.sdui.layout.components
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.BlendMode
@@ -11,7 +13,11 @@ import androidx.compose.ui.graphics.DefaultAlpha
 import androidx.compose.ui.graphics.FilterQuality
 import androidx.compose.ui.graphics.drawscope.DrawScope.Companion.DefaultFilterQuality
 import androidx.compose.ui.layout.ContentScale
-import coil3.compose.AsyncImage
+import coil3.compose.rememberAsyncImagePainter
+import io.github.alexzhirkevich.compottie.LottieCompositionSpec
+import io.github.alexzhirkevich.compottie.Url
+import io.github.alexzhirkevich.compottie.rememberLottieComposition
+import io.github.alexzhirkevich.compottie.rememberLottiePainter
 import me.developes.humming.sdui.common.SDUIFormViewModel
 import me.developes.humming.sdui.common.ServerDrivenNode
 import me.developes.humming.sdui.common.toColor
@@ -23,7 +29,8 @@ class SDCImage(
 ) : Layout {
     private val modifier = Modifier.fromNode(node)
     private val actions = node.propertyNodes("onClick")
-    private val imageUrl: String = node.property("imageUrl")!!
+    private val imageUrl: String? = node.property("imageUrl")
+    private val lottieUrl: String? = node.property("lottieUrl")
     private val contentDescription: String? = node.property("contentDescription")
     private val alignment: Alignment = when (node.property("alignment")) {
         "TopStart" -> Alignment.TopStart
@@ -88,11 +95,9 @@ class SDCImage(
 
                 "colorMatrix" -> {
                     val matrix = it["matrix"]?.let { matrixJson ->
-                        val nums = matrixJson.toString()
-                            .removePrefix("[")
-                            .removeSuffix("]")
-                            .split(",")
-                            .mapNotNull { numStr -> numStr.trim().toFloatOrNull() }
+                        val nums =
+                            matrixJson.toString().removePrefix("[").removeSuffix("]").split(",")
+                                .mapNotNull { numStr -> numStr.trim().toFloatOrNull() }
                         if (nums.size == 20) nums.toFloatArray() else null
                     }
                     if (matrix != null) {
@@ -126,20 +131,46 @@ class SDCImage(
 
     @Composable
     override fun Content() {
-        AsyncImage(
+        lottieUrl?.let { url ->
+            Lottie(url)
+            return
+        }
+        imageUrl?.let { url ->
+Async(url)
+            return
+        }
+    }
+
+    @Composable
+    fun Lottie(url: String) {
+        val composition by rememberLottieComposition { LottieCompositionSpec.Url(url) }
+        Image(
+            painter = rememberLottiePainter(composition = composition),
             modifier = modifier.clickable {
                 viewModel.invokeActions(actions)
             },
-            model = imageUrl,
             contentDescription = contentDescription,
             alignment = alignment,
             contentScale = contentScale,
             alpha = alpha,
             colorFilter = colorFilter,
-            filterQuality = filterQuality,
-            clipToBounds = clipToBounds,
-//            transform = ,
-//            onState = ,
+//            placeholder = painterResource(id = R.drawable.placeholder_image),
+//            error = painterResource(id = R.drawable.error_image)
+        )
+    }
+    @Composable
+    fun Async(url: String) {
+        //val client = HttpClient()
+        Image(
+            painter  = rememberAsyncImagePainter(url),
+            modifier = modifier.clickable {
+                viewModel.invokeActions(actions)
+            },
+            contentDescription = contentDescription,
+            alignment = alignment,
+            contentScale = contentScale,
+            alpha = alpha,
+            colorFilter = colorFilter
 //            placeholder = painterResource(id = R.drawable.placeholder_image),
 //            error = painterResource(id = R.drawable.error_image)
         )

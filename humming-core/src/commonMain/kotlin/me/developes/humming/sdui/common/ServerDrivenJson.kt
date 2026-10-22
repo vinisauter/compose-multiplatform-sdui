@@ -133,16 +133,32 @@ fun <T, U> mapValuesToMutableList(list: List<T>, iterate: (item: T) -> U): Mutab
 
 fun String?.toColor(): Color {
     if (this == null) return Color.Unspecified
-    if (this[0] == '#') {
-        var color = substring(1).toLong(16)
-        if (length == 7) {
-            color = color or 0x00000000ff000000L
-        } else if (length != 9) {
-            throw IllegalArgumentException("Unknown color: $this")
+    try {
+        val color = substring(if (this[0] == '#') 1 else 0)
+        val colorHex = when (color.length) {
+            3 -> {
+                // #RGB -> #RRGGBB
+                val r = color[0].toString().repeat(2)
+                val g = color[1].toString().repeat(2)
+                val b = color[2].toString().repeat(2)
+                "ff$r$g$b".toLong(16)
+            }
+            4 -> {
+                // #ARGB -> #AARRGGBB
+                val a = color[0].toString().repeat(2)
+                val r = color[1].toString().repeat(2)
+                val g = color[2].toString().repeat(2)
+                val b = color[3].toString().repeat(2)
+                "$a$r$g$b".toLong(16)
+            }
+            6 -> "ff$color".toLong(16)
+            8 -> color.toLong(16)
+            else -> throw IllegalArgumentException("Unknown color: $this")
         }
-        return Color(color)
+        return Color(colorHex)
+    } catch (t: Throwable) {
+        throw IllegalArgumentException("Unknown color: $this", t)
     }
-    throw IllegalArgumentException("Unknown color: $this")
 }
 
 val JsonElement.serverDrivenNode: ArrayList<ServerDrivenNode>

@@ -1,0 +1,58 @@
+{
+  "id": "splash",
+  "component": "layout:column",
+  "properties": {
+    "fillMaxWidth": 1.0,
+    "fillMaxHeight": 1.0,
+    "horizontalAlignment": "Center",
+    "verticalArrangement": "Center",
+    "backgroundGradient": {
+      "type": "linear",
+      "colors": [
+        "#244F9D",
+        "#0F2142"
+      ]
+    }
+  },
+  "children": [
+    {
+      "component": "layout:image",
+      "properties": {
+        "align": "Center",
+        "lottieUrl": "https://lottie.host/59f85caf-2dfa-4e5f-8d92-24501970aaac/K0w0uM82K8.json",
+        "contentDescription": "LOGO"
+      }
+    },
+    {
+      "component": "action:event",
+      "properties": {
+        "onCreate": [
+          {
+            "component": "action:update",
+            "properties": {
+              "state": "isAppReady",
+              "value": "true",
+              "delay": "5000"
+            }
+          }
+        ],
+        "onStateChange": [
+          {
+            "component": "action:ifState",
+            "properties": {
+              "state": "isAppReady",
+              "equals": "true",
+              "then": {
+                "component": "navigation:goTo",
+                "properties": {
+                  "destiny": "login",
+                  "clearStack": true
+                }
+              }
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

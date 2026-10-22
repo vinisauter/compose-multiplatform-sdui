@@ -1,0 +1,85 @@
+{
+  "id": "app-navigation",
+  "component": "navigation:graph",
+  "properties": {
+    "startDestination": "splash",
+    "states": {
+      "name": "João da Silva",
+      "nickname": "silva_apenas"
+    }
+  },
+  "children": [
+    {
+      "component": "navigation:node",
+      "properties": {
+        "name": "splash",
+        "type": "file",
+        "destiny": "files/layout/splash.json"
+      }
+    },
+    {
+      "component": "navigation:node",
+      "properties": {
+        "name": "login",
+        "type": "file",
+        "destiny": "files/layout/login.json"
+      }
+    },
+    {
+      "component": "navigation:node",
+      "properties": {
+        "name": "google",
+        "type": "link",
+        "destiny": "https://www.google.com.br/"
+      }
+    },
+    {
+      "component": "navigation:node",
+      "properties": {
+        "name": "menu",
+        "type": "file",
+        "destiny": "files/layout/home.json"
+      }
+    },
+    {
+      "component": "navigation:node",
+      "properties": {
+        "name": "main",
+        "type": "url",
+        "destiny": "https://raw.githubusercontent.com/vinisauter/compose-multiplatform-sdui/refs/heads/v2/resources/files/layout/main-screen-poc.json"
+      }
+    },
+    {
+      "component": "navigation:node",
+      "properties": {
+        "name": "static",
+        "type": "file",
+        "destiny": "files/layout/static.json"
+      }
+    },
+    {
+      "component": "navigation:node",
+      "properties": {
+        "name": "template",
+        "type": "file",
+        "destiny": "files/layout/template.json"
+      }
+    },
+    {
+      "component": "navigation:node",
+      "properties": {
+        "name": "create-account",
+        "type": "firestore",
+        "destiny": "SD_APP_LAYOUT/layout_create_account/2.0"
+      }
+    },
+    {
+      "component": "navigation:node",
+      "properties": {
+        "name": "home",
+        "type": "firestore",
+        "destiny": "SD_APP_LAYOUT/layout_home/2.0"
+      }
+    }
+  ]
+}

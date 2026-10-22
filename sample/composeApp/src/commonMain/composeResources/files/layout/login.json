@@ -1,0 +1,148 @@
+{
+  "id": "login",
+  "component": "layout:column",
+  "properties": {
+    "horizontalAlignment": "Center"
+  },
+  "children": [
+    {
+      "component": "layout:image",
+      "properties": {
+        "lottieUrl": "https://lottie.host/59f85caf-2dfa-4e5f-8d92-24501970aaac/K0w0uM82K8.json",
+        "contentDescription": null,
+        "width": "200",
+        "height": "200"
+      }
+    },
+    {
+      "id": "tfNickname",
+      "component": "layout:textField",
+      "properties": {
+        "fillMaxWidth": "1",
+        "paddingTop": "10",
+        "paddingHorizontal": "10",
+        "onChangeUpdateState": "nickname",
+        "text": "teste@gmail.com",
+        "label": [
+          {
+            "component": "layout:text",
+            "properties": {
+              "text": "Nickname"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "tfPassword",
+      "component": "layout:textField",
+      "properties": {
+        "fillMaxWidth": "1",
+        "paddingTop": "10",
+        "paddingHorizontal": "10",
+        "keyboardType": "NumberPassword",
+        "onChangeUpdateState": "password",
+        "label": [
+          {
+            "component": "layout:text",
+            "properties": {
+              "text": "Password"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "component": "layout:row",
+      "properties": {
+        "fillMaxWidth": "",
+        "horizontalArrangement": "End",
+        "paddingAll": "5"
+      },
+      "children": [
+        {
+          "component": "layout:button",
+          "properties": {
+            "paddingHorizontal": "5",
+            "onClick": [
+              {
+                "component": "navigation:goTo",
+                "properties": {
+                  "destiny": "menu"
+                }
+              }
+            ]
+          },
+          "children": [
+            {
+              "component": "layout:text",
+              "properties": {
+                "text": "Login"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "component": "layout:row",
+      "properties": {
+        "verticalAlignment": "Bottom",
+        "horizontalArrangement": "Center",
+        "fillMaxSize": "",
+        "paddingAll": "20"
+      },
+      "children": [
+        {
+          "id": "btPhone",
+          "component": "layout:iconButton",
+          "properties": {
+            "paddingHorizontal": "5",
+            "imageVector": "Phone",
+            "text": "static",
+            "onClick": [
+              {
+                "component": "navigation:goTo",
+                "properties": {
+                  "destiny": "static"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "btFace",
+          "component": "layout:iconButton",
+          "properties": {
+            "paddingHorizontal": "5",
+            "imageVector": "Face",
+            "text": "Template",
+            "onClick": [
+              {
+                "component": "navigation:goTo",
+                "properties": {
+                  "destiny": "template"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "btPlace",
+          "component": "layout:iconButton",
+          "properties": {
+            "paddingHorizontal": "5",
+            "imageVector": "Place",
+            "text": "Place",
+            "onClick": {
+              "component": "navigation:goTo",
+              "properties": {
+                "destiny": "google"
+              }
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

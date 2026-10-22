@@ -5,10 +5,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
@@ -20,15 +18,17 @@ import me.developes.humming.sdui.layout.dp
 
 class SDCOutlinedButtonText(val node: ServerDrivenNode, val viewModel: SDUIFormViewModel) : Layout {
     private var modifier = Modifier.fromNode(node)
-    private val enabled by viewModel.propertyState("enabled") { it?.toBoolean() ?: true }
-    private val text by viewModel.propertyState("text") { it ?: "" }
+    private val enabled = viewModel.resolveStatePlaceholdersFlow(node.property("enabled")) {
+        it?.toBooleanStrictOrNull() ?: true
+    }
+    private val text = viewModel.resolveStatePlaceholdersFlow(node.property("text"))
     private val lineBorderColor = node.property("lineBorderColor")
     private val actions = node.propertyNodes("onClick")
     private val roundedCornerShape = node.property("roundedCornerShape")?.dp ?: 0.dp
 
     @Composable
     override fun Content() {
-        var isEnabled by remember { mutableStateOf(enabled) }
+        val isEnabled by enabled.collectAsState()
         Button(
             modifier = modifier
                 .border(
@@ -40,15 +40,14 @@ class SDCOutlinedButtonText(val node: ServerDrivenNode, val viewModel: SDUIFormV
             onClick = {
                 viewModel.invokeActions(
                     actions,
-                    beforeInvoke = { isEnabled = false },
-                    afterInvoke = { isEnabled = true }
+                    beforeInvoke = { enabled.value = false },
+                    afterInvoke = { enabled.value = true }
                 )
             },
             shape = RoundedCornerShape(roundedCornerShape)
         ) {
-            Text(
-                text = text,
-            )
+            val text by text.collectAsState()
+            Text(text = text)
         }
     }
 }

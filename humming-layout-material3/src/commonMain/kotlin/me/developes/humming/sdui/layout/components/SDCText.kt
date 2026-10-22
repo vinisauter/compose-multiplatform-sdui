@@ -2,6 +2,7 @@ package me.developes.humming.sdui.layout.components
 
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -14,7 +15,7 @@ import me.developes.humming.sdui.common.toColor
 import me.developes.humming.sdui.layout.Layout
 
 class SDCText(node: ServerDrivenNode, viewModel: SDUIFormViewModel) : Layout {
-    val text by viewModel.propertyState("text") { it ?: "" }
+    private val text = viewModel.resolveStatePlaceholdersFlow(node.property("text")!!)
     private val modifier = Modifier.fromNode(node)
     private val fontSize = node.property("fontSize")?.toFloatOrNull()?.sp ?: 16.sp
     private val color = node.property("color")
@@ -37,6 +38,7 @@ class SDCText(node: ServerDrivenNode, viewModel: SDUIFormViewModel) : Layout {
 
     @Composable
     override fun Content() {
+        val text by text.collectAsState()
         Text(
             modifier = modifier,
             text = text,

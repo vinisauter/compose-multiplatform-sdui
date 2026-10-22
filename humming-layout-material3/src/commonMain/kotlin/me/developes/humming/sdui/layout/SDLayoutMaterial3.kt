@@ -9,6 +9,7 @@ import me.developes.humming.sdui.layout.components.SDCButtonIcon
 import me.developes.humming.sdui.layout.components.SDCButtonText
 import me.developes.humming.sdui.layout.components.SDCColumn
 import me.developes.humming.sdui.layout.components.SDCDivider
+import me.developes.humming.sdui.layout.components.SDCIcon
 import me.developes.humming.sdui.layout.components.SDCImage
 import me.developes.humming.sdui.layout.components.SDCOutlinedButtonText
 import me.developes.humming.sdui.layout.components.SDCRow
@@ -27,11 +28,12 @@ class SDLayoutMaterial3 : SDLibrary("layout") {
             "text" -> return { node, viewModel -> SDCText(node, viewModel) }
             "textField" -> return { node, viewModel -> SDCTextField(node, viewModel) }
             "animatedVisibility" -> return { node, viewModel -> SDCAnimatedVisibility(node, viewModel) }
-            "imageFile" -> return { node, viewModel -> SDCImage(node, viewModel) }
+            "image" -> return { node, viewModel -> SDCImage(node, viewModel) }
             "button" -> return { node, viewModel -> SDCButton(node, viewModel) }
             "outlinedButton" -> return { node, viewModel -> SDCOutlinedButtonText(node, viewModel) }
             "textButton" -> return { node, viewModel -> SDCButtonText(node, viewModel) }
             "iconButton" -> return { node, viewModel -> SDCButtonIcon(node, viewModel) }
+            "icon" -> return { node, viewModel -> SDCIcon(node, viewModel) }
             "scaffold" -> return { node, viewModel -> SDCScaffold(node, viewModel) }
             "topAppBar" -> return { node, viewModel -> SDCTopAppBar(node, viewModel) }
             "divider" -> return { node, viewModel -> SDCDivider(node, viewModel) }

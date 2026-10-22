@@ -12,10 +12,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -28,16 +26,20 @@ import me.developes.humming.sdui.layout.Layout
 
 class SDCTopAppBar(val node: ServerDrivenNode, val viewModel: SDUIFormViewModel) : Layout {
     private var modifier = Modifier.fromNode(node)
-    private val title by viewModel.propertyState("title") { it ?: "" }
+    private val title = viewModel.resolveStatePlaceholdersFlow(node.property("title"))
     private val actions = node.propertyNodes("onClick")
-    private val enabled by viewModel.propertyState("enabled") { it?.toBoolean() ?: true }
+    private val icon = node.property("icon")?.let { Icons.getIcon(it) } ?: FeatherIcons.ArrowLeft
+    private val iconDescription = node.property("iconDescription") ?: node.property("icon")
+    private val enabled = viewModel.resolveStatePlaceholdersFlow(node.property("enabled")) {
+        it?.toBooleanStrictOrNull() ?: true
+    }
     private val backgroundColor = node.property("backgroundColor")?.toColor()
     private val textColor = node.property("color")?.toColor()
 
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
     override fun Content() {
-        var isEnabled by remember { mutableStateOf(enabled) }
+        val isEnabled by enabled.collectAsState()
 
         TopAppBar(
             title = {
@@ -49,6 +51,7 @@ class SDCTopAppBar(val node: ServerDrivenNode, val viewModel: SDUIFormViewModel)
                     },
                     contentAlignment = Alignment.Center
                 ) {
+                    val title by title.collectAsState()
                     Text(
                         modifier = modifier,
                         text = title,
@@ -58,16 +61,18 @@ class SDCTopAppBar(val node: ServerDrivenNode, val viewModel: SDUIFormViewModel)
             },
             modifier = modifier,
             navigationIcon = {
-                IconButton(onClick = {
-                    viewModel.invokeActions(actions, beforeInvoke = {
-                        isEnabled = false
-                    }, afterInvoke = {
-                        isEnabled = true
-                    })
-                }) {
+                IconButton(
+                    enabled = isEnabled,
+                    onClick = {
+                        viewModel.invokeActions(actions, beforeInvoke = {
+                            enabled.value = false
+                        }, afterInvoke = {
+                            enabled.value = true
+                        })
+                    }) {
                     Icon(
-                        imageVector = FeatherIcons.ArrowLeft,
-                        contentDescription = "",
+                        imageVector = icon,
+                        contentDescription = iconDescription,
                         tint = textColor ?: LocalContentColor.current
                     )
                 }

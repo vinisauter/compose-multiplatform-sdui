@@ -6,6 +6,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -34,14 +35,18 @@ import kotlin.math.absoluteValue
 class SDCTextField(val node: ServerDrivenNode, val viewModel: SDUIFormViewModel) : Layout {
     private val modifier = Modifier.fromNode(node)
     private val onChangeUpdateState = node.property("onChangeUpdateState") ?: "TextField_${node.id}"
-    private val text = node.property("text") ?: ""
+    private val text = viewModel.getStateFlow(onChangeUpdateState, node.property("text"))
+    private val enabled = viewModel.resolveStatePlaceholdersFlow(node.property("enabled")) {
+        it?.toBooleanStrictOrNull() ?: true
+    }
+    private val isError = viewModel.resolveStatePlaceholdersFlow(node.property("isError")) {
+        it.toBoolean()
+    }
+    private val readOnly = node.property("readOnly")?.toBoolean() ?: false
+    private val autoCorrect = node.property("autoCorrect")?.toBoolean() ?: true
     private val fontSize = node.property("fontSize")?.toFloatOrNull()?.sp ?: 16.sp
     private val color = node.property("color")
     private val backgroundColor = node.property("backgroundColor")
-    private val enabled by viewModel.propertyState("enabled") { it?.toBoolean() ?: true }
-    private val readOnly by viewModel.propertyState("readOnly") { it?.toBoolean() ?: false }
-    private val isError by viewModel.propertyState("isError") { it?.toBoolean() ?: false }
-    private val autoCorrect by viewModel.propertyState("autoCorrect") { it?.toBoolean() ?: true }
     private val singleLine = node.property("singleLine")?.toBoolean()
     private val maxLines = node.property("maxLines")?.toInt()
     private val minLines = node.property("minLines")?.toInt()
@@ -134,15 +139,17 @@ class SDCTextField(val node: ServerDrivenNode, val viewModel: SDUIFormViewModel)
 
     @Composable
     override fun Content() {
-        val textValue by remember { viewModel.propertyState(onChangeUpdateState, text) }
-
-        var isEnabled by remember { mutableStateOf(enabled) }
+        val textValue by text.collectAsState()
+        val isEnabled by enabled.collectAsState()
+        val isError by isError.collectAsState()
         var passwordVisibility by remember { mutableStateOf(false) }
 
         TextField(
-            value = (textValue ?: "").take(maxLength ?: Int.MAX_VALUE),
+            value = (textValue).take(maxLength ?: Int.MAX_VALUE),
             onValueChange = {
-                viewModel.updateState(onChangeUpdateState, it)
+                if (maxLength == null || it.length <= maxLength) {
+                    viewModel.updateState(onChangeUpdateState, it)
+                }
             },
             modifier = modifier,
             enabled = isEnabled,
@@ -163,7 +170,7 @@ class SDCTextField(val node: ServerDrivenNode, val viewModel: SDUIFormViewModel)
                     }
                 }
             } else trailingIcon,
-            isError = isError ?: false,
+            isError = isError,
             visualTransformation = if (isPassword && !passwordVisibility) {
                 PasswordVisualTransformation()
             } else visualTransformation,
@@ -177,38 +184,38 @@ class SDCTextField(val node: ServerDrivenNode, val viewModel: SDUIFormViewModel)
                 onDone = {
                     viewModel.invokeActions(
                         onDone,
-                        beforeInvoke = { isEnabled = false },
-                        afterInvoke = { isEnabled = true })
+                        beforeInvoke = { enabled.value = false },
+                        afterInvoke = { enabled.value = true })
                 },
                 onGo = {
                     viewModel.invokeActions(
                         onGo,
-                        beforeInvoke = { isEnabled = false },
-                        afterInvoke = { isEnabled = true })
+                        beforeInvoke = { enabled.value = false },
+                        afterInvoke = { enabled.value = true })
                 },
                 onNext = {
                     viewModel.invokeActions(
                         onNext,
-                        beforeInvoke = { isEnabled = false },
-                        afterInvoke = { isEnabled = true })
+                        beforeInvoke = { enabled.value = false },
+                        afterInvoke = { enabled.value = true })
                 },
                 onPrevious = {
                     viewModel.invokeActions(
                         onPrevious,
-                        beforeInvoke = { isEnabled = false },
-                        afterInvoke = { isEnabled = true })
+                        beforeInvoke = { enabled.value = false },
+                        afterInvoke = { enabled.value = true })
                 },
                 onSearch = {
                     viewModel.invokeActions(
                         onSearch,
-                        beforeInvoke = { isEnabled = false },
-                        afterInvoke = { isEnabled = true })
+                        beforeInvoke = { enabled.value = false },
+                        afterInvoke = { enabled.value = true })
                 },
                 onSend = {
                     viewModel.invokeActions(
                         onSend,
-                        beforeInvoke = { isEnabled = false },
-                        afterInvoke = { isEnabled = true })
+                        beforeInvoke = { enabled.value = false },
+                        afterInvoke = { enabled.value = true })
                 },
             ),
             singleLine = singleLine ?: false,

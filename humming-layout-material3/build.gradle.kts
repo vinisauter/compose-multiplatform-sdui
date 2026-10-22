@@ -8,7 +8,7 @@ plugins {
 }
 
 kotlin {
-//    jvmToolchain(11)
+    jvmToolchain(25)
 
     androidTarget { publishLibraryVariants("release") }
     jvm()
@@ -30,6 +30,14 @@ kotlin {
             implementation(compose.ui)
             implementation(compose.foundation)
             implementation(libs.coil.compose)
+            implementation(libs.coil.svg)
+            implementation(libs.coil.network.ktor3)
+            implementation(libs.compottie.lite)
+            implementation(libs.compottie.dot)
+            implementation(libs.compottie.network)
+
+            implementation(compose.components.resources)
+            implementation(libs.ktor.client.core)
 
             implementation(libs.compose.icons.feather)
             implementation(libs.compose.icons.fontAwesome)
@@ -42,15 +50,11 @@ kotlin {
             implementation(libs.kotlinx.datetime)
             implementation(libs.kermit)
             implementation(libs.multiplatformSettings)
-            api(libs.koin.core)
-            implementation(libs.koin.compose)
         }
 
         androidMain.dependencies {
             implementation(libs.androidx.activityCompose)
             implementation(libs.kotlinx.coroutines.android)
-            implementation(libs.koin.android)
-            implementation(libs.coil.network.okhttp)
         }
 
         jvmMain.dependencies {
@@ -71,10 +75,15 @@ kotlin {
 
 android {
     namespace = "me.developes.humming.sdui"
-    compileSdk = 36
+    compileSdk = libs.versions.androidSdk.get().toInt()
 
     defaultConfig {
-        minSdk = 21
+        minSdk = libs.versions.androidMinSdk.get().toInt()
+    }
+
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
 }
 
