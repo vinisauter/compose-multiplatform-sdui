@@ -1,0 +1,95 @@
+{
+  "component": "layout:column",
+  "id": "local-preview",
+  "properties": {
+    "paddingAll": "24",
+    "horizontalAlignment": "Center"
+  },
+  "children": [
+    {
+      "component": "layout:text",
+      "id": "local-title",
+      "properties": {
+        "text": "HummingUI — validação local"
+      }
+    },
+    {
+      "component": "layout:textField",
+      "id": "local-name",
+      "properties": {
+        "onChangeUpdateState": "localName",
+        "text": "Visitante",
+        "paddingTop": "16",
+        "label": {
+          "component": "layout:text",
+          "id": "local-name-label",
+          "properties": {
+            "text": "Nome"
+          }
+        }
+      }
+    },
+    {
+      "component": "layout:text",
+      "id": "local-name-preview",
+      "properties": {
+        "text": "Nome informado: #{localName}",
+        "paddingTop": "16"
+      }
+    },
+    {
+      "component": "layout:button",
+      "id": "local-confirm",
+      "properties": {
+        "paddingTop": "16",
+        "onClick": {
+          "component": "action:update",
+          "id": "local-set-status",
+          "properties": {
+            "state": "localStatus",
+            "value": "confirmado"
+          }
+        }
+      },
+      "children": [
+        {
+          "component": "layout:text",
+          "id": "local-confirm-label",
+          "properties": {
+            "text": "Confirmar"
+          }
+        }
+      ]
+    },
+    {
+      "component": "layout:text",
+      "id": "local-status-preview",
+      "properties": {
+        "text": "Status: #{localStatus}",
+        "paddingTop": "16"
+      }
+    },
+    {
+      "component": "layout:button",
+      "id": "preview-diagnostic",
+      "properties": {
+        "onClick": {
+          "component": "action:method",
+          "id": "preview-missing-method",
+          "properties": {
+            "invoke": "previewUnsupported"
+          }
+        }
+      },
+      "children": [
+        {
+          "component": "layout:text",
+          "id": "preview-diagnostic-label",
+          "properties": {
+            "text": "Testar diagnóstico"
+          }
+        }
+      ]
+    }
+  ]
+}

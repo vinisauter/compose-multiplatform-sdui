@@ -313,3 +313,15 @@ Comando executado: `./gradlew.bat :humming-studio-model:jvmTest :humming-contrac
 Treze testes do compilador verificam golden, determinismo com mapas embaralhados, capacidades e versões, métodos/providers, campos desconhecidos, desconectados, colisões de IDs na expansão, limites, conflito de destino, grafo externo e portas/ciclos. Compilação metadata/JS/Wasm do módulo puro passou; isso não comprova UI no navegador.
 
 `CompiledJourneyTest` executa artefatos gerados com HummingSDUI, SDNavigation, SDActions e provider local real: primeira tela → segunda tela, ramo condicional, método registrado, atualização de estado e retorno. O teste observa `Segunda: sim / executado` e ausência de diagnóstico. Artefatos locais em `sample/composeApp/build/reports/compiled-journey/`. A captura second-screen.png foi inspecionada: o botão Voltar aparece, porém o texto escuro não fica legível no fundo transparente da captura; a evidência textual vem das asserções Compose, não da imagem. Não houve observação de janela nativa nem execução browser/Apple nesta etapa.
+
+## T16 — preview Wasm observado (2026-10-24)
+
+Tarefas descobertas por `./gradlew.bat :sample:composeApp:tasks --all`. `:sample:composeApp:compileKotlinWasmJs` passou antes e depois do host LocalPreview; `:sample:composeApp:jvmTest` passou com 18 testes do sample, total acumulado 173. LocalPreviewTest verifica edição, binding, update, MISSING_METHOD, limpeza do erro e descarte/recriação de estado. Logs locais ignorados em build/t16.
+
+`./gradlew.bat :sample:composeApp:wasmJsBrowserDevelopmentRun --console=plain` gerou os executáveis e Webpack. A primeira tentativa falhou porque o cache Kotlin npm continha lock vazio e node_modules incompleto, sem webpack/bin/webpack.js nem integridade Yarn. Reexecutar kotlinWasmToolingSetup não reparou; o Yarn já instalado executou install --frozen-lockfile --non-interactive no cache indicado e reparou a instalação, sem troca de versões. Não é mudança necessária em dependências do projeto.
+
+O HTML carregava sampleApp.js, enquanto o bundle real é composeApp.js; corrigido no target Wasm. Fragmento webpack restringe host a 127.0.0.1, impede abertura automática e serve somente kotlin/processedResources. Log server-local.log confirma loopback e ausência da raiz do repositório na lista estática.
+
+Chrome em localhost:8080 renderizou a fixture. Digitação/substituição pelo input do Compose alterou o texto e seu binding; Confirmar exibiu Status: confirmado. Testar diagnóstico exibiu MISSING_METHOD, nó preview-missing-method e caminho $.children[5].properties["onClick"].properties["invoke"]. Limpar diagnóstico retirou a mensagem preservando estado. Capturas locais browser-diagnostic.png e browser-preview.png em build/t16. Não foi QA mobile nem qualificação integral do catálogo/targets.
+
+Console: aviso de importação dinâmica do Webpack e mensagem de depreciação de acesso a wasmExports.memory por dependência existente; não impediram os fluxos observados. Não houve atualização de dependências por tentativa. Não há provider URL, navegação nem método de negócio no preview; o método inexistente é uma fixture intencional de diagnóstico.

@@ -121,3 +121,7 @@ Histórico e deduplicação têm limites de entradas e caracteres serializados. 
 ## Compilador: autoridade, expansão e limites
 
 Navegação explícita usa uma única autoridade: a aresta de destino; `destiny` simultâneo é conflito. Ações compartilhadas são expandidas com IDs únicos determinísticos e mapa de origem, pois o contrato legado é uma árvore. Ciclos de navegação permanecem válidos; ciclos de ações não. Desconectados exigem rejeição ou aviso solicitado explicitamente. A geração é atômica, limitada por profundidade, quantidade e caracteres; o writer canônico limita a saída durante a escrita, inclusive nos codecs e comandos, em vez de só validar uma string já alocada.
+
+## Host local do preview
+
+Usar LocalPreview separado de App para não herdar providers URL e métodos do sample. O target Wasm abre esse host, com estado em memória e diagnóstico recuperável com nó/caminho. O servidor de desenvolvimento serve somente recursos gerados em loopback. A prova browser não exige atualizar versões; uma instalação incompleta no cache de tooling foi reparada preservando seu lockfile.

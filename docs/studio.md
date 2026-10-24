@@ -259,3 +259,7 @@ Arestas NAVIGATION de `navigation:goTo` usam `navigate → entry` para uma SCREE
 Na expansão, a primeira ocorrência preserva o ID; repetições recebem `__expanded:<sourceID>:<ocorrência>`, evitando colisões com IDs autorais e emitidos. `sourceNodeIds` relaciona IDs gerados às origens. Mapas embaralhados produzem os mesmos artefatos. Essa identidade não promete estabilidade após qualquer edição do grafo.
 
 Nós/arestas desconectados são rejeitados por padrão; `UnreachablePolicy.REPORT` permite omissão com aviso explícito, sem alterar o documento. Extensões e metadados sem semântica compilável são rejeitados. Limites padrão: 20.000 nós expandidos, 256 artefatos, profundidade 64 e 4.000.000 caracteres somados; os limites de payload também se aplicam. A escrita JSON canônica verifica tamanho antes de formar a saída completa. Falhas não retornam compilação parcial.
+
+## Executar o preview local
+
+Na raiz, executar `./gradlew.bat :sample:composeApp:wasmJsBrowserDevelopmentRun` e abrir http://127.0.0.1:8080. LocalPreview usa renderer e catálogo reais, provider limitado à fixture local, SavedStateHandle em memória e ViewModelStore descartado com o host. Edição e update são reais; Testar diagnóstico invoca propositalmente um método ausente. A fixture não oferece rede, navegação ou métodos do aplicativo. O host de produção App permanece separado.

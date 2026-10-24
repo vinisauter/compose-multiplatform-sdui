@@ -16,7 +16,7 @@ open class ServerDrivenNode(
 )
 ```
 
-`component` identifica `namespace:nome`, com diferenciação entre maiúsculas e minúsculas. ID omitido é gerado durante parsing; não é identidade estável entre carregamentos. A ordem dos arrays de `children` e de ações tem significado. O formato do runtime atual é uma árvore aninhada; o modelo normalizado do Studio é uma representação autoral futura, compilada para essa árvore.
+`component` identifica `namespace:nome`, com diferenciação entre maiúsculas e minúsculas. ID omitido é gerado durante parsing; não é identidade estável entre carregamentos. A ordem dos arrays de `children` e de ações tem significado. O formato do runtime atual é uma árvore aninhada; o modelo normalizado do Studio é uma representação autoral separada, compilada para essa árvore.
 
 ### Parser e serializer
 
@@ -31,7 +31,7 @@ O parser de `NodeDecoder.kt` e `NodeJson.kt` aceita propriedades JSON primitivas
 
 `parseNode(source, limits, documentId)` valida raiz, identidade, propriedades, filhos e orçamento antes de materializar nós. Identificadores exigem exatamente dois segmentos não vazios, sem espaços. `propertyNodes` aceita objeto único/array e rejeita elementos não objeto com diagnóstico do caminho; `propertyNode` rejeita mais de um nó. Entradas inválidas antes toleradas precisam ser corrigidas no produtor, sem descarte silencioso.
 
-Não presumir equivalência entre parser manual, serializer gerado e `toString()`. T01 confirmou que `JsonServerDrivenNode.toString()` devolve o JSON original sem refletir uma mutação posterior em propriedades. As fixtures cobrem round trip do JSON não editado e do modelo textual serializável, sem afirmar equivalência entre esses dois codecs. T13/T15 ainda precisam implementar exportação explícita após edição.
+Não presumir equivalência entre parser manual, serializer gerado e `toString()`. T01 confirmou que `JsonServerDrivenNode.toString()` devolve o JSON original sem refletir uma mutação posterior em propriedades. As fixtures cobrem round trip do JSON não editado e do modelo textual serializável, sem afirmar equivalência entre esses dois codecs. LegacyAuthoringCodec e ContractCompiler oferecem exportação explícita após edição.
 
 ## Registro e papéis
 
