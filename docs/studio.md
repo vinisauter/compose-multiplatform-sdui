@@ -1,22 +1,23 @@
 # Studio: modelo autoral e mecânicas
 
-Especificação planejada para o HummingUI. Estas estruturas e regras pertencem ao projeto e precisam dos testes do [plano](development-plan.md); não são APIs já implementadas. O primeiro recorte é autoria local de telas compatíveis com o [contrato legado](contract.md). Não incluir renderização gráfica de baixo nível, roteamento complexo de obstáculos ou colaboração na primeira entrega.
+O modelo/codec de T13 está implementado no módulo puro humming-studio-model; comandos, editor e geometria das seções posteriores continuam planejados e exigem os testes do [plano](development-plan.md). O primeiro recorte é autoria local de telas compatíveis com o [contrato legado](contract.md). Não incluir renderização gráfica de baixo nível, roteamento complexo de obstáculos ou colaboração na primeira entrega.
 
 ## Documento e índices
 
-Modelo conceitual mínimo, a concretizar com tipos Kotlin e codecs em T13:
+Modelo implementado em [AuthoringDocument.kt](../humming-studio-model/src/commonMain/kotlin/me/developes/humming/sdui/studio/AuthoringDocument.kt), sem dependência do runtime visual:
 
 ```text
 AuthoringDocument {
   documentId: String
   formatVersion: Int
   revision: Long
+  entryNodeId: String
   nodes: Map<NodeId, AuthorNode>
   edges: Map<EdgeId, Edge>
 }
 AuthorNode {
   id: NodeId
-  kind: VISUAL | SCREEN | ACTION | NAVIGATION
+  kind: VISUAL | SCREEN | ACTION | NAVIGATION | UNKNOWN
   definition: String                 // identificador namespace:nome
   properties: JsonObject
   placement: Root(orderKey) | Child(parentId, slot, orderKey)
@@ -31,6 +32,18 @@ role = EVENT | ACTION_FLOW | NAVIGATION
 Invariantes: IDs únicos; todos os pais/portas existentes e compatíveis; nenhuma referência cruzada inválida entre documentos; contenção sem ciclos; ordem total por slot; raízes declaradas; arestas com cardinalidade válida. Ciclos de navegação são permitidos. Ciclos de execução são rejeitados no recorte inicial. Elementos visuais e metadados não são intercambiáveis.
 
 Importar árvore legada atribui/preserva IDs, cria relações normalizadas e guarda propriedades ainda não editáveis sem perda. Campos ou nós desconhecidos ficam preservados e marcados como não editáveis quando não houver schema. Exportar usa codec explícito, sem depender do `toString()` do wrapper atual. Compilar exige suporte semântico para os elementos alcançados; não descartar silenciosamente nós desconhecidos.
+
+### Codec local e limites implementados
+
+humming-studio-model depende somente de humming-contract. AuthoringDocument usa mapas por ID em memória; o codec próprio versão 1 escreve arrays nodes/edges ordenados por ID e ordena as chaves dos objetos JSON, preservando a ordem dos arrays de dados. Arrays no wire permitem diagnosticar IDs duplicados antes da construção dos mapas. Use AuthoringDocumentCodec para persistência, sem serializar o mapa ou o wrapper legado diretamente. O discriminador de placement é placementType, com root/child.
+
+O documento possui entryNodeId. Cada AuthorNode também armazena nodeListShapes (OBJECT, ARRAY, STRING_OBJECT, STRING_ARRAY), hasProperties/hasChildren e extensions. Esses campos preservam a representação original de slots/eventos, arrays vazios, ausência versus objeto vazio e campos extras do nó. Relações conhecidas saem de properties: slots estruturais viram Placement.Child; eventos/fluxos de ação viram arestas e ações ficam em Placement.Root. Propriedades primitivas/objetos desconhecidos conservam seus tipos JSON. IDs explícitos são preservados; IDs omitidos são gerados uma vez e persistidos.
+
+AuthoringIndices deriva raízes, filhos por pai/slot, arestas por origem/porta e entradas por destino. Não existe índice persistido paralelo. validateAuthoringDocument valida identidade, entry, pais, chaves, papéis/slots, portas, cardinalidade de representação, referências, coordenadas finitas e ciclos. A validação estrutural permite preservar propriedades/rascunhos ainda não compiláveis; a importação/exportação legada também executa a validação do catálogo. Ciclos ACTION_FLOW são rejeitados. NAVIGATION usa portas navigate → entry com destino de tipo SCREEN/NAVIGATION e pode formar ciclos, sem criar contenção. Esse protocolo de autoria não instala ações no runtime.
+
+Limites padrão de autoria: 10.000 nós, 20.000 arestas, profundidade 64 e chaves de até 256 caracteres. Somam-se os limites JSON do contrato, inclusive orçamento de texto/valores/profundidade; aumentar um limite não suspende os demais. Importação gera ranks lexicográficos fixos terminados em V; geração de chaves intermediárias pertence a T14.
+
+LegacyAuthoringCodec importa/exporta uma árvore local e usa dados atuais, independentemente de toString(). Desconhecidos são preservados com diagnóstico, sem serem considerados editáveis. Exportar uma raiz específica avisa sobre nós não alcançados, que continuam salvos no documento autoral. Arestas explícitas NAVIGATION e compartilhamento de um mesmo nó por caminhos distintos exigem política de compilação/identidade e retornam erro de exportação; não são descartados nem expandidos com IDs duplicados. O codec autoral salva esses grafos quando estruturalmente válidos. O compilador de T15 continua responsável por capacidades, expansão e semântica de destinos.
 
 ## Ordenação por strings densas
 
