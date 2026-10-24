@@ -76,21 +76,15 @@ open class ServerDrivenNode(
      * and then transforms that object into a ServerDrivenNode which is presumably used to construct a UI element.
      * */
     fun propertyNode(key: String): ServerDrivenNode? {
-        val json = property(key) ?: return null
-        return Json.decodeFromString<JsonObject>(json).toNode()
+        val nodes = decodePropertyNodes(key)
+        if (nodes.size > 1) throw PayloadException(diagnostic(
+            "INVALID_SLOT_CARDINALITY", "Expected at most one node", "parse", "${origin.path}.properties[$key]",
+        ))
+        return nodes.singleOrNull()
     }
 
     fun propertyNodes(key: String): ArrayList<ServerDrivenNode> {
-        val json = property(key) ?: return arrayListOf()
-        val nodes: ArrayList<ServerDrivenNode> = arrayListOf()
-        if (json.startsWith("[")) {
-            for (jsonItem in Json.decodeFromString<JsonArray>(json)) {
-                if (jsonItem is JsonObject) nodes.add(jsonItem.toNode())
-            }
-        } else {
-            nodes.add(Json.decodeFromString<JsonObject>(json).toNode())
-        }
-        return nodes
+        return decodePropertyNodes(key)
     }
 
     fun propertyMap(key: String): MutableMap<String, String?> {

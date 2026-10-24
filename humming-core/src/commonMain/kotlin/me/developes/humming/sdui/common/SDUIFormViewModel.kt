@@ -5,12 +5,16 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class SDUIFormViewModel(
     private val handle: SavedStateHandle, libraries: List<SDLibrary> = listOf()
@@ -57,17 +61,33 @@ class SDUIFormViewModel(
      *                This is used to transform exceptions into error states. By default,
      *                it returns `null`, meaning no error state will be set.
      */
-    fun runTask(block: suspend () -> Unit, onError: (Throwable) -> ErrorData? = { null }) {
-        viewModelScope.launch {
-            _runningTasks.value++
-            try {
-                block()
-            } catch (e: Throwable) {
-                setError(onError(e) ?: ErrorData.taskError(e.message ?: ""))
-            }
-            _runningTasks.value--
-        }
+    private suspend fun <T> withRunningTask(block: suspend () -> T): T {
+        _runningTasks.update { it + 1 }
+        return try { block() } finally { _runningTasks.update { it - 1 } }
     }
+
+    fun runTask(block: suspend () -> Unit, onError: (Throwable) -> ErrorData? = { null }): Job =
+        viewModelScope.launch {
+            withRunningTask {
+                try {
+                    block()
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (e: Exception) {
+                    val mapped = try { onError(e) } catch (mapping: CancellationException) {
+                        mapping.addSuppressed(e)
+                        throw mapping
+                    } catch (mapping: Exception) {
+                        if (mapping !== e) e.addSuppressed(mapping)
+                        null
+                    }
+                    val error = mapped ?: ErrorData.taskError("Task failed").copy(
+                        diagnostic = NodeDiagnostic("TASK_ERROR", "Task failed", "task"),
+                    )
+                    setError(error.copy(cause = error.cause ?: e))
+                }
+            }
+        }
 
     /**
      * Sets the current error state.
@@ -336,14 +356,10 @@ class SDUIFormViewModel(
     fun loadNodeTypeProvider(
         nodeType: String
     ): NodeProvider? {
-        return try {
-            nodeTypeProviders[nodeType]!!
-        } catch (e: Exception) {
-            println(
-                "Server Driven Node Provider not found: $nodeType\n" + "Message: ${e.message}\n" + "StackTrace: ${e.stackTraceToString()}"
-            )
-            setError(ErrorData.missingProvider(nodeType))
-            null
+        return nodeTypeProviders[nodeType].also { provider ->
+            if (provider == null) setError(ErrorData.missingProvider(nodeType).copy(
+                diagnostic = NodeDiagnostic("MISSING_PROVIDER", "Provider is not registered", "resolveProvider"),
+            ))
         }
     }
 
@@ -368,23 +384,23 @@ class SDUIFormViewModel(
      * @return The corresponding ComposableContent component if successfully loaded, or `null` if not found or an error occurred.
      */
     suspend fun loadComponent(nodeType: String, destiny: String): ComposableContent? {
-        _runningTasks.value++
+        _runningTasks.update { it + 1 }
         return try {
-            loadNodeTypeProvider(nodeType)?.invoke(destiny)?.let {
-                loadComponent(it)
-            } ?: run {
-                logging.error("Node Type Provider not found for type: $nodeType and layout: $destiny")
-                setError(ErrorData.missingProvider(nodeType))
-                null
-            }
+            val provider = loadNodeTypeProvider(nodeType) ?: return null
+            loadComponent(provider(destiny))
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: PayloadException) {
+            setError(ErrorData.payload(e))
+            null
         } catch (e: Exception) {
-            logging.error(
-                "Error loading Node Type Provider: $nodeType\n" + "Message: ${e.message}\n" + "StackTrace: ${e.stackTraceToString()}"
-            )
-            setError(ErrorData.providerError(nodeType))
+            setError(ErrorData.providerError(nodeType).copy(
+                diagnostic = NodeDiagnostic("PROVIDER_ERROR", "Provider failed", "provider", documentId = destiny),
+                cause = e,
+            ))
             null
         } finally {
-            _runningTasks.value--
+            _runningTasks.update { it - 1 }
         }
     }
 
@@ -419,10 +435,8 @@ class SDUIFormViewModel(
         libraries[library.namespace] = library
     }
 
-    private fun getComponent(nodeComponent: String): ComponentHandler? {
-        val split = nodeComponent.split(':')
-        val libraryNamespace = split[0]
-        val componentNamespace = split[1]
+    private fun getComponent(node: ServerDrivenNode): ComponentHandler? {
+        val (libraryNamespace, componentNamespace) = qualifiedName(node.component, node.origin, node.id)
         val library = libraries[libraryNamespace]
         return library?.getComponent(componentNamespace)
     }
@@ -445,28 +459,33 @@ class SDUIFormViewModel(
      */
     fun loadComponent(node: ServerDrivenNode): ComposableContent? {
         val nodeComponent = node.component // button? text? topbar? column?
-        val component = getComponent(nodeComponent)
         try {
+            val component = getComponent(node)
             return component?.invoke(node, this) ?: run {
                 logging.error("Component not found for: $nodeComponent")
-                setError(ErrorData.missingComponent(nodeComponent))
+                setError(ErrorData.missingComponent(nodeComponent).copy(
+                    diagnostic = node.diagnostic("MISSING_COMPONENT", "Component is not registered", "resolve", "${node.origin.path}.component"),
+                ))
                 null
             }
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: PayloadException) {
+            setError(ErrorData.payload(e))
+            return null
         } catch (e: Exception) {
-            logging.error(
-                "Error loading Component: $nodeComponent\n" + "Message: ${e.message}\n" + "StackTrace: ${e.stackTraceToString()}"
-            )
-            setError(ErrorData.componentError(nodeComponent))
+            setError(ErrorData.componentError(nodeComponent).copy(
+                diagnostic = node.diagnostic("HANDLER_FAILURE", "Component handler failed", "componentHandler"),
+                cause = e,
+            ))
             return null
         }
     }
 
     private fun getAction(
-        nodeAction: String
+        node: ServerDrivenNode
     ): ActionHandler? {
-        val split = nodeAction.split(':')
-        val libraryNamespace = split[0]
-        val componentNamespace = split[1]
+        val (libraryNamespace, componentNamespace) = qualifiedName(node.component, node.origin, node.id)
         val library = libraries[libraryNamespace]
         return library?.getAction(componentNamespace)
     }
@@ -493,33 +512,57 @@ class SDUIFormViewModel(
      * @param beforeInvoke An optional suspend function to be executed before invoking the actions.
      * @param afterInvoke An optional suspend function to be executed after invoking the actions.
      */
+    private val actionExecutor = ActionExecutor(::getAction, this)
+
+    suspend fun executeActions(
+        actions: List<ServerDrivenNode>,
+        policy: ActionFailurePolicy? = null,
+        limits: ActionExecutionLimits? = null,
+    ): ActionExecutionResult = withRunningTask { actionExecutor.execute(actions, policy, limits) }
+
     fun invokeActions(
         actions: ArrayList<ServerDrivenNode>,
         beforeInvoke: suspend CoroutineScope.() -> Unit = {},
         afterInvoke: suspend CoroutineScope.() -> Unit = {},
-    ) {
-        viewModelScope.launch {
-            _runningTasks.value++
-            beforeInvoke()
-            actions.forEach { action ->
+    ): Job = viewModelScope.launch {
+        val scope = this
+        withRunningTask {
+            var primary: Throwable? = null
+            var reported: ErrorData? = null
+            try {
+                beforeInvoke(scope)
+                reported = executeActions(actions).errors.firstOrNull()
+            } catch (error: Throwable) {
+                primary = error
+                if (error is CancellationException || error !is Exception) throw error
+                setError(ErrorData.taskError("Action callback failed").copy(cause = error,
+                    diagnostic = NodeDiagnostic("CALLBACK_FAILURE", "Action callback failed", "beforeInvoke")))
+            } finally {
                 try {
-                    val nodeComponent = action.component
-                    val handler = getAction(nodeComponent)
-                    if (handler != null) {
-                        handler.invoke(action, this@SDUIFormViewModel)
-                    } else {
-                        logging.error("Action not found for component: $nodeComponent")
-                        setError(ErrorData.missingAction(nodeComponent))
+                    withContext(NonCancellable) { afterInvoke(this) }
+                } catch (cleanup: Throwable) {
+                    val earlier = primary
+                    val earlierReport = reported
+                    when {
+                        cleanup !is Exception -> {
+                            if (earlier != null) cleanup.addSuppressed(earlier)
+                            throw cleanup
+                        }
+                        cleanup is CancellationException && earlier !is CancellationException -> {
+                            if (earlier != null) cleanup.addSuppressed(earlier)
+                            throw cleanup
+                        }
+                        earlier != null -> earlier.addSuppressed(cleanup)
+                        earlierReport != null -> {
+                            val cause = earlierReport.cause ?: IllegalStateException("Action execution failed")
+                            cause.addSuppressed(cleanup)
+                            setError(earlierReport.copy(cause = cause))
+                        }
+                        else -> setError(ErrorData.taskError("Action cleanup failed").copy(cause = cleanup,
+                            diagnostic = NodeDiagnostic("CALLBACK_FAILURE", "Action cleanup failed", "afterInvoke")))
                     }
-                } catch (e: Throwable) {
-                    logging.error(
-                        "Error invoking action for component: ${action.component}\n" + "Message: ${e.message}\n" + "StackTrace: ${e.stackTraceToString()}"
-                    )
-                    setError(ErrorData.actionError(action.component, e.message ?: ""))
                 }
             }
-            afterInvoke()
-            _runningTasks.value--
         }
     }
 }

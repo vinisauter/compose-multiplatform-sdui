@@ -1,0 +1,224 @@
+# Studio: modelo autoral e mecânicas
+
+Especificação planejada para o HummingUI. Estas estruturas e regras pertencem ao projeto e precisam dos testes do [plano](development-plan.md); não são APIs já implementadas. O primeiro recorte é autoria local de telas compatíveis com o [contrato legado](contract.md). Não incluir renderização gráfica de baixo nível, roteamento complexo de obstáculos ou colaboração na primeira entrega.
+
+## Documento e índices
+
+Modelo conceitual mínimo, a concretizar com tipos Kotlin e codecs em T13:
+
+```text
+AuthoringDocument {
+  documentId: String
+  formatVersion: Int
+  revision: Long
+  nodes: Map<NodeId, AuthorNode>
+  edges: Map<EdgeId, Edge>
+}
+AuthorNode {
+  id: NodeId
+  kind: VISUAL | SCREEN | ACTION | NAVIGATION
+  definition: String                 // identificador namespace:nome
+  properties: JsonObject
+  placement: Root(orderKey) | Child(parentId, slot, orderKey)
+  canvasPosition: Point?             // somente organização do canvas macro
+}
+Edge { id, role, sourceNodeId, sourcePort, targetNodeId, targetPort, orderKey?, metadata }
+role = EVENT | ACTION_FLOW | NAVIGATION
+```
+
+`placement` é a autoridade de contenção/ordem estrutural. `childrenByParentAndSlot`, adjacency de arestas, bounds, seleção e projeção de árvore são índices/estado derivados. Atualizá-los na mesma transação ou reconstruí-los da revisão; não persistir uma segunda árvore mutável concorrente. O schema define slots estruturais, incluindo conteúdo e metadados permitidos. Eventos e fluxo de ações usam arestas como autoridade, não placement em um slot de evento. Ações permanecem raízes autorais e se ligam por portas; o compilador materializa sua estrutura aninhada. Arestas não duplicam a contenção estrutural.
+
+Invariantes: IDs únicos; todos os pais/portas existentes e compatíveis; nenhuma referência cruzada inválida entre documentos; contenção sem ciclos; ordem total por slot; raízes declaradas; arestas com cardinalidade válida. Ciclos de navegação são permitidos. Ciclos de execução são rejeitados no recorte inicial. Elementos visuais e metadados não são intercambiáveis.
+
+Importar árvore legada atribui/preserva IDs, cria relações normalizadas e guarda propriedades ainda não editáveis sem perda. Campos ou nós desconhecidos ficam preservados e marcados como não editáveis quando não houver schema. Exportar usa codec explícito, sem depender do `toString()` do wrapper atual. Compilar exige suporte semântico para os elementos alcançados; não descartar silenciosamente nós desconhecidos.
+
+## Ordenação por strings densas
+
+Usar chaves lexicográficas no documento autoral, não no JSON legado. O compilador ordena por chave e emite arrays. Alfabeto e comparação são independentes de locale:
+
+```text
+D = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
+BASE = 62
+chave válida = string não vazia de D, sem '0' no final
+comparação = lexicográfica ordinal, com prefixo menor que extensão
+null em prev = menos infinito; null em next = mais infinito
+```
+
+A restrição do último caractere evita intervalos sem chave válida. O algoritmo de referência abaixo é determinístico. `drop(s,n)` remove no máximo `s.length` caracteres; `take` usa índices exclusivos no fim.
+
+```text
+generateKeyBetween(prev, next):
+  require prev == null or valid(prev)
+  require next == null or valid(next)
+  require prev == null or next == null or prev < next
+  return midpoint(prev ?: "", next)
+
+midpoint(a, b):
+  if b != null:
+    n = 0
+    while n < length(b) and (n < length(a) ? a[n] : '0') == b[n]:
+      n = n + 1
+    if n > 0:
+      return take(b, n) + midpoint(drop(a, n), drop(b, n))
+  lo = length(a) == 0 ? 0 : indexOf(D, a[0])
+  hi = b == null ? BASE : indexOf(D, b[0])
+  if hi - lo > 1:
+    return D[floor((lo + hi) / 2)].toString()
+  if b != null and length(b) > 1:
+    return b[0].toString()
+  return D[lo] + midpoint(drop(a, 1), null)
+```
+
+Vetores obrigatórios de T14:
+
+| prev | next | resultado |
+| --- | --- | --- |
+| null | null | `V` |
+| `V` | null | `k` |
+| null | `V` | `F` |
+| `V` | `W` | `VV` |
+| `V` | `V0V` | `V0F` |
+
+Testar também geração repetida no mesmo intervalo, prefixos, limites, rejeição de `V0`, caracteres inválidos e propriedade `prev < resultado < next`. A referência recursiva com cópias de strings pode custar O(L²); a implementação pode usar cursores/buffer para custo O(L), onde L é o comprimento percorrido. Uma movimentação escreve a relação do nó e uma chave, mas consulta, geração, índices e projeção têm seus próprios custos; não afirmar custo total O(1).
+
+Definir limite de comprimento e erro explícito. Se necessário, rebalancear chaves em transação versionada que preserve a ordem; não truncar. No recorte inicial, revisões serializadas impedem colisões de comandos simultâneos. Duas inserções independentes com mesmos vizinhos geram a mesma chave; chaves densas não resolvem concorrência por si mesmas. T25 define essa política.
+
+## Comandos, revisão e undo
+
+Comando contém `commandId`, `expectedRevision`, operação e argumentos. Aplicação local é serializada, valida invariantes e produz novo documento, revisão, mudanças e inversa. Falha não altera parcialmente o documento. Comandos mínimos: inserir, remover subárvore, mover, atualizar propriedades, adicionar/remover aresta e alterar posição macro.
+
+`Move` recebe nó, novo pai/slot e IDs dos vizinhos após remover o nó da origem. Valida ancestralidade, capacidade do destino e revisão; resolve vizinhos atuais; gera chave; atualiza placement; incrementa revisão. IDs de vizinhos são preferíveis a um índice calculado em uma revisão antiga. Se revisão ou vizinhos não forem compatíveis, rejeitar e recalcular preview.
+
+A inversa de remoção preserva a subárvore completa, relações, chaves e arestas incidentes. Desfazer/refazer restaura o documento semanticamente, incluindo ordem, sem regenerar IDs. Eventos de seleção/hover não entram no histórico. Undo concorrente futuro não reutiliza cegamente uma inversa local sobre edição alheia.
+
+## Coordenadas, seleção e bounds
+
+Usar `Double` nas funções geométricas puras e uma unidade de canvas consistente. Converter densidade de dp para pixels uma vez na fronteira do host. Não misturar bounds globais de Compose com coordenadas locais já transformadas.
+
+Viewport com zoom positivo z e translação p:
+
+```text
+screen = z * world + p
+world = (screen - p) / z
+zoom ancorado em s: w = (s - p) / z; pNovo = s - zNovo * w
+```
+
+Para transformações afins gerais, `world = inverse(V) * screen` e `local = inverse(Tcontainer) * world`. Matriz singular invalida o alvo. Registrar bounds com ID, revisão de layout, transform e ordem de pintura. Um registro obsoleto precisa de recomposição/revalidação antes de commit.
+
+Um retângulo local `(x,y,w,h)`, com dimensões não negativas, contém q quando `x <= q.x <= x+w` e `y <= q.y <= y+h`; retângulos degenerados não são alvos de drop. Aplicar clipping de ancestrais. Para sobreposição, selecionar primeiro a região pintada à frente, respeitando descendência; empates usam ordem estável da projeção e ID. Área menor isoladamente não decide o container.
+
+O modo de edição seleciona/manipula; o modo preview executa as capacidades controladas do renderer. Capture do ponteiro impede outro gesto concorrente de realizar o mesmo commit. Cancelamento, Escape e perda de captura descartam apenas o preview transitório.
+
+## Drop em Row e Column
+
+Escopo inicial: fluxo linear, sem wrap e sem inversão visual. Column usa eixo y; Row usa eixo x. Suporte a RTL, reverse ou wrap deve ter tarefa/semântica próprios antes de ser habilitado no Inspector. Medir filhos pelo renderer, sem recalcular manualmente tipografia, pesos ou intrinsic sizes.
+
+### Escolha do container
+
+1. Converter o ponteiro screen → world.
+2. Buscar candidatos visíveis que aceitem o tipo/slot pelo schema, em ordem de hit definida acima.
+3. Excluir o nó arrastado, seus descendentes e destinos proibidos; aplicar clipping e teste local do retângulo.
+4. Escolher o candidato válido à frente e mais específico na cadeia de ancestrais. Em área sem descendente elegível, usar o ancestral elegível sob o ponteiro.
+5. Para cada candidato, usar apenas bounds da revisão de layout corrente. Sem candidato, não mostrar guia de inserção.
+
+No fluxo do container, excluir o arrastado e itens invisíveis, absolutos ou não visuais. Ordenar os restantes pela ordem autoral efetivamente renderizada. Se os centros não forem monotônicos no eixo escolhido, rejeitar o algoritmo linear e diagnosticar layout não suportado no recorte inicial. Essa lista filtrada serve ao cálculo visual; o comando precisa de vizinhos no slot completo, como definido abaixo.
+
+### Índice e linha guia
+
+Para os N filhos elegíveis, sejam `a[i]` e `b[i]` o início e fim do bound local no eixo principal, com `c[i] = (a[i] + b[i]) / 2`. Seja u a coordenada local do ponteiro nesse eixo:
+
+```text
+targetIndex = primeiro i em [0,N) tal que u < c[i]; se não existir, N
+```
+
+A igualdade com o centro passa para depois daquele filho. Com N=0, `targetIndex=0`. `targetIndex` é relativo à lista filtrada **sem o arrastado**, evitando ajustes duplicados ao mover dentro do mesmo pai.
+
+```text
+guideAxis = contentStart                         se N == 0
+guideAxis = a[0]                                 se targetIndex == 0 e N > 0
+guideAxis = b[N-1]                               se targetIndex == N e N > 0
+guideAxis = (b[targetIndex-1] + a[targetIndex])/2  nos demais casos
+```
+
+Se o conteúdo local é `(cx,cy,cw,ch)`, Column desenha de `(cx,guideAxis)` a `(cx+cw,guideAxis)`; Row desenha de `(guideAxis,cy)` a `(guideAxis,cy+ch)`. Transformar ambos os pontos pelo transform do container e viewport para o overlay. Padding define o content rect; gaps já estão representados pelos bounds dos filhos.
+
+```text
+onPointerMove(screenPoint):
+  target = findEligibleContainer(screenPoint, draggedId, layoutRevision)
+  if target == null: clearPreview(); return
+  q = inverse(target.transform) * inverse(viewport) * screenPoint
+  children = eligibleFlowChildren(target, excluding = draggedId)
+  require monotonicCenters(children, target.axis)
+  i = firstIndex(children, q.axis < center(child)) ?: children.size
+  gap = resolveFullSlotGap(target, excluding = draggedId, nextVisibleId = children[i]?.id)
+  preview = {target.id, target.slot, i, gap.beforeId, gap.afterId,
+             document.revision, layoutRevision, viewportRevision}
+  showGuide(target, children, i)
+
+onPointerUp():
+  if preview == null: return
+  if preview.documentRevision != document.revision or
+     preview.layoutRevision != currentLayoutRevision or
+     preview.viewportRevision != currentViewportRevision:
+    clearPreview(); return             // descarta drop obsoleto; novo gesto recalcula
+  dispatch Move(draggedId, preview.target, preview.slot,
+                preview.beforeId, preview.afterId, preview.documentRevision)
+  clearPreview()
+```
+
+`resolveFullSlotGap` obtém todos os filhos do slot, ordenados e sem o arrastado. Se houver próximo filho visível, insere imediatamente antes dele, usando seu predecessor no **slot completo** como `beforeId` e ele como `afterId`. Sem próximo visível, insere no fim do slot completo; se vazio, ambos são null. Assim filhos filtrados mantêm sua ordem, e uma chave não colide com a de um filho invisível entre vizinhos visuais. Testar, por exemplo, vizinhos visíveis `F`/`k` com invisível `U`: não gerar chave diretamente entre `F` e `k`.
+
+Movimento de ponteiro não altera o documento. Bounds, scroll, densidade e resize invalidam a revisão de layout; pan/zoom invalidam a de viewport. O comando ainda valida revisão/vizinhos na transação. Box usa regra própria de empilhamento/slot: iniciar com inserir no fim e reordenar pelo Inspector; não aplicar a fórmula de Row/Column implicitamente.
+
+## Grafo de interações e conectores
+
+`Interaction { sourceNodeId, trigger, actionRootIds, transition? }` é uma **projeção derivada**, não uma coleção persistida adicional. Arestas EVENT saem da porta de evento do componente para raízes de ação, ordenadas por `orderKey`; a porta identifica o trigger e `metadata` guarda parâmetros/transição declarados pelo schema. Arestas ACTION_FLOW representam sequências/ramos e NAVIGATION identifica a tela de destino. Não manter uma cópia mutável de `onClick` em properties ou placement: o importador converte a relação e o compilador a materializa. A ligação de navegação também deve ter uma só autoridade; o compilador gera `destiny` a partir do destino autoral.
+
+`Trigger`, ações e transições são uniões fechadas por schema/capacidade. No primeiro recorte, suportar click → ação registrada/navegação suportada pelo cliente. Hover, timers e gestos não devem aparecer como executáveis antes de terem handler, lifecycle e testes.
+
+Portas tipadas determinam quais conexões são válidas e a ordem das ações. Arestas de navegação apontam para a identidade de uma tela; ações ordenadas têm `orderKey`. O compilador percorre com `visited` e pilha de recursão, valida nós alcançáveis e limita expansão. Múltiplas saídas ordenadas compilam arrays; condições exigem portas nomeadas `then`/`else`. Reuso de uma subárvore não pode causar expansão infinita nem ordenação dependente do hash do mapa.
+
+Conector visual pode sair do bound de um componente interno e chegar à borda do frame de destino. Usar retângulos no espaço world; o endpoint é uma função dos bounds atuais, não coordenada persistida de pixels.
+
+### Ancoragem e curva inicial
+
+Regra inicial determinística: calcular `d=centerDestino-centerOrigem`. Se `abs(d.x)>=abs(d.y)`, usar lado horizontal; caso contrário, vertical. Para centros coincidentes, escolher saída à direita e entrada à esquerda. `sign(0)=+1` para esta escolha. Âncoras ficam no centro dos lados escolhidos; a entrada usa o lado oposto. Normal n aponta para fora do retângulo:
+
+```text
+direita: P=(x+w,y+h/2), n=(1,0)
+esquerda: P=(x,y+h/2), n=(-1,0)
+baixo: P=(x+w/2,y+h), n=(0,1)
+cima: P=(x+w/2,y), n=(0,-1)
+```
+
+Com P0 origem, P3 destino, n0/n3 suas normais e `distance=length(P3-P0)`, adotar inicialmente `h=max(24,min(160,0.5*distance))` em unidades world. Os valores são parâmetros de desenho deste projeto e devem ser avaliados visualmente em T19.
+
+```text
+P1 = P0 + h*n0
+P2 = P3 + h*n3
+B(t) = (1-t)^3*P0 + 3*(1-t)^2*t*P1 + 3*(1-t)*t^2*P2 + t^3*P3
+B'(t) = 3*(1-t)^2*(P1-P0) + 6*(1-t)*t*(P2-P1) + 3*t^2*(P3-P2)
+0 <= t <= 1
+```
+
+A tangente final é `3*(P3-P2)=-3*h*n3`, voltada para dentro do destino. Para seta, `v=normalize(B'(1))`, perpendicular `r=(-v.y,v.x)`, ponta P3 e base `P3-arrowLength*v ± arrowWidth*r/2`. Converter tamanhos desejados em pixels para world dividindo pelo zoom. Um badge pode usar `B(0.5)`; isso não é metade do comprimento de arco.
+
+Autoconexão visual usa inicialmente loop externo em segmentos cúbicos com portas distintas, ou é rejeitada no Inspector até haver fixture; não reutilizar curva degenerada como se fosse roteamento válido. O primeiro escopo não evita obstáculos automaticamente. Uma tarefa futura, justificada por casos reais, pode introduzir roteador ortogonal/obstáculos sem alterar a semântica das interações.
+
+### Hit do conector
+
+Flatten adaptativo em screen space via subdivisão de De Casteljau em t=0.5: subdividir até distância de ambos os controles ao **segmento finito** da corda ser <=1 pixel, com limite de profundidade/erro reportado. Distância à reta infinita não basta: controles colineares podem ultrapassar endpoints e produzir retorno da curva. Para corda degenerada, comparar os controles ao endpoint. Em cada segmento A→C, com ponteiro Q:
+
+```text
+v = C-A
+u = dot(v,v)==0 ? 0 : clamp(dot(Q-A,v)/dot(v,v),0,1)
+nearest = A + u*v
+distanceSquared = dot(Q-nearest,Q-nearest)
+hit = min(distanceSquared sobre segmentos) <= 8^2
+```
+
+Tolerância de 8 pixels é parâmetro inicial do host. Testar zoom, densidade, endpoint, curvas curtas, bounds sobrepostos e cancelamento do gesto. Incluir cúbica colinear com controles `(0,0),(24,0),(-23,0),(1,0)`, em zoom 2: ela não pode ser reduzida à corda inicial, pois `B(0.2)=(7.016,0)`. Não misturar tolerância de screen com distância de world sem conversão.
+
+## Fronteira de entrega
+
+T13–T15 entregam modelo, comandos e compilação puros. T13/T14 são verificadas com fixtures semânticas e testes puros; a integração de exportar e executar o contrato no cliente começa em T15. T16–T17 entregam preview e edição local utilizável. T18 acrescenta o drop geométrico e T19 o grafo visual, também validados pela execução do contrato resultante. Persistência e múltiplos usuários só entram nas tarefas remotas. Uma imagem do canvas isolada não valida a semântica.

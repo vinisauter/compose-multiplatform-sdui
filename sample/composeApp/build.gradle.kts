@@ -60,6 +60,13 @@ kotlin {
             implementation(libs.ktor.client.okhttp)
         }
 
+        jvmTest.dependencies {
+            implementation(kotlin("test-junit"))
+            implementation(compose.desktop.uiTestJUnit4)
+            implementation(libs.lifecycle.runtime)
+            implementation(libs.lifecycle.runtime.compose)
+        }
+
         jsMain.dependencies {
             implementation(libs.ktor.client.js)
         }

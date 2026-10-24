@@ -18,26 +18,21 @@ interface ServerDrivenJson {
     val json: JsonObject
 }
 
-class JsonServerDrivenNode(override val json: JsonObject) : ServerDrivenNode(
-    id = json["id"]?.jsonPrimitive?.content
-        ?: "${json["component"]?.jsonPrimitive?.content!!}:${getPlatform().generateUUID()}",
-    component = json["component"]?.jsonPrimitive?.content!!,
-    properties = json["properties"]?.let { properties ->
-        transformJsonObjectToMapOfString(properties.jsonObject)
-    },
-    children = json["children"]?.jsonArray?.let { jsonArray ->
-        mapValuesToMutableList(jsonArray) {
-            it.jsonObject.toNode()
-        }
-    }
+class JsonServerDrivenNode internal constructor(input: PreparedNode) : ServerDrivenNode(
+    id = input.id,
+    component = input.component,
+    properties = input.properties,
+    children = input.children,
 ), ServerDrivenJson {
+    constructor(json: JsonObject) : this(prepareRoot(json))
+    override val json: JsonObject = input.json
+    internal val sourceOrigin: NodeOrigin = input.origin
     override fun toString(): String {
         return json.toString()
     }
 }
 
 fun JsonObject.toNode(): ServerDrivenNode {
-    this["component"]?.jsonPrimitive?.content!!
     return JsonServerDrivenNode(this)
 }
 
@@ -162,20 +157,4 @@ fun String?.toColor(): Color {
 }
 
 val JsonElement.serverDrivenNode: ArrayList<ServerDrivenNode>
-    get() = when (this) {
-        is JsonArray -> {
-            val nodes: ArrayList<ServerDrivenNode> = arrayListOf()
-            for (jsonItem in this) {
-                if (jsonItem is JsonObject) nodes.add(jsonItem.toNode())
-            }
-            nodes
-        }
-
-        is JsonObject -> {
-            arrayListOf(this.toNode())
-        }
-
-        else -> {
-            arrayListOf()
-        }
-    }
+    get() = decodeNodeList(this, NodeOrigin())

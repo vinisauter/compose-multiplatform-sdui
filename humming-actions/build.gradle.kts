@@ -32,11 +32,15 @@ kotlin {
             implementation(libs.navigation.compose)
             implementation(libs.lifecycle.viewmodel.compose)
             implementation(libs.kotlinx.coroutines.core)
-            implementation(libs.kotlinx.coroutines.test)
             implementation(libs.kotlinx.serialization.json)
             implementation(libs.kotlinx.datetime)
             implementation(libs.kermit)
             implementation(libs.multiplatformSettings)
+        }
+
+        commonTest.dependencies {
+            implementation(kotlin("test"))
+            implementation(libs.kotlinx.coroutines.test)
         }
 
         androidMain.dependencies {

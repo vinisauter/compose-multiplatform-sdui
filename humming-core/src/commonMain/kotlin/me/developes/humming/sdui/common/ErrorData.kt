@@ -1,7 +1,15 @@
 package me.developes.humming.sdui.common
 
-data class ErrorData(val code: String, val message: String) {
+data class ErrorData(
+    val code: String,
+    val message: String,
+    val diagnostic: NodeDiagnostic? = null,
+    val cause: Throwable? = null,
+) {
     companion object {
+        fun payload(error: PayloadException) = ErrorData(
+            error.diagnostic.code, error.diagnostic.message, error.diagnostic, error,
+        )
         fun missingProvider(namespace: String) = ErrorData(
             "MISSING_PROVIDER",
             "Provider type '$namespace' is not registered. Please, make sure you have the correct SDUI NodeProvider installed and registered."

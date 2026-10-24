@@ -16,7 +16,7 @@ class SDNavigation(
             addAction("goTo") { node, _ ->
                 val popStack = node.property("popStack")?.toBoolean() ?: false
                 val clearStack = node.property("clearStack")?.toBoolean() ?: false
-                graph.navigateTo(
+                graph.navigateToAwaited(
                     routeName = node.property("destiny")!!,
                     popStack = popStack,
                     clearStack = clearStack

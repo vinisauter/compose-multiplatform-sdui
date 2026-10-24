@@ -135,7 +135,7 @@ class SDActions : SDLibrary("action") {
                 (node.property("condition")?.let { vm.getState(it) } ?: "false").toBoolean()
             val actions = node.propertyNodes("invoke")
             if (condition) {
-                vm.invokeActions(actions)
+                vm.executeActions(actions)
             }
         }
         addAction("ifState") { node, vm ->
@@ -147,13 +147,13 @@ class SDActions : SDLibrary("action") {
             if (condition) {
                 node.propertyNodes("then").let { actions ->
                     if (actions.isNotEmpty()) {
-                        vm.invokeActions(actions)
+                        vm.executeActions(actions)
                     }
                 }
             } else {
                 node.propertyNodes("else").let { actions ->
                     if (actions.isNotEmpty()) {
-                        vm.invokeActions(actions)
+                        vm.executeActions(actions)
                     }
                 }
             }

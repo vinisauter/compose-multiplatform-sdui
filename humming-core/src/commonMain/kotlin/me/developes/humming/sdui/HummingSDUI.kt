@@ -6,6 +6,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.createSavedStateHandle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import me.developes.humming.sdui.common.ComposableContent
@@ -35,11 +36,18 @@ class HummingSDUI {
         }
     }
 
+    /**
+     * Hosts without a SavedStateRegistryOwner can provide an explicit handle factory.
+     * The factory is used only when creating the ViewModel; persistence remains host-owned.
+     */
     @Composable
-    fun Content(config: Config) = config.theme.Content {
+    fun Content(
+        config: Config,
+        savedStateHandleFactory: (() -> SavedStateHandle)? = null,
+    ) = config.theme.Content {
         val viewModel = viewModel {
             SDUIFormViewModel(
-                handle = createSavedStateHandle()
+                handle = savedStateHandleFactory?.invoke() ?: createSavedStateHandle()
             ).apply {
                 config.block(this)
             }

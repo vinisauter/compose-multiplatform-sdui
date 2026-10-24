@@ -85,7 +85,14 @@ class Graph(
         popStack: Boolean = false,
         clearStack: Boolean = false
     ) {
-        viewModel.runTask({
+        viewModel.runTask(block = { navigateToAwaited(routeName, popStack, clearStack) })
+    }
+
+    suspend fun navigateToAwaited(
+        routeName: String,
+        popStack: Boolean = false,
+        clearStack: Boolean = false,
+    ) {
             loadComponentNode(routeName)// Preload the component node
             if (clearStack) {
                 navController?.navigate(routeName) {
@@ -104,6 +111,5 @@ class Graph(
             } else {
                 navController?.navigate(routeName)
             }
-        })
     }
 }
