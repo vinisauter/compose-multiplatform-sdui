@@ -6,13 +6,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import me.developes.humming.sdui.common.SDUIFormViewModel
 import me.developes.humming.sdui.common.ServerDrivenNode
+import me.developes.humming.sdui.layout.LayoutDefinitions
 import me.developes.humming.sdui.layout.Layout
 
 class SDCBox(val node: ServerDrivenNode, private val viewModel: SDUIFormViewModel) : Layout {
+    private val properties = LayoutDefinitions.box.parse(node).requireValid()
+
     private var modifier = Modifier.fromNode(node)
 
     private val contentAlignment: Alignment =
-        when (node.property("contentAlignment")) {
+        when (properties.property("contentAlignment")) {
             null -> Alignment.TopStart
             "TopStart" -> Alignment.TopStart
             "TopCenter" -> Alignment.TopCenter
@@ -23,11 +26,11 @@ class SDCBox(val node: ServerDrivenNode, private val viewModel: SDUIFormViewMode
             "BottomStart" -> Alignment.BottomStart
             "BottomCenter" -> Alignment.BottomCenter
             "BottomEnd" -> Alignment.BottomEnd
-            else -> error("Unknown value for horizontalAlignment ${node.property("horizontalAlignment")}")
+            else -> error("Unknown value for horizontalAlignment ${properties.property("horizontalAlignment")}")
         }
 
     private val propagateMinConstraints: Boolean? =
-        node.property("propagateMinConstraints")?.toBoolean()
+        properties.property("propagateMinConstraints")?.toBoolean()
 
     private val loadChildren: @Composable () -> Unit? = {
         node.children?.let {

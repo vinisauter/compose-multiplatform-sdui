@@ -8,16 +8,18 @@ class SDNavigation(
     private val preLoadView: (@Composable () -> Unit)? = null
 ) : SDLibrary("navigation") {
     init {
+        NavigationDefinitions.all.forEach { addDefinition(it) }
         addComponent("graph") { graphNode, viewModel ->
             val graph = Graph(graphNode, viewModel, preLoadView)
             addAction("goBack") { _, _ ->
                 graph.navigateBack()
             }
             addAction("goTo") { node, _ ->
-                val popStack = node.property("popStack")?.toBoolean() ?: false
-                val clearStack = node.property("clearStack")?.toBoolean() ?: false
+                val properties = NavigationDefinitions.goTo.parse(node).requireValid()
+                val popStack = properties.property("popStack")?.toBoolean() ?: false
+                val clearStack = properties.property("clearStack")?.toBoolean() ?: false
                 graph.navigateToAwaited(
-                    routeName = node.property("destiny")!!,
+                    routeName = properties.property("destiny")!!,
                     popStack = popStack,
                     clearStack = clearStack
                 )

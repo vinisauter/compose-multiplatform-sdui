@@ -6,7 +6,8 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
+import me.developes.humming.sdui.common.collectAsState
+import me.developes.humming.sdui.common.rememberActionInvoker
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -16,7 +17,7 @@ import me.developes.humming.sdui.layout.Layout
 
 class SDCButtonIcon(val node: ServerDrivenNode, val viewModel: SDUIFormViewModel) : Layout {
     private var modifier = Modifier.fromNode(node)
-    private val enabled = viewModel.resolveStatePlaceholdersFlow(node.property("enabled")) {
+    private val enabled = viewModel.binding(node.property("enabled")) {
         it?.toBooleanStrictOrNull() ?: true
     }
     private val text = node.property("text")
@@ -26,17 +27,14 @@ class SDCButtonIcon(val node: ServerDrivenNode, val viewModel: SDUIFormViewModel
 
     @Composable
     override fun Content() {
+        val invoker = rememberActionInvoker(viewModel)
         val isEnabled by enabled.collectAsState()
 
         Button(
             modifier = modifier,
-            enabled = isEnabled,
+            enabled = isEnabled && !invoker.isRunning,
             onClick = {
-                viewModel.invokeActions(
-                    actions,
-                    beforeInvoke = { enabled.value = false },
-                    afterInvoke = { enabled.value = true }
-                )
+                invoker.invoke(actions)
             }) {
             Column(
                 verticalArrangement = Arrangement.Center,

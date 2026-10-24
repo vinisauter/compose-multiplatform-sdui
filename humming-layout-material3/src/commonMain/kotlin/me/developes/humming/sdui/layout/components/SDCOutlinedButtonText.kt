@@ -5,7 +5,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
+import me.developes.humming.sdui.common.collectAsState
+import me.developes.humming.sdui.common.rememberActionInvoker
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -18,16 +19,17 @@ import me.developes.humming.sdui.layout.dp
 
 class SDCOutlinedButtonText(val node: ServerDrivenNode, val viewModel: SDUIFormViewModel) : Layout {
     private var modifier = Modifier.fromNode(node)
-    private val enabled = viewModel.resolveStatePlaceholdersFlow(node.property("enabled")) {
+    private val enabled = viewModel.binding(node.property("enabled")) {
         it?.toBooleanStrictOrNull() ?: true
     }
-    private val text = viewModel.resolveStatePlaceholdersFlow(node.property("text"))
+    private val text = viewModel.binding(node.property("text"))
     private val lineBorderColor = node.property("lineBorderColor")
     private val actions = node.propertyNodes("onClick")
     private val roundedCornerShape = node.property("roundedCornerShape")?.dp ?: 0.dp
 
     @Composable
     override fun Content() {
+        val invoker = rememberActionInvoker(viewModel)
         val isEnabled by enabled.collectAsState()
         Button(
             modifier = modifier
@@ -36,13 +38,9 @@ class SDCOutlinedButtonText(val node: ServerDrivenNode, val viewModel: SDUIFormV
                     color = lineBorderColor?.toColor() ?: Color.Unspecified,
                     shape = RoundedCornerShape(roundedCornerShape)
                 ),
-            enabled = isEnabled,
+            enabled = isEnabled && !invoker.isRunning,
             onClick = {
-                viewModel.invokeActions(
-                    actions,
-                    beforeInvoke = { enabled.value = false },
-                    afterInvoke = { enabled.value = true }
-                )
+                invoker.invoke(actions)
             },
             shape = RoundedCornerShape(roundedCornerShape)
         ) {

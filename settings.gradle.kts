@@ -16,6 +16,7 @@ dependencyResolutionManagement {
 }
 
 include(":humming-core")
+include(":humming-contract")
 include(":humming-actions")
 include(":humming-navigation")
 include(":humming-layout-material3")

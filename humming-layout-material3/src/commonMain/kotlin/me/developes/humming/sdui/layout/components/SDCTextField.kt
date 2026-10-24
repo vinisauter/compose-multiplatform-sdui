@@ -6,7 +6,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
+import me.developes.humming.sdui.common.collectAsState
+import me.developes.humming.sdui.common.rememberActionInvoker
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -29,31 +30,34 @@ import compose.icons.feathericons.EyeOff
 import me.developes.humming.sdui.common.SDUIFormViewModel
 import me.developes.humming.sdui.common.ServerDrivenNode
 import me.developes.humming.sdui.common.toColor
+import me.developes.humming.sdui.layout.LayoutDefinitions
 import me.developes.humming.sdui.layout.Layout
 import kotlin.math.absoluteValue
 
 class SDCTextField(val node: ServerDrivenNode, val viewModel: SDUIFormViewModel) : Layout {
+    private val properties = LayoutDefinitions.textField.parse(node).requireValid()
+
     private val modifier = Modifier.fromNode(node)
-    private val onChangeUpdateState = node.property("onChangeUpdateState") ?: "TextField_${node.id}"
-    private val text = viewModel.getStateFlow(onChangeUpdateState, node.property("text"))
-    private val enabled = viewModel.resolveStatePlaceholdersFlow(node.property("enabled")) {
+    private val onChangeUpdateState = properties.property("onChangeUpdateState") ?: "TextField_${node.id}"
+    private val text = viewModel.stateBinding(onChangeUpdateState, properties.property("text"))
+    private val enabled = viewModel.binding(properties.property("enabled")) {
         it?.toBooleanStrictOrNull() ?: true
     }
-    private val isError = viewModel.resolveStatePlaceholdersFlow(node.property("isError")) {
+    private val isError = viewModel.binding(properties.property("isError")) {
         it.toBoolean()
     }
-    private val readOnly = node.property("readOnly")?.toBoolean() ?: false
-    private val autoCorrect = node.property("autoCorrect")?.toBoolean() ?: true
-    private val fontSize = node.property("fontSize")?.toFloatOrNull()?.sp ?: 16.sp
-    private val color = node.property("color")
-    private val backgroundColor = node.property("backgroundColor")
-    private val singleLine = node.property("singleLine")?.toBoolean()
-    private val maxLines = node.property("maxLines")?.toInt()
-    private val minLines = node.property("minLines")?.toInt()
-    private val textFieldColor = node.property("textFieldColor")?.toColor()
-    private val trailingIconColor = node.property("trailingIconColor")?.toColor()
-    private val underLineColor = node.property("underLineColor")?.toColor()
-    private val capitalization = node.property("capitalization")?.let {
+    private val readOnly = properties.property("readOnly")?.toBoolean() ?: false
+    private val autoCorrect = properties.property("autoCorrect")?.toBoolean() ?: true
+    private val fontSize = properties.property("fontSize")?.toFloatOrNull()?.sp ?: 16.sp
+    private val color = properties.property("color")
+    private val backgroundColor = properties.property("backgroundColor")
+    private val singleLine = properties.property("singleLine")?.toBoolean()
+    private val maxLines = properties.property("maxLines")?.toInt()
+    private val minLines = properties.property("minLines")?.toInt()
+    private val textFieldColor = properties.property("textFieldColor")?.toColor()
+    private val trailingIconColor = properties.property("trailingIconColor")?.toColor()
+    private val underLineColor = properties.property("underLineColor")?.toColor()
+    private val capitalization = properties.property("capitalization")?.let {
         when (it) {
             "None" -> KeyboardCapitalization.None
             "Characters" -> KeyboardCapitalization.Characters
@@ -62,7 +66,7 @@ class SDCTextField(val node: ServerDrivenNode, val viewModel: SDUIFormViewModel)
             else -> error("Unknown value for capitalization $it")
         }
     }
-    private val keyboardType = node.property("keyboardType")?.let {
+    private val keyboardType = properties.property("keyboardType")?.let {
         when (it) {
             "Text" -> KeyboardType.Text
             "Ascii" -> KeyboardType.Ascii
@@ -76,7 +80,7 @@ class SDCTextField(val node: ServerDrivenNode, val viewModel: SDUIFormViewModel)
             else -> error("Unknown value for keyboardType $it")
         }
     }
-    private val imeAction = node.property("imeAction")?.let {
+    private val imeAction = properties.property("imeAction")?.let {
         when (it) {
             "Default" -> ImeAction.Default
             "Done" -> ImeAction.Done
@@ -129,17 +133,18 @@ class SDCTextField(val node: ServerDrivenNode, val viewModel: SDUIFormViewModel)
             }
         }
     }
-    private val visualMask = node.property("visualMask")
+    private val visualMask = properties.property("visualMask")
     private val visualTransformation = visualMask?.let {
         MaskVisualTransformation(it)
     } ?: VisualTransformation.None
-    private val maxLength = node.property("maxLength")?.toInt() ?: visualMask?.count { it == '#' }
+    private val maxLength = properties.property("maxLength")?.toInt() ?: visualMask?.count { it == '#' }
     private val isPassword =
         keyboardType == KeyboardType.Password || keyboardType == KeyboardType.NumberPassword
 
     @Composable
     override fun Content() {
         val textValue by text.collectAsState()
+        val invoker = rememberActionInvoker(viewModel)
         val isEnabled by enabled.collectAsState()
         val isError by isError.collectAsState()
         var passwordVisibility by remember { mutableStateOf(false) }
@@ -152,7 +157,7 @@ class SDCTextField(val node: ServerDrivenNode, val viewModel: SDUIFormViewModel)
                 }
             },
             modifier = modifier,
-            enabled = isEnabled,
+            enabled = isEnabled && !invoker.isRunning,
             readOnly = readOnly,
             label = label,
             placeholder = placeholder,
@@ -182,40 +187,22 @@ class SDCTextField(val node: ServerDrivenNode, val viewModel: SDUIFormViewModel)
             ),
             keyboardActions = KeyboardActions(
                 onDone = {
-                    viewModel.invokeActions(
-                        onDone,
-                        beforeInvoke = { enabled.value = false },
-                        afterInvoke = { enabled.value = true })
+                    invoker.invoke(onDone)
                 },
                 onGo = {
-                    viewModel.invokeActions(
-                        onGo,
-                        beforeInvoke = { enabled.value = false },
-                        afterInvoke = { enabled.value = true })
+                    invoker.invoke(onGo)
                 },
                 onNext = {
-                    viewModel.invokeActions(
-                        onNext,
-                        beforeInvoke = { enabled.value = false },
-                        afterInvoke = { enabled.value = true })
+                    invoker.invoke(onNext)
                 },
                 onPrevious = {
-                    viewModel.invokeActions(
-                        onPrevious,
-                        beforeInvoke = { enabled.value = false },
-                        afterInvoke = { enabled.value = true })
+                    invoker.invoke(onPrevious)
                 },
                 onSearch = {
-                    viewModel.invokeActions(
-                        onSearch,
-                        beforeInvoke = { enabled.value = false },
-                        afterInvoke = { enabled.value = true })
+                    invoker.invoke(onSearch)
                 },
                 onSend = {
-                    viewModel.invokeActions(
-                        onSend,
-                        beforeInvoke = { enabled.value = false },
-                        afterInvoke = { enabled.value = true })
+                    invoker.invoke(onSend)
                 },
             ),
             singleLine = singleLine ?: false,

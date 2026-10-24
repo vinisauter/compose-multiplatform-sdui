@@ -2,6 +2,7 @@ package me.developes.humming.sdui.layout.components
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
+import me.developes.humming.sdui.common.rememberActionInvoker
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -143,11 +144,12 @@ Async(url)
 
     @Composable
     fun Lottie(url: String) {
+        val invoker = rememberActionInvoker(viewModel)
         val composition by rememberLottieComposition { LottieCompositionSpec.Url(url) }
         Image(
             painter = rememberLottiePainter(composition = composition),
             modifier = modifier.clickable {
-                viewModel.invokeActions(actions)
+                invoker.invoke(actions)
             },
             contentDescription = contentDescription,
             alignment = alignment,
@@ -160,11 +162,12 @@ Async(url)
     }
     @Composable
     fun Async(url: String) {
+        val invoker = rememberActionInvoker(viewModel)
         //val client = HttpClient()
         Image(
             painter  = rememberAsyncImagePainter(url),
             modifier = modifier.clickable {
-                viewModel.invokeActions(actions)
+                invoker.invoke(actions)
             },
             contentDescription = contentDescription,
             alignment = alignment,

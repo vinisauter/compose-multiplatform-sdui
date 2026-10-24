@@ -28,6 +28,7 @@
 - Uma compilação JVM não comprova Android, Apple ou browser. Em bloqueios, registre comando, causa e alcance da validação conforme [validação](docs/validation.md).
 - Mudanças somente documentais exigem revisão de conteúdo, links locais e diff; não exigem build.
 - Atualize o documento responsável; registre status, evidência, trabalho parcial e próxima ação somente em `docs/current-state.md`. Atualize o ponto de retomada antes de encerrar cada recorte. O plano guarda tarefas/dependências/aceite, sem outro status concorrente.
+- Ao concluir cada entregável validado, criar um commit local com escopo e evidência coerentes. Não executar push neste trabalho. Preserve alterações alheias e não inclua arquivos sem relação com a entrega.
 - Ao encerrar, informe o que mudou, o que foi executado e o que permanece pendente. Não declare testes aprovados sem execução.
 
 ## Pontos de atenção existentes

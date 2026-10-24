@@ -12,6 +12,7 @@ import kotlinx.serialization.json.jsonPrimitive
 import me.developes.humming.sdui.common.ComposableContent
 import me.developes.humming.sdui.common.SDUIFormViewModel
 import me.developes.humming.sdui.common.ServerDrivenNode
+import me.developes.humming.sdui.navigation.NavigationDefinitions
 
 class Graph(
     private val graphNode: ServerDrivenNode,
@@ -19,15 +20,15 @@ class Graph(
     private val preLoadContent: (@Composable () -> Unit)? = null
 ) : ComposableContent {
     private var navController: NavHostController? = null
-    private val startRouteDestination = graphNode.property("startDestination")!!
+    private val graphProperties = NavigationDefinitions.graph.parse(graphNode).requireValid()
+    private val startRouteDestination = graphProperties.property("startDestination")!!
     private val graphRoutes: HashMap<String, ServerDrivenNode> =
         HashMap<String, ServerDrivenNode>().also { map ->
             graphNode.children?.let {
                 for (serverDrivenNode in it) {
                     if (serverDrivenNode.component == "navigation:node") {
-                        val name = serverDrivenNode.property("name")!!
-                        serverDrivenNode.property("type")!!
-                        serverDrivenNode.property("destiny")!!
+                        val properties = NavigationDefinitions.node.parse(serverDrivenNode).requireValid()
+                        val name = properties.property("name")!!
                         map[name] = serverDrivenNode
                     }
                 }

@@ -41,6 +41,16 @@ typealias ActionHandler = suspend (ServerDrivenNode, SDUIFormViewModel) -> Unit
  * and an action named "click" that could handle click events on components.
  * */
 open class SDLibrary(val namespace: String = "") {
+    private val nodeDefinitions = linkedMapOf<String, NodeDefinition>()
+    val definitions: List<NodeDefinition> get() = nodeDefinitions.values.toList()
+
+    fun addDefinition(definition: NodeDefinition): SDLibrary {
+        require(definition.identifier.substringBefore(':') == namespace)
+        require(definition.identifier !in nodeDefinitions) { "Definition is already registered" }
+        nodeDefinitions[definition.identifier] = definition
+        return this
+    }
+
     protected val components = HashMap<String, ComponentHandler>()
     private val actions = HashMap<String, ActionHandler>()
 

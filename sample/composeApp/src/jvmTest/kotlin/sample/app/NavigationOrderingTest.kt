@@ -1,10 +1,13 @@
 package sample.app
 
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.onRoot
+import androidx.compose.ui.test.printToString
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
@@ -32,11 +35,14 @@ class NavigationOrderingTest {
         override val viewModelStore = ViewModelStore()
         override val lifecycle = LifecycleRegistry(this)
     }
+    private val mounted = mutableStateOf(true)
     private val loading = CompletableDeferred<Unit>()
     private val release = CompletableDeferred<Unit>()
 
     @After fun cleanup() {
         release.complete(Unit)
+        compose.runOnIdle { mounted.value = false }
+        compose.waitForIdle()
         compose.runOnIdle {
             owner.lifecycle.currentState = Lifecycle.State.DESTROYED
             owner.viewModelStore.clear()
@@ -67,7 +73,7 @@ class NavigationOrderingTest {
         }
         compose.setContent {
             CompositionLocalProvider(LocalViewModelStoreOwner provides owner, LocalLifecycleOwner provides owner) {
-                HummingSDUI().Content(config, savedStateHandleFactory = { SavedStateHandle() })
+                if (mounted.value) HummingSDUI().Content(config, savedStateHandleFactory = { SavedStateHandle() })
             }
         }
         awaitText("Abrir detalhe")
@@ -78,7 +84,11 @@ class NavigationOrderingTest {
             assertNull(vm.errorState.value)
         }
         release.complete(Unit)
-        awaitText("Dado carregado: pronto")
+        try { awaitText("Dado carregado: pronto") } catch (failure: Throwable) {
+            compose.runOnIdle { println("Navigation state: ${vm.formState}; error: ${vm.errorState.value}") }
+            println(compose.onRoot().printToString())
+            throw failure
+        }
         compose.onNodeWithText("Voltar").performClick()
         awaitText("Abrir detalhe")
     }

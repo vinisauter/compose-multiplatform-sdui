@@ -14,20 +14,20 @@ Preservar a fachada `HummingSDUI`, os nomes `humming-*` e as extensões `SDLibra
 
 | Responsabilidade | Local inicial | Evolução planejada |
 | --- | --- | --- |
-| Modelo/codec | Core atual | Fronteira pura, sem tipos Compose/Lifecycle; adaptador do formato legado |
-| Registro | `SDLibrary` | Definições com identificador, parser, schema e handler; schema sem Compose |
+| Modelo/codec/schemas | humming-contract, sem tipos Compose/Lifecycle | Consumidores de autoria/compilação usam essa fronteira; adapters visuais ficam nas bibliotecas |
+| Registro | `SDLibrary` com handlers e 15 definições versionadas do subconjunto inicial | Ampliar definições sem acoplar seus metadados a tipos UI |
 | Renderização | Catálogo Material 3 | Continuar resolvendo no catálogo; um `when` local ao catálogo não acopla o core ao Material 3 |
-| Execução | ViewModel + biblioteca de ações | Executor suspenso estruturado, contexto por execução e fachada de lançamento na UI |
-| Estado | ViewModel atual | Stores com ownership explícito e escopos de tela/jornada; bindings observáveis com descarte |
+| Execução | Executor suspenso no core, contexto/política por execução e fachada de lançamento | Novos efeitos usam a mesma execução estruturada |
+| Estado | ViewModel textual; bindings frios no catálogo e descarte imperativo explícito | Stores tipados e escopos de tela/jornada |
 | Navegação | Biblioteca atual | Adaptador sobre Compose Navigation, estado por entrada e snapshot fixado na jornada |
 | Transporte | Esboço/host | Cliente injetado, engines de plataforma e políticas explícitas; resultado por ação |
 | Capacidades nativas | Host | Bridge suspensa registrada pelo host, com suporte e cancelamento por plataforma |
 
-Não mover o core inteiro para um módulo “puro”: ele contém helpers e execução visuais. A fronteira deve ser separada no código primeiro. Criar um módulo de contrato apenas quando testes/headless Studio/servidor precisarem consumi-lo, com dependências apontando do runtime e dos hosts para esse contrato. A decisão e a migração pertencem a T06, sem renomeação em massa.
+A necessidade de um consumidor JVM sem UI justificou humming-contract. Ele contém modelo, JSON, diagnósticos e schemas, e depende somente de Kotlin/serialização. humming-core o exporta via api; ViewModel, efeitos, Color e os handlers visuais continuam no runtime. Bibliotecas e hosts apontam para o contrato, sem dependência inversa. Pacotes públicos foram preservados; a migração de facades JVM top-level requer recompilar consumidores, conforme contrato. O módulo puro usa toolchain 25 e bytecode JVM 17, consumível pelo core Android sem converter o contrato em módulo de UI.
 
 ### Definições e schemas
 
-Cada componente/ação deve possuir definição identificável por namespace, parser de propriedades, schema e implementação. O schema descreve tipo, obrigatoriedade, valor padrão, enum, slots, eventos e papel semântico. O parser e o Inspector consomem a mesma descrição quando possível; comportamentos específicos continuam no handler.
+NodeDefinition/PropertyDefinition e NodeCatalog implementam a descrição compartilhada do subconjunto inicial, inventariado no contrato. O schema descreve tipo, obrigatoriedade, defaults, enums, slots, eventos e papéis; o parser preserva strings legadas para os adapters. Metadados, validação e as definições iniciais residem em humming-contract. Seu consumidor de teste JVM valida e serializa sem classes UI disponíveis; o core e os adapters continuam compilando sobre a mesma API. O Inspector futuro deve consumir essas definições e usar o modo AUTHORING; comportamentos visuais específicos continuam no handler.
 
 O compilador precisa distinguir componente visual, metadado de navegação e ação. A classe wire compartilhada não elimina essa validação. Schemas precisam declarar capacidade/versão; apenas um número global de versão não prova que o cliente consegue executar todos os nós.
 
@@ -41,7 +41,7 @@ Expressões são uma linguagem futura, opcional e versionada. Tokenizer, parser 
 
 ### Execução, recursos e efeitos
 
-Um ponto de entrada de UI lança uma coroutine; dentro dela, sequências e ramos são funções suspensas aguardadas. Cancelamento sempre se propaga. Loading e cleanup precisam de `finally`, inclusive quando callbacks falham. Caracterizar a continuação após falhas no legado antes de mudar: a política pode continuar para contratos antigos e falhar no primeiro erro em um formato novo explicitamente selecionado.
+As ações do catálogo usam um scope cancelado junto com o componente. `executeActions` troca para `Dispatchers.Main.immediate`, preservando o Job chamador e o contexto de execução; isso mantém a afinidade exigida por Lifecycle/Navigation. Sequências e ramos são suspensos e aguardados. CONTINUE é o padrão legado e STOP_ON_ERROR é seleção explícita do host. Cancelamento propaga e contadores/cleanup finalizam mesmo em erro. Bindings frios são coletados pela composição; APIs imperativas antigas possuem descarte explícito. Eventos de estado carregam origem causal pelo contexto da coroutine; métodos customizados usam updateStateFromAction para participar da prevenção de realimentação.
 
 O host é dono do `HttpClient` e o fecha ao encerrar seu ciclo de vida. Engines são específicas de plataforma. Métodos HTTP, headers permitidos, timeout, corpo tipado, resposta e falha são explícitos. O sample usa um endpoint local neutro para validação. Preview do Studio fornece executores controlados para impedir efeitos externos involuntários; modo simulado deve aparecer na UI e não comprova integração real.
 

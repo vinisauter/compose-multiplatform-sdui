@@ -40,7 +40,11 @@ internal data class NodeOrigin(
 internal val ServerDrivenNode.origin: NodeOrigin
     get() = (this as? JsonServerDrivenNode)?.sourceOrigin ?: NodeOrigin()
 
-internal fun ServerDrivenNode.diagnostic(
+val ServerDrivenNode.sourcePath: String get() = origin.path
+
+fun ServerDrivenNode.qualifiedName(): Pair<String, String> = qualifiedName(component, origin, id)
+
+fun ServerDrivenNode.diagnostic(
     code: String, message: String, operation: String, path: String = origin.path,
 ) = NodeDiagnostic(code, message, operation, path, id, origin.documentId)
 

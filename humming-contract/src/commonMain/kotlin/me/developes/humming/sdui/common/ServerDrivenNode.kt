@@ -6,7 +6,7 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
-import me.developes.humming.sdui.getPlatform
+
 
 /**
  * fundamental building block for a server-driven UI system.
@@ -19,7 +19,7 @@ import me.developes.humming.sdui.getPlatform
 @Serializable
 open class ServerDrivenNode(
     val component: String,
-    val id: String = "$component:${getPlatform().generateUUID()}",
+    val id: String = "$component:${generateNodeIdentity()}",
     val properties: MutableMap<String, String?>? = null,
     val children: MutableList<ServerDrivenNode>? = null
 ) {

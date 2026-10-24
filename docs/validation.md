@@ -199,11 +199,11 @@ Relatórios XML confirmaram **30 testes executados, 0 falhas, 0 erros e 0 ignora
 
 | Suíte | Casos | Cobertura |
 | --- | --- | --- |
-| [LegacyParsingTest](../humming-core/src/commonTest/kotlin/me/developes/humming/sdui/common/LegacyParsingTest.kt) | 12 | Identidade explícita/gerada, nomes case-sensitive, ordem, propriedades textuais/nested, slots, eventos objeto/array, JSON inválido, round trips e limitações do codec |
+| [LegacyParsingTest](../humming-contract/src/commonTest/kotlin/me/developes/humming/sdui/common/LegacyParsingTest.kt) | 12 | Identidade explícita/gerada, nomes case-sensitive, ordem, propriedades textuais/nested, slots, eventos objeto/array, JSON inválido, round trips e limitações do codec |
 | [LegacyResolutionTest](../humming-core/src/commonTest/kotlin/me/developes/humming/sdui/common/LegacyResolutionTest.kt) | 10 | Namespaces, handlers, providers suspensos, destino repassado, falhas, sequência direta e identificadores malformados |
 | [LegacyStateTest](../humming-core/src/commonTest/kotlin/me/developes/humming/sdui/common/LegacyStateTest.kt) | 8 | Inicialização, edição/remoção, vazio versus ausência, múltiplos placeholders, atualização de flows e isolamento entre instâncias de ViewModel |
 
-[LegacyFixtures](../humming-core/src/commonTest/kotlin/me/developes/humming/sdui/common/LegacyFixtures.kt) concentra um payload com IDs estáveis, eventos e conteúdo visual separados. [ViewModelTestSupport](../humming-core/src/commonTest/kotlin/me/developes/humming/sdui/common/ViewModelTestSupport.kt) instala dispatcher Main de teste, mantém ownership dos ViewModels e limpa stores/jobs antes de restaurar o dispatcher. Os handlers/providers de teste são doubles das extensões do core; não comprovam backend, catálogo Material 3 ou plataforma nativa.
+[LegacyFixtures](../humming-contract/src/commonTest/kotlin/me/developes/humming/sdui/common/LegacyFixtures.kt) concentra um payload com IDs estáveis, eventos e conteúdo visual separados. [ViewModelTestSupport](../humming-core/src/commonTest/kotlin/me/developes/humming/sdui/common/ViewModelTestSupport.kt) instala dispatcher Main de teste, mantém ownership dos ViewModels e limpa stores/jobs antes de restaurar o dispatcher. Os handlers/providers de teste são doubles das extensões do core; não comprovam backend, catálogo Material 3 ou plataforma nativa.
 
 O caso Compose do sample continua aprovado pelo resultado anterior de T00. O Gradle o considerou UP-TO-DATE nesta execução; não houve nova execução nem nova inspeção da imagem nesta etapa. Logs de descoberta, tentativa inicial, execução corrigida e classpaths ficam em `build/t01/`; XMLs em `humming-core/build/test-results/jvmTest/` e HTML em `humming-core/build/reports/tests/jvmTest/index.html`. São artefatos locais recriáveis, ignorados pelo Git.
 
@@ -243,3 +243,41 @@ Executados, exit 0: compilação core/sample JVM e `.\gradlew.bat :humming-core:
 Execução final exit 0: `.\gradlew.bat :humming-core:jvmTest :humming-actions:jvmTest :sample:composeApp:jvmTest --console=plain`. XMLs: 67 core, 3 ações e 2 Compose, sem falhas/erros/ignorados. Incluem ramos reais, políticas, erro intermediário, limites, recursão, jobs simultâneos, cancelamento, callbacks e mapper que falham/cancelam. O teste de navegação usa provider suspenso por barreira, verifica ausência do efeito seguinte enquanto bloqueado, libera a carga e navega/volta pelo renderer real. O host de teste fornece LifecycleRegistry e ViewModelStoreOwner reais; dependências de Lifecycle adicionadas só aos testes usam a versão já catalogada.
 
 Logs e tentativas anteriores em `build/t03/`; relatório de ações em `humming-actions/build/reports/tests/jvmTest/`. Houve correções de asserção para recuperação de stack trace de coroutines e configuração dos owners do host de teste. Não houve publicação, novo backend nem qualificação Android/Apple/browser. T04 trata assinaturas, ownership de componentes e eventos; esta etapa não afirma isolamento de estado por back stack ou solução completa de lifecycle.
+
+## T04 — lifecycle, bindings e eventos — 2026-10-23
+
+`NodeBinding` observa mudanças somente enquanto coletado. O catálogo usa collectAsState da composição; constantes não assinam o formulário. As quatro variantes imperativas mantêm compatibilidade e recebem releaseBinding; encerramento do ViewModel cancela assinaturas restantes e tarefas. ActionInvoker pertence à composição, impede repetição enquanto ocupado e combina busy com enabled, sem sobrescrever o valor do binding. Botões, IME do campo, topAppBar, Column e imagens usam esse caminho.
+
+Loading usa atraso cancelável somente para aparecer e esconde ao finalizar a última operação, sem atraso. Eventos usam LaunchedEffect cancelável, emissão inicial e identidade estável de observador. Ações do catálogo propagam origem causal com updateStateFromAction; updates iguais não emitem. Métodos customizados precisam da mesma API; updates externos reabrem uma cadeia. Não existe promessa de entrega de cada revisão conflada ou de estado isolado por entrada de navegação.
+
+Comando final, exit 0: `.\gradlew.bat :humming-core:jvmTest :humming-actions:jvmTest :sample:composeApp:jvmTest --console=plain`, log `build/t04/final.log`. XMLs: **78 core + 3 ações + 6 Compose = 87 testes, zero falhas, erros ou ignorados**. Core e sample executaram na última chamada; ações estavam UP-TO-DATE após a execução aprovada em fifth.log. Novos casos: 7 BindingLifecycleTest, 4 StateEventTest, 3 BindingCompositionTest e 1 ActionRecoveryTest. Cobrem assinatura fria/constante, edição/remoção, descarte explícito, fechamento de owner, tarefas concorrentes/canceladas, emissão inicial, ciclos entre observadores, recomposição, busy durante mudança de binding e cancelamento ao remover componente. Recuperação usa o host real, ação registrada que falha, dispensa de erro pela UI e nova tentativa bem-sucedida.
+
+A regressão inicial de navegação foi diagnosticada: o dispatcher da composição do host de teste chamou Lifecycle fora de Main. executeActions agora usa Main.immediate preservando o Job chamador. O teste original voltou a passar, aguardando provider e executando a ação seguinte, além de navegar/voltar. O encerramento do teste desmonta a composição antes de destruir o Lifecycle, preservando a causa original em falhas futuras. Logs de tentativas conservados em build/t04.
+
+A imagem regenerada `sample/composeApp/build/reports/local-smoke.png` foi inspecionada: campo editado, texto atualizado e status confirmado. Isso valida renderização Compose em JVM; não comprova inspeção de janela nativa ou Android/Apple/JS/Wasm. Sem publicação nem backend novo. Status e retomada somente em current-state.md.
+
+## T05 — schemas e compatibilidade do catálogo — 2026-10-23
+
+Implementados NodeDefinition, PropertyDefinition, ParsedNodeProperties e NodeCatalog em commonMain, sem imports Compose/Lifecycle nesses tipos. SDLibrary preserva suas APIs e acrescenta registro de definições. O ViewModel valida papéis/propriedades antes de resolver handlers. LayoutDefinitions, ActionDefinitions e NavigationDefinitions fornecem 15 definições versão 1, com cobertura e exceções inventariadas no contrato. Os adapters preservam os valores wire originais e seus defaults/coerções no renderer.
+
+Comando final: `.\gradlew.bat :humming-core:jvmTest :humming-actions:jvmTest :sample:composeApp:jvmTest --console=plain`, exit 0, log `build/t05/final.log`. XMLs: **90 core + 4 ações + 16 sample = 110 testes**, zero falhas, erros ou ignorados. Os três grupos executaram na chamada final. Antes dela houve uma falha de inferência de tipo na asserção nova de mapa nullable; corrigida no teste, sem alterar dependências. As tarefas JVM já tinham sido descobertas nos recortes anteriores.
+
+Novos casos: 12 NodeDefinitionTest, 1 NestedActionsTest para método não registrado, 9 CatalogCompatibilityTest e 1 CatalogRenderingTest. Sample total: 9 testes de catálogo sem composição e 7 testes Compose. Cobrem caminhos/documento/ID, campos obrigatórios/tipos/faixas, defaults sem mutação do wire, bindings, enums e fallbacks reais, propriedades desconhecidas/opacas, travessia limitada e ciclos programáticos, papéis em eventos/filhos, rotas duplicadas/ausentes, deep links legados versus autoria, métodos registrados e preservação das extensões sem schema.
+
+CatalogRenderingTest executa Column/Row/Box/Text/TextField/Button reais, slot label, binding textual, edição do campo e sequência ifState → method → update, observando o resultado Ana: salvo / confirmado. As regressões anteriores de cancelamento, navegação/retorno e recuperação de falha também passaram. Não houve nova inspeção visual nativa; assertions de composição não substituem essa qualificação.
+
+Metadados não comprovam implementação do Inspector ou negociação de capacidades. A ausência de imports UI nos tipos novos também não prova classpath puro: isso permanece para T06. Não executados Android, Apple, JS ou Wasm neste recorte; sem backend, publicação ou mudanças de versões. Status e retomada somente em current-state.md.
+
+## T06 — contrato puro e consumidor headless — 2026-10-24
+
+Extraídos para humming-contract: ServerDrivenNode, NodeDecoder, NodeDiagnostic, NodeDefinition, NodeJson e as três listas de definições. Pacotes públicos preservados; humming-core exporta o contrato via api. Color e execução permanecem no core. UUID não depende mais de Platform. O build do contrato só usa os plugins Kotlin Multiplatform e serialização, toolchain 25 e bytecode JVM 17.
+
+Comandos executados, exit 0:
+
+- `.\gradlew.bat :humming-contract:tasks --all --console=plain`: tarefas JVM e demais targets declarados, log build/t06/tasks.log.
+- `.\gradlew.bat :humming-contract:jvmTest :humming-core:jvmTest :humming-actions:jvmTest :sample:composeApp:jvmTest --console=plain`: **30 contrato + 64 core + 4 ações + 16 sample = 114 testes**, zero falhas, erros ou ignorados. Log build/t06/tests.log. As 26 regressões de parsing/limites foram movidas do core, mantendo seu conteúdo; os 4 casos adicionais são headless.
+- `.\gradlew.bat :humming-contract:dependencies --configuration jvmTestRuntimeClasspath :humming-core:compileDebugKotlinAndroid --console=plain`: relatório sem UI no contrato e compilação Kotlin do core Android aprovada, log build/t06/classpath-android.log.
+
+HeadlessContractTest valida catálogo/diagnóstico e serializa modelo editado com ServerDrivenNode.serializer(), sem inicializar renderer ou ViewModel. HeadlessClasspathTest verifica que classes Compose, Lifecycle, Navigation, Material e Skia não estão disponíveis no classloader de teste. T01/T05 e os fluxos Compose anteriores continuam aprovados nos respectivos módulos. O contrato puro depende de stdlib e serialização; testes acrescentam kotlin-test/JUnit.
+
+Migração de facades JVM exige recompilar consumidores antigos, descrita no contrato. Não houve publicação nem execução Android em dispositivo; compilar o core não comprova aplicativo Android. Os demais módulos Android e Apple/JS/Wasm ainda precisam de qualificação. Estado e próxima tarefa somente em current-state.md.

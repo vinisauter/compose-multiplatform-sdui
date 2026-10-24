@@ -2,16 +2,20 @@ package me.developes.humming.sdui.layout.components
 
 import androidx.compose.material3.Button
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
+import me.developes.humming.sdui.common.collectAsState
+import me.developes.humming.sdui.common.rememberActionInvoker
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import me.developes.humming.sdui.common.SDUIFormViewModel
 import me.developes.humming.sdui.common.ServerDrivenNode
+import me.developes.humming.sdui.layout.LayoutDefinitions
 import me.developes.humming.sdui.layout.Layout
 
 class SDCButton(val node: ServerDrivenNode, val viewModel: SDUIFormViewModel) : Layout {
+    private val properties = LayoutDefinitions.button.parse(node).requireValid()
+
     private var modifier = Modifier.fromNode(node)
-    private val enabled = viewModel.resolveStatePlaceholdersFlow(node.property("enabled")) {
+    private val enabled = viewModel.binding(properties.property("enabled")) {
         it?.toBooleanStrictOrNull() ?: true
     }
     private val actions = node.propertyNodes("onClick")
@@ -25,16 +29,14 @@ class SDCButton(val node: ServerDrivenNode, val viewModel: SDUIFormViewModel) : 
 
     @Composable
     override fun Content() {
+        val invoker = rememberActionInvoker(viewModel)
         val isEnabled by enabled.collectAsState()
 
         Button(
             modifier = modifier,
-            enabled = isEnabled,
+            enabled = isEnabled && !invoker.isRunning,
             onClick = {
-                viewModel.invokeActions(
-                    actions,
-                    beforeInvoke = { enabled.value = false },
-                    afterInvoke = { enabled.value = true })
+                invoker.invoke(actions)
             }) {
             loadChildren.invoke()
         }

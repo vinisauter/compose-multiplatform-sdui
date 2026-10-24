@@ -2,10 +2,10 @@ package me.developes.humming.sdui.layout.components
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
+import me.developes.humming.sdui.common.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import kotlinx.coroutines.flow.map
+
 import me.developes.humming.sdui.common.SDUIFormViewModel
 import me.developes.humming.sdui.common.ServerDrivenNode
 import me.developes.humming.sdui.layout.Layout
@@ -19,7 +19,7 @@ class SDCAnimatedVisibility(node: ServerDrivenNode, private val viewModel: SDUIF
         ?: viewModel.resolveStateKeys(propertyVisible).firstOrNull()
         ?: "SDCAnimatedVisibility_${node.id}")
 
-    private val visible = viewModel.getStateFlow(state, "true").map {
+    private val visible = viewModel.stateBinding(state, "true") {
         it.toBooleanStrictOrNull() ?: true
     }
     private val loadChildren: @Composable () -> Unit? = {
@@ -32,7 +32,7 @@ class SDCAnimatedVisibility(node: ServerDrivenNode, private val viewModel: SDUIF
 
     @Composable
     override fun Content() {
-        val visible by visible.collectAsState(true)
+        val visible by visible.collectAsState()
         AnimatedVisibility(visible, modifier = modifier) {
             loadChildren.invoke()
         }

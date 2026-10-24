@@ -77,3 +77,29 @@ O modo JVM `--local-smoke` seleciona payload local com textField, binding e aç�
 Usar `commonTest` para fixtures e lógica portável, executando primeiro em JVM. Coroutines-test foi movido para esse source set após confirmar ausência de uso em produção; dependencyInsight confirmou runtime sem a biblioteca e classpath de testes com ela. Não se alteraram versões.
 
 Instalar Main de teste e manter ViewModels em stores com limpeza explícita evita que collectors do ViewModel sobrevivam às fixtures. Casos de comportamento frágil usam o prefixo `observedLegacy` e são mapeados para tarefas de correção/migração em validação, sem apresentá-los como requisitos desejados. T01 cria evidência do comportamento, sem antecipar correções de T02–T04.
+
+### 2026-10-23 — T02/T03: entrada limitada e execução aguardada
+
+Decisão técnica no recorte autorizado: rejeitar identificadores malformados e eventos parcialmente inválidos com diagnóstico de caminho, mantendo a coerção textual válida do legado. Resolver provider, componente e ação sem sobrescrever a causa original. `executeActions` é a API suspensa; CONTINUE preserva a continuação legada, STOP_ON_ERROR é seleção do host e limites interrompem ambas. Ramos herdam contexto, política e orçamento. Evidência e migração em contrato/validação.
+
+### 2026-10-23 — T04: ownership e origem causal
+
+Decisão técnica: bindings do catálogo são frios e coletados pela composição; consumidores das APIs imperativas antigas têm `releaseBinding`. Ações UI possuem Job da composição e executam no Main.immediate: o teste de navegação demonstrou que o dispatcher da composição, sozinho, não garante a thread exigida pelo Lifecycle. O ViewModel continua dono das fachadas imperativas.
+
+Loading atrasa apenas a exibição (100 ms), cancelando emissão atrasada quando termina a última operação. Eventos preservam emissão inicial; updates idênticos deixam de emitir. Origem de mudanças via contexto suspenso evita variáveis globais de “ação atual” e impede a reentrada do mesmo observador na cadeia, limitada a 64 observadores. Métodos customizados devem usar updateStateFromAction; updates externos iniciam nova origem. O fluxo conflado não promete observar cada mutação concorrente. Não introduz escopos tipados por rota. Testes de descarte, recomposição, ciclos, loading, navegação e recuperação estão em validação.
+
+### 2026-10-23 — T05: schemas com adaptação legada explícita
+
+Decisão técnica no recorte autorizado: metadados e validação ficam inicialmente no core, sem novos módulos ou tipos Compose/Lifecycle nas definições. Cada biblioteca fornece suas definições; NodeCatalog descreve 15 capacidades de schema versão 1, sem introduzir envelope wire ou negociação remota. T06 deve demonstrar consumo puro e decidir a extração necessária, preservando direção de dependências.
+
+O parser conserva strings e ausência de propriedades; defaults não são materializados no payload. Descrições representam defaults calculados e ausência com semântica diferente do valor explícito. LEGACY conserva coerções/fallbacks com warnings; AUTHORING rejeita cobertura desconhecida, campos não editáveis e valores inválidos. Nós conhecidos têm papéis validados em filhos, slots e eventos antes do despacho. Condicionais também validam ramos não selecionados. Métodos precisam continuar registrados e recebem diagnóstico no campo invoke quando desconhecidos.
+
+Gradientes e campos de cor não aplicados pelo TextField não são anunciados editáveis. Componentes/ações fora do subconjunto mantêm a extensão legada. Essa limitação é preferível a um schema que finja cobertura do catálogo inteiro. O contrato inventaria os nomes, políticas e migração. Testes de equivalência textual, limites, papéis, navegação, métodos e um formulário Compose com todo o subconjunto verificam a decisão.
+
+### 2026-10-24 — T06: artefato de contrato puro
+
+O classpath do core impedia um consumidor realmente sem UI. Foi extraído humming-contract com modelo, JSON, diagnósticos, schemas e as definições iniciais, mantendo pacotes públicos. O core exporta o módulo via api e conserva ViewModel, execução, Color e adapters visuais. Dependências apontam do runtime para contrato, nunca o inverso. Não foram criados módulos de servidor ou wrappers duplicados.
+
+Toolchain 25 com bytecode JVM 17 permite consumir o artefato puro no core Android; a compilação desse core comprovou a resolução do variant JVM. IDs usam kotlin.uuid, com a mesma precedência de IDs explícitos e formato prefixado. Funções JSON top-level agora usam NodeJsonKt; consumidores binários antigos precisam ser recompilados. toColor conserva sua facade no core. O módulo não foi publicado; publicação e qualificação completa permanecem etapas próprias.
+
+As 26 regressões puras de parsing/limites foram movidas, sem duplicação, para commonTest do contrato. Novos testes fazem round trip após edição, validação do catálogo e verificam ausência das classes Compose/Lifecycle/Navigation/Material/Skia no runtime JVM. O relatório de dependências mostra apenas Kotlin/serialização/testes. As regressões do core, ações e sample passaram após a extração.

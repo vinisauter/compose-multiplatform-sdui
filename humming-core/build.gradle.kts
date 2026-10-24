@@ -38,6 +38,7 @@ kotlin {
 
     sourceSets {
         commonMain.dependencies {
+            api(project(":humming-contract"))
             implementation(compose.runtime)
             implementation(compose.ui)
             implementation(compose.foundation)

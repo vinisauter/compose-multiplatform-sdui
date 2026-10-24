@@ -4,6 +4,8 @@ import androidx.compose.runtime.mutableStateMapOf
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
@@ -12,6 +14,10 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -20,22 +26,52 @@ class SDUIFormViewModel(
     private val handle: SavedStateHandle, libraries: List<SDLibrary> = listOf()
 ) : ViewModel() {
     private val _runningTasks = MutableStateFlow(0)
-    val isLoading = MutableStateFlow(_runningTasks.value > 0).also { flow ->
+    private val _isLoading = MutableStateFlow(false)
+    val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
+    private val legacyBindings = mutableMapOf<StateFlow<*>, Job>()
+
+    init {
         viewModelScope.launch {
-            _runningTasks.collect { collected ->
-                if (flow.value != collected > 0) {
-                    delay(100)// avoid flickering
-                    if (_runningTasks.value == collected) {
-                        flow.value = collected > 0
-                    }
-                }
+            _runningTasks.map { it > 0 }.distinctUntilChanged().collectLatest { running ->
+                if (running) delay(100)
+                _isLoading.value = running
             }
         }
-    }.asStateFlow()
+    }
+
+    /** Releases an imperative legacy binding before the ViewModel is cleared. */
+    fun releaseBinding(binding: StateFlow<*>) {
+        legacyBindings.remove(binding)?.cancel()
+    }
+
+    override fun onCleared() {
+        legacyBindings.values.forEach { it.cancel() }
+        legacyBindings.clear()
+        _isLoading.value = false
+        super.onCleared()
+    }
+
+    fun binding(value: String?): NodeBinding<String> = binding(value) { it ?: "" }
+
+    fun <T> binding(value: String?, calculation: (String?) -> T): NodeBinding<T> =
+        NodeBinding({ calculation(resolveStatePlaceholders(value)) },
+            if (value?.contains("#{") == true) onStateUpdated else flowOf(0))
+
+    fun stateBinding(key: String, initialValue: String? = null): NodeBinding<String> {
+        getState(key, initialValue)
+        return NodeBinding({ resolveStatePlaceholders(formState[key]) }, onStateUpdated)
+    }
+
+    fun <T> stateBinding(key: String, initialValue: String?, calculation: (String) -> T): NodeBinding<T> {
+        getState(key, initialValue)
+        return NodeBinding({ calculation(resolveStatePlaceholders(formState[key])) }, onStateUpdated)
+    }
 
     private val _errorState = MutableStateFlow<ErrorData?>(null)
     val errorState: StateFlow<ErrorData?> = _errorState.asStateFlow()
 
+    private var mutationRevision = 0
+    private var mutationListeners = emptySet<StateEventToken>()
     val onStateUpdated = MutableStateFlow(0)
     private val _formState = mutableStateMapOf<String, String>()
     val formState: Map<String, String> = _formState
@@ -47,20 +83,7 @@ class SDUIFormViewModel(
         }
     }
 
-    /**
-     * Executes a suspend block while managing the running tasks count and error handling.
-     *
-     * This function increments the `_runningTasks` counter before executing the provided
-     * suspend `block`. If the block throws an exception, it catches the exception and
-     * sets the error state using the `onError` function to transform the exception into
-     * an `ErrorData` object. After the block completes (whether successfully or with an error),
-     * it decrements the `_runningTasks` counter.
-     *
-     * @param block The suspend function to be executed.
-     * @param onError A function that takes a [Throwable] and returns an [ErrorData] object.
-     *                This is used to transform exceptions into error states. By default,
-     *                it returns `null`, meaning no error state will be set.
-     */
+    /** Counts nested/concurrent operations and finalizes on failure or cancellation. */
     private suspend fun <T> withRunningTask(block: suspend () -> T): T {
         _runningTasks.update { it + 1 }
         return try { block() } finally { _runningTasks.update { it - 1 } }
@@ -156,7 +179,7 @@ class SDUIFormViewModel(
         key: String,
         initialValue: String? = null,
     ) = MutableStateFlow(getState(key, initialValue)).also { flow ->
-        viewModelScope.launch {
+        legacyBindings[flow] = viewModelScope.launch {
             onStateUpdated.collect { _ ->
                 val value = resolveStatePlaceholders(_formState[key])
                 if (flow.value != value) {
@@ -205,7 +228,7 @@ class SDUIFormViewModel(
         key: String,
         calculation: (String?) -> T,
     ) = MutableStateFlow(getState(key, calculation)).also { flow ->
-        viewModelScope.launch {
+        legacyBindings[flow] = viewModelScope.launch {
             onStateUpdated.collect { _ ->
                 val value = getState(key, calculation)
                 if (flow.value != value) {
@@ -220,21 +243,42 @@ class SDUIFormViewModel(
      *
      * If the provided value is `null`, the key is removed from the state.
      * Otherwise, the key is added or updated with the new value.
-     * After updating the state, the `onStateUpdated` flow is incremented
+     * After a changed value, the `onStateUpdated` flow is incremented
      * to notify any observers of the change.
      *
      * @param key The key to be added or updated in the form state.
      * @param value The value to be associated with the key. If `null`, the key is removed.
      */
-    fun updateState(key: String, value: String?) {
-        onStateUpdated.update {
-            if (value == null) {
-                _formState.remove(key)
-            } else {
-                _formState[key] = value
-            }
-            it + 1
+    fun updateState(key: String, value: String?) = recordState(key, value, emptySet())
+
+    /** Custom suspend actions should use this API to preserve event causality. */
+    suspend fun updateStateFromAction(key: String, value: String?) {
+        recordState(key, value, currentCoroutineContext()[StateMutationOrigin]?.listeners.orEmpty())
+    }
+
+    private fun recordState(key: String, value: String?, listeners: Set<StateEventToken>) {
+        if (_formState[key] == value) return
+        if (value == null) _formState.remove(key) else _formState[key] = value
+        mutationListeners = listeners
+        mutationRevision = onStateUpdated.value + 1
+        onStateUpdated.value = mutationRevision
+    }
+
+    suspend fun executeStateChangeActions(
+        listener: StateEventToken,
+        revision: Int,
+        actions: List<ServerDrivenNode>,
+    ) {
+        if (revision != onStateUpdated.value) return
+        val origins = if (revision == mutationRevision) mutationListeners else emptySet()
+        if (listener in origins) return
+        if (origins.size >= 64) {
+            setError(ErrorData.taskError("State event chain limit exceeded").copy(
+                diagnostic = NodeDiagnostic("EVENT_CHAIN_LIMIT", "State event chain limit exceeded", "stateEvent"),
+            ))
+            return
         }
+        withContext(StateMutationOrigin(origins + listener)) { executeActions(actions) }
     }
 
     fun resolveStateKeys(
@@ -297,7 +341,7 @@ class SDUIFormViewModel(
         value: String?,
     ) = MutableStateFlow(resolveStatePlaceholders(value)).also { flow ->
         if (value?.contains("#{") == true) {
-            viewModelScope.launch {
+            legacyBindings[flow] = viewModelScope.launch {
                 onStateUpdated.collect { _ ->
                     val valueResolve = resolveStatePlaceholders(value)
                     if (flow.value != valueResolve) {
@@ -331,7 +375,7 @@ class SDUIFormViewModel(
         calculation: (String?) -> T,
     ) = MutableStateFlow(calculation(resolveStatePlaceholders(value))).also { flow ->
         if (value?.contains("#{") == true) {
-            viewModelScope.launch {
+            legacyBindings[flow] = viewModelScope.launch {
                 onStateUpdated.collect { _ ->
                     val valueResolve = resolveStatePlaceholders(value)
                     if (flow.value != valueResolve) {
@@ -436,7 +480,8 @@ class SDUIFormViewModel(
     }
 
     private fun getComponent(node: ServerDrivenNode): ComponentHandler? {
-        val (libraryNamespace, componentNamespace) = qualifiedName(node.component, node.origin, node.id)
+        val (libraryNamespace, componentNamespace) = node.qualifiedName()
+        validateDefinition(node, NodeRole.COMPONENT)
         val library = libraries[libraryNamespace]
         return library?.getComponent(componentNamespace)
     }
@@ -464,7 +509,7 @@ class SDUIFormViewModel(
             return component?.invoke(node, this) ?: run {
                 logging.error("Component not found for: $nodeComponent")
                 setError(ErrorData.missingComponent(nodeComponent).copy(
-                    diagnostic = node.diagnostic("MISSING_COMPONENT", "Component is not registered", "resolve", "${node.origin.path}.component"),
+                    diagnostic = node.diagnostic("MISSING_COMPONENT", "Component is not registered", "resolve", "${node.sourcePath}.component"),
                 ))
                 null
             }
@@ -485,7 +530,8 @@ class SDUIFormViewModel(
     private fun getAction(
         node: ServerDrivenNode
     ): ActionHandler? {
-        val (libraryNamespace, componentNamespace) = qualifiedName(node.component, node.origin, node.id)
+        val (libraryNamespace, componentNamespace) = node.qualifiedName()
+        validateDefinition(node, NodeRole.ACTION)
         val library = libraries[libraryNamespace]
         return library?.getAction(componentNamespace)
     }
@@ -514,11 +560,20 @@ class SDUIFormViewModel(
      */
     private val actionExecutor = ActionExecutor(::getAction, this)
 
+    fun catalog(): NodeCatalog = NodeCatalog(libraries.values.flatMap { it.definitions })
+
+    private fun validateDefinition(node: ServerDrivenNode, role: NodeRole) {
+        catalog().validate(node, role).firstOrNull { it.severity == DiagnosticSeverity.ERROR }
+            ?.let { throw PayloadException(it) }
+    }
+
     suspend fun executeActions(
         actions: List<ServerDrivenNode>,
         policy: ActionFailurePolicy? = null,
         limits: ActionExecutionLimits? = null,
-    ): ActionExecutionResult = withRunningTask { actionExecutor.execute(actions, policy, limits) }
+    ): ActionExecutionResult = withContext(Dispatchers.Main.immediate) {
+        withRunningTask { actionExecutor.execute(actions, policy, limits) }
+    }
 
     fun invokeActions(
         actions: ArrayList<ServerDrivenNode>,

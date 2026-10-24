@@ -75,7 +75,7 @@ internal class ActionExecutor(
                 val handler = resolve(node)
                 if (handler == null) {
                     fail(frame.state, ErrorData.missingAction(node.component).copy(
-                        diagnostic = node.diagnostic("MISSING_ACTION", "Action is not registered", "resolve", "${node.origin.path}.component"),
+                        diagnostic = node.diagnostic("MISSING_ACTION", "Action is not registered", "resolve", "${node.sourcePath}.component"),
                     ))
                 } else {
                     handler(node, owner)

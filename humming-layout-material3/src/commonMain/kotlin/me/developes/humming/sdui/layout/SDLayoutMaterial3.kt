@@ -20,6 +20,8 @@ import me.developes.humming.sdui.layout.components.SDCTextField
 import me.developes.humming.sdui.layout.components.SDCTopAppBar
 
 class SDLayoutMaterial3 : SDLibrary("layout") {
+    init { LayoutDefinitions.all.forEach { addDefinition(it) } }
+
     override fun getComponent(name: String): ComponentHandler? {
         return when (name) {
             "box" -> return { node, viewModel -> SDCBox(node, viewModel) }

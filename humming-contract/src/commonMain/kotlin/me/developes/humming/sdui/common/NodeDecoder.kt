@@ -6,7 +6,7 @@ import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
-import me.developes.humming.sdui.getPlatform
+
 
 /** Bounded entry point for untrusted JSON text. Lengths are UTF-16 character counts. */
 fun parseNode(
@@ -16,6 +16,16 @@ fun parseNode(
 ): ServerDrivenNode {
     val origin = NodeOrigin(documentId = documentId, limits = limits)
     return decodeNode(parsePayloadJson(source, origin), origin)
+}
+
+/** Shared bounded JSON entry for local authoring codecs and other non-node documents. */
+fun parseBoundedJson(source: String, limits: PayloadLimits = PayloadLimits(), documentId: String? = null): JsonElement {
+    val origin = NodeOrigin(documentId = documentId, limits = limits)
+    return parsePayloadJson(source, origin).also { validateJsonBudget(it, origin) }
+}
+
+fun validateBoundedJson(element: JsonElement, limits: PayloadLimits = PayloadLimits(), documentId: String? = null) {
+    validateJsonBudget(element, NodeOrigin(documentId = documentId, limits = limits))
 }
 
 internal fun payloadFailure(
@@ -84,7 +94,7 @@ private fun prepareNode(element: JsonElement, origin: NodeOrigin): PreparedNode 
     if (json.containsKey("id") && knownId.isNullOrBlank()) {
         payloadFailure("INVALID_ID", "id must be a non-empty string", origin, knownId, "${origin.path}.id")
     }
-    val id = knownId ?: "$component:${getPlatform().generateUUID()}"
+    val id = knownId ?: "$component:${generateNodeIdentity()}"
     val properties = json["properties"]?.let { value ->
         val obj = value as? JsonObject
             ?: payloadFailure("INVALID_PROPERTIES", "properties must be an object", origin, id, "${origin.path}.properties")

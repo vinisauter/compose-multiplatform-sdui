@@ -3,19 +3,23 @@ package me.developes.humming.sdui.layout.components
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import me.developes.humming.sdui.common.rememberActionInvoker
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import me.developes.humming.sdui.common.SDUIFormViewModel
 import me.developes.humming.sdui.common.ServerDrivenNode
+import me.developes.humming.sdui.layout.LayoutDefinitions
 import me.developes.humming.sdui.layout.Layout
 
 class SDCColumn(val node: ServerDrivenNode, val viewModel: SDUIFormViewModel) : Layout {
+    private val properties = LayoutDefinitions.column.parse(node).requireValid()
+
     private val modifier = Modifier.fromNode(node)
     private val actions = node.propertyNodes("onClick")
 
     private val verticalArrangement: Arrangement.Vertical =
-        when (node.property("verticalArrangement")) {
+        when (properties.property("verticalArrangement")) {
             null -> Arrangement.Top
             "Top" -> Arrangement.Top
             "Center" -> Arrangement.Center
@@ -23,15 +27,15 @@ class SDCColumn(val node: ServerDrivenNode, val viewModel: SDUIFormViewModel) : 
             "SpaceAround" -> Arrangement.SpaceAround
             "SpaceBetween" -> Arrangement.SpaceBetween
             "SpaceEvenly" -> Arrangement.SpaceEvenly
-            else -> error("Unknown value for verticalArrangement ${node.property("verticalArrangement")}")
+            else -> error("Unknown value for verticalArrangement ${properties.property("verticalArrangement")}")
         }
     private val horizontalAlignment: Alignment.Horizontal =
-        when (node.property("horizontalAlignment")) {
+        when (properties.property("horizontalAlignment")) {
             null -> Alignment.Start
             "Start" -> Alignment.Start
             "Center" -> Alignment.CenterHorizontally
             "End" -> Alignment.End
-            else -> error("Unknown value for horizontalAlignment ${node.property("horizontalAlignment")}")
+            else -> error("Unknown value for horizontalAlignment ${properties.property("horizontalAlignment")}")
         }
     private val loadChildren: @Composable () -> Unit? = {
         node.children?.let {
@@ -43,9 +47,10 @@ class SDCColumn(val node: ServerDrivenNode, val viewModel: SDUIFormViewModel) : 
 
     @Composable
     override fun Content() {
+        val invoker = rememberActionInvoker(viewModel)
         Column(
             modifier = if (actions.isNotEmpty()) modifier.clickable {
-                viewModel.invokeActions(actions)
+                invoker.invoke(actions)
             } else modifier,
             verticalArrangement = verticalArrangement,
             horizontalAlignment = horizontalAlignment,

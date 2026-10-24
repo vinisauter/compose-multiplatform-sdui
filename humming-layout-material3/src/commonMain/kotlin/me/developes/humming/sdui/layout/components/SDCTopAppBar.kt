@@ -12,7 +12,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
+import me.developes.humming.sdui.common.collectAsState
+import me.developes.humming.sdui.common.rememberActionInvoker
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -26,11 +27,11 @@ import me.developes.humming.sdui.layout.Layout
 
 class SDCTopAppBar(val node: ServerDrivenNode, val viewModel: SDUIFormViewModel) : Layout {
     private var modifier = Modifier.fromNode(node)
-    private val title = viewModel.resolveStatePlaceholdersFlow(node.property("title"))
+    private val title = viewModel.binding(node.property("title"))
     private val actions = node.propertyNodes("onClick")
     private val icon = node.property("icon")?.let { Icons.getIcon(it) } ?: FeatherIcons.ArrowLeft
     private val iconDescription = node.property("iconDescription") ?: node.property("icon")
-    private val enabled = viewModel.resolveStatePlaceholdersFlow(node.property("enabled")) {
+    private val enabled = viewModel.binding(node.property("enabled")) {
         it?.toBooleanStrictOrNull() ?: true
     }
     private val backgroundColor = node.property("backgroundColor")?.toColor()
@@ -39,6 +40,7 @@ class SDCTopAppBar(val node: ServerDrivenNode, val viewModel: SDUIFormViewModel)
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
     override fun Content() {
+        val invoker = rememberActionInvoker(viewModel)
         val isEnabled by enabled.collectAsState()
 
         TopAppBar(
@@ -62,13 +64,9 @@ class SDCTopAppBar(val node: ServerDrivenNode, val viewModel: SDUIFormViewModel)
             modifier = modifier,
             navigationIcon = {
                 IconButton(
-                    enabled = isEnabled,
+                    enabled = isEnabled && !invoker.isRunning,
                     onClick = {
-                        viewModel.invokeActions(actions, beforeInvoke = {
-                            enabled.value = false
-                        }, afterInvoke = {
-                            enabled.value = true
-                        })
+                        invoker.invoke(actions)
                     }) {
                     Icon(
                         imageVector = icon,

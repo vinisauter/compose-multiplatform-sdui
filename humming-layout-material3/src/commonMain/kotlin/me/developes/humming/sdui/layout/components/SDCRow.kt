@@ -7,12 +7,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import me.developes.humming.sdui.common.SDUIFormViewModel
 import me.developes.humming.sdui.common.ServerDrivenNode
+import me.developes.humming.sdui.layout.LayoutDefinitions
 import me.developes.humming.sdui.layout.Layout
 
 class SDCRow(node: ServerDrivenNode, viewModel: SDUIFormViewModel) : Layout {
+    private val properties = LayoutDefinitions.row.parse(node).requireValid()
+
     private val modifier = Modifier.fromNode(node)
     private val horizontalArrangement: Arrangement.Horizontal =
-        when (node.property("horizontalArrangement")) {
+        when (properties.property("horizontalArrangement")) {
             "Start" -> Arrangement.Start
             "Center" -> Arrangement.Center
             "End" -> Arrangement.End
@@ -22,7 +25,7 @@ class SDCRow(node: ServerDrivenNode, viewModel: SDUIFormViewModel) : Layout {
             else -> Arrangement.Start
         }
     private val verticalAlignment: Alignment.Vertical =
-        when (node.property("verticalAlignment")) {
+        when (properties.property("verticalAlignment")) {
             "Top" -> Alignment.Top
             "Center" -> Alignment.CenterVertically
             "Bottom" -> Alignment.Bottom

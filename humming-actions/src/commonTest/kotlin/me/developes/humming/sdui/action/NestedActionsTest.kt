@@ -39,6 +39,17 @@ class NestedActionsTest {
         },
     )).also { store.put("test", it) }
 
+    @Test fun unregisteredMethodReportsInvokeFieldAndDoesNotExecuteCode() = runTest {
+        val events = mutableListOf<String>()
+        val vm = vm(events)
+        val node = parseNode("""{"component":"action:method","id":"method","properties":{"invoke":"unregistered"}}""", documentId = "methods")
+        val result = vm.executeActions(listOf(node))
+        assertEquals(emptyList(), events)
+        assertEquals("MISSING_METHOD", result.errors.single().diagnostic?.code)
+        assertEquals("$.properties[\"invoke\"]", result.errors.single().diagnostic?.path)
+        assertEquals("methods", result.errors.single().diagnostic?.documentId)
+    }
+
     @Test
     fun ifStateWaitsForThenActionsBeforeContinuingOuterSequence() = runTest {
         val events = mutableListOf<String>()

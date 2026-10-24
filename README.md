@@ -2,7 +2,7 @@
 
 POC de um cliente de Server-Driven UI em Kotlin Multiplatform e Compose Multiplatform. O cliente interpreta uma árvore JSON e resolve componentes e ações registrados por namespace.
 
-O repositório contém o runtime, bibliotecas de ações, navegação, componentes Material 3 e um sample. Editor visual, servidor de contratos, publicação e colaboração fazem parte do planejamento; ainda precisam de implementação e validação.
+O repositório contém o contrato puro humming-contract, o runtime, bibliotecas de ações, navegação, componentes Material 3 e um sample. Editor visual, servidor de contratos, publicação e colaboração fazem parte do planejamento; ainda precisam de implementação e validação.
 
 ## Comece aqui
 
@@ -31,6 +31,16 @@ O recorte local JVM de T00 já foi verificado. Para reproduzi-lo:
 ```
 
 O modo local carrega uma tela de formulário sem rede. O teste verifica edição, binding e ação registrada, gerando uma imagem em `sample/composeApp/build/reports/local-smoke.png`. O modo padrão continua disponível sem o argumento. Consulte o estado atual para a próxima tarefa e os limites da qualificação.
+
+## Consumir o contrato sem UI
+
+Use humming-contract para parsing, schemas e serialização sem Compose/Lifecycle. O runtime humming-core o exporta para os consumidores existentes. Para verificar a fronteira headless:
+
+```powershell
+.\gradlew.bat :humming-contract:jvmTest
+```
+
+Os pacotes públicos são preservados; a migração de build e a necessidade de recompilar consumidores JVM antigos estão no [contrato](docs/contract.md).
 
 ## Contribuir
 
