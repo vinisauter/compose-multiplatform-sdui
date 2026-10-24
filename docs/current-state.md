@@ -10,7 +10,7 @@ Atualizado no recorte T17: 65 testes de autoria, 30 contrato, 64 core, 4 ações
 | --- | --- |
 | Última atualização | 2026-10-24 — base e05985b (T13), anteriores c6a1e46 e 6441ec0; T14 no commit local bde7c23 e T15 em eb8726e e T16 em b6c1ff3 e implementação T17 em 2d9d6eb; sem push |
 | Última entrega | T17: editor local, 183 testes JVM, downloads reais e aceite manual de abertura/ação confirmado pelo usuário; ver [validação](validation.md) |
-| Tarefa de implementação em execução | Nenhuma; T17 concluída |
+| Tarefa de implementação em execução | T18 — Codex: geometria pura e integração de bounds/gestos |
 | Próxima tarefa | **T18 — seleção, bounds e drop geométrico** |
 | Próxima ação concreta | Ler a geometria em Studio, integrar bounds derivados do renderer e transformações de viewport; iniciar testes puros de seleção/alvo/índice para Column/Row antes de conectar o gesto aos comandos |
 | Critério para avançar | Testar seleção/alvo/índice e cancelamento/revisões obsoletas; observar guia e commit de drop no navegador, preservando ordem exportada |
@@ -51,7 +51,7 @@ Estados: **pronta**, **pendente**, **em execução**, **bloqueada**, **concluíd
 | T15 | Compilador puro do subconjunto legado | concluída | 172 testes JVM aprovados; golden, capacidades, expansão limitada, ciclos e jornada compilada executada pelo renderer real; ver [validação](validation.md) |
 | T16 | Preview do catálogo no host Wasm | concluída | Chrome/Wasm observado: edição/binding/update/MISSING_METHOD/recuperação; host sem provider URL; teste JVM de descarte; ver [validação](validation.md) |
 | T17 | Editor local e Inspector | concluída | Implementação 2d9d6eb; 183 testes JVM; importação/ação/downloads observados pelo agente e abertura manual/confirmado relatados pelo usuário em 2026-10-24; ver [validação](validation.md) |
-| T18 | Seleção, bounds e drop geométrico | pronta | Validar Row/Column, transformações e commit por revisão |
+| T18 | Seleção, bounds e drop geométrico | em execução | Validar Row/Column, transformações e commit por revisão |
 | T19 | Grafo de interações e conectores | pendente | Portas/curvas/ações compiláveis e navegação observada |
 | T20 | Aplicação de servidor e interfaces | pendente | Criar fronteiras/casos de uso/host local com autorização |
 | T21 | Rascunhos/revisões em PostgreSQL | pendente | Validar persistência/transações em banco real local |
@@ -67,7 +67,7 @@ Os requisitos completos e a ordem das dependências estão no [plano](developmen
 
 T17 concluída após o usuário responder “apareceu confirmado” ao procedimento solicitado de abrir o documento salvo e executar Confirmar. O relato manual completa a evidência dos testes e do browser registrada em [validação](validation.md); não equivale a observação automatizada do seletor nem a confirmação manual adicional de todos os controles. O descarte de estado/histórico ao reabrir está coberto pelos testes Compose existentes.
 
-Não há trabalho parcial ativo. Retomar por T18; não repetir o seletor nem ampliar permissões da extensão para revalidar T17 sem motivo novo. A UI de salvar solicita download e não limpa automaticamente o indicador de alterações locais. Não há canvas geométrico ou servidor implementados. Para registrar o recorte, preencher:
+T18 em execução sobre ce2bd7e: geometria pura e DropGesture implementados. 11 testes geométricos passaram; modelo soma 76 testes JVM, total acumulado 194. Metadata/JS/Wasm puros compilados; log build/t18/geometry.log. Próximo passo: observar bounds reais sem wrappers de layout, integrar overlay/gestos e validar no renderer e browser. Ainda não há manipulação geométrica entregue na UI. Retomar por T18; não repetir o seletor nem ampliar permissões da extensão para revalidar T17 sem motivo novo. A UI de salvar solicita download e não limpa automaticamente o indicador de alterações locais. Não há canvas geométrico ou servidor implementados. Para registrar o recorte, preencher:
 
 ```text
 Etapa / responsável / data / revisão:
