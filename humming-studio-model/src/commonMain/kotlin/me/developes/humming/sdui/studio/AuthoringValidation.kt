@@ -5,6 +5,9 @@ import me.developes.humming.sdui.common.NodeCatalog
 import me.developes.humming.sdui.common.NodeDiagnostic
 import me.developes.humming.sdui.common.NodeRole
 import me.developes.humming.sdui.common.PropertyKind
+import me.developes.humming.sdui.common.PayloadException
+import me.developes.humming.sdui.common.ServerDrivenNode
+import me.developes.humming.sdui.common.qualifiedName
 
 internal fun AuthorNodeKind.matches(role: NodeRole): Boolean = when (role) {
     NodeRole.COMPONENT -> this == AuthorNodeKind.VISUAL || this == AuthorNodeKind.SCREEN
@@ -40,6 +43,9 @@ fun validateAuthoringDocument(
         val path = "$.nodes[$key]"
         if (node.id.isBlank() || key != node.id) report("NODE_ID", "Map key must equal a non-empty node ID", node.id, path)
         if (!nodeIds.add(node.id)) report("DUPLICATE_NODE_ID", "Node IDs must be unique", node.id, path)
+        try { ServerDrivenNode(node.definition, node.id).qualifiedName() } catch (error: PayloadException) {
+            diagnostics += error.diagnostic.copy(operation = "authoring", path = "$path.definition", documentId = document.documentId)
+        }
         if (!validOrderKey(node.placement.orderKey, limits.maxOrderKeyLength)) report("ORDER_KEY", "Invalid order key", node.id, "$path.placement")
         if (node.canvasPosition?.let { !it.x.isFinite() || !it.y.isFinite() } == true) report("CANVAS_POSITION", "Coordinates must be finite", node.id, path)
         val definition = catalog[node.definition]

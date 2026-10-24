@@ -2,20 +2,20 @@
 
 Este é o ponto de entrada para **continuar o desenvolvimento**. Reúne o estado observado, o rastreamento das etapas e a próxima ação. O [plano](development-plan.md) define dependências, escopo e critérios de aceite; este documento é a única fonte de status e retomada.
 
-Atualizado após T13: 21 testes de autoria, 30 contrato, 64 core, 4 ações e 16 sample aprovados em JVM (135 casos, sem falhas/erros/ignorados). Contrato/modelo puro compilam em metadata, JS e Wasm. O core Android compilou; não há execução de UI Android/browser/Apple nem editor entregue.
+Atualizado após T14: 44 testes de autoria, 30 contrato, 64 core, 4 ações e 16 sample aprovados em JVM (158 casos, sem falhas/erros/ignorados). Comandos locais possuem midpoint, CAS, inversas, undo/redo e testes de concorrência. Módulos puros compilam em metadata/JS/Wasm; não há editor/canvas entregue.
 
 ## Ponto de retomada
 
 | Campo | Registro atual |
 | --- | --- |
-| Última atualização | 2026-10-24 — commits locais c6a1e46 (base) e 6441ec0 (T04–T06); T13 validada para commit local, sem push |
-| Última entrega | T13: documento autoral, índices e codecs; 135 testes JVM aprovados e módulos puros compilados em JS/Wasm, evidência em [validação](validation.md) |
-| Tarefa de implementação em execução | Nenhuma; T13 concluída |
-| Próxima tarefa | **T14 — comandos, chaves de ordem e undo local** |
-| Próxima ação concreta | Implementar midpoint com vetores de Studio; mutações revisionadas atômicas, inversas e undo/redo sobre o documento validado |
-| Critério para avançar | Cumprir comandos/ordem/undo e atomicidade de T14 antes do compilador T15 |
-| Bloqueio de implementação conhecido | Nenhum para T14; qualificação de outras plataformas continua pendente |
-| Limite do próximo recorte | Comandos locais e histórico; sem canvas, servidor, colaboração ou publicação |
+| Última atualização | 2026-10-24 — base e05985b (T13), anteriores c6a1e46 e 6441ec0; T14 validada, commit local acompanha esta atualização; sem push |
+| Última entrega | T14: comandos, chaves densas e histórico; 158 testes JVM aprovados e compilação metadata/JS/Wasm, evidência em [validação](validation.md) |
+| Tarefa de implementação em execução | Nenhuma; T14 concluída |
+| Próxima tarefa | **T15 — compilador puro do subconjunto legado** |
+| Próxima ação concreta | Implementar compilação por capacidades, expansão determinística com identidade explícita e navegação suportada; executar o resultado no sample |
+| Critério para avançar | Comprovar determinismo, erros de capacidade/portas/ciclos e execução real do contrato compilado de T15 |
+| Bloqueio de implementação conhecido | Nenhum para T15; qualificação de outras plataformas continua pendente |
+| Limite do próximo recorte | Compilador local; sem canvas, servidor, colaboração ou publicação |
 
 ### Protocolo quando o pedido for “continue o desenvolvimento”
 
@@ -47,8 +47,8 @@ Estados: **pronta**, **pendente**, **em execução**, **bloqueada**, **concluíd
 | T11 | Jornada, navegação e cache versionado | pendente | Isolar entradas, fixar snapshot e definir políticas |
 | T12 | Bridge de capacidades nativas | pendente | Capacidade real no host e não suporte explícito nos demais |
 | T13 | Documento autoral e importação/exportação | concluída | 21 testes autorais; 135 JVM no conjunto; metadata/JS/Wasm compilados; modelo, índices, codec canônico e ponte legada com diagnósticos |
-| T14 | Comandos, chaves de ordem e undo local | pronta | Implementar mutações atômicas, inversas e testes de ordem |
-| T15 | Compilador puro do subconjunto legado | pendente | Produzir contrato determinístico e executá-lo no cliente |
+| T14 | Comandos, chaves de ordem e undo local | concluída | 158 testes JVM no conjunto, metadata/JS/Wasm compilados; midpoint, transações por CAS, inversas e undo/redo com limites e concorrência |
+| T15 | Compilador puro do subconjunto legado | pronta | Produzir contrato por capacidades, política de expansão/identidade e navegação; executar no cliente |
 | T16 | Preview do catálogo no host Wasm | pendente | Provar browser e renderer com efeitos controlados |
 | T17 | Editor local e Inspector | pendente | Criar/editar/desfazer/salvar/exportar sem servidor |
 | T18 | Seleção, bounds e drop geométrico | pendente | Validar Row/Column, transformações e commit por revisão |
@@ -65,7 +65,7 @@ Os requisitos completos e a ordem das dependências estão no [plano](developmen
 
 ### Trabalho parcial e bloqueios
 
-Nenhum trabalho parcial após T13. Não há canvas/editor. A exportação legada recusa navegação explícita e nós compartilhados até política semântica de compilação; o codec autoral preserva esses grafos. Próximo recorte: T14. Para registrar o recorte, preencher:
+Nenhum trabalho parcial após T14. Comandos locais validados; não há canvas/editor. A exportação legada recusa navegação explícita e nós compartilhados até política semântica de compilação; o codec autoral preserva esses grafos. Próximo recorte: T15. Para registrar o recorte, preencher:
 
 ```text
 Etapa / responsável / data / revisão:
@@ -142,7 +142,7 @@ Essas limitações descrevem o código, não comportamentos que devam ser perpet
 
 Os builds principais declaram toolchain JVM **25** e compatibilidade Java Android **17**. O [catálogo](../gradle/libs.versions.toml) declara Kotlin `2.4.21`, Compose `1.8.2`, AGP `8.13.2`, Ktor `3.6.0` e Navigation `2.9.2`; aliases JVM/Spring usam Kotlin `2.2.10`. Esses valores não demonstram resolução dos artefatos ou compatibilidade entre versões.
 
-A suíte atual tem 135 casos aprovados em JVM, distribuídos entre contrato puro, core, ações e sample. As fixtures originais de parsing/limites foram movidas para commonTest do contrato; regressões de runtime e schemas permanecem nos consumidores. O teste headless comprova ausência de classes UI no classpath. A execução detalhada e os resultados históricos estão em [validação](validation.md).
+A suíte atual tem 158 casos aprovados em JVM, distribuídos entre contrato puro, core, ações e sample. As fixtures originais de parsing/limites foram movidas para commonTest do contrato; regressões de runtime e schemas permanecem nos consumidores. O teste headless comprova ausência de classes UI no classpath. A execução detalhada e os resultados históricos estão em [validação](validation.md).
 
 A dependência Lifecycle do core permanece api porque seu ViewModel aparece na API pública. O host JVM fornece handle de estado em memória por factory explícita; os outros hosts mantêm o caminho padrão. O contrato é exportado pelo core e usa bytecode JVM 17 com toolchain 25.
 
@@ -150,4 +150,4 @@ Gradle 9.5.1 com Java 25.0.3 em Windows 11 x64 executou `projects`, descoberta d
 
 ## Evolução ainda não implementada
 
-Schemas para o restante do catálogo, valores tipados, linguagem de expressões, isolamento por entrada de back stack, transporte completo, políticas de cache, bridge nativa, comandos/undo e editor visual de autoria, compilador, Studio, persistência, publicação e colaboração são entregas futuras. O [plano](development-plan.md) define recortes que podem ser validados separadamente.
+Schemas para o restante do catálogo, valores tipados, linguagem de expressões, isolamento por entrada de back stack, transporte completo, políticas de cache, bridge nativa, editor visual de autoria, compilador, Studio, persistência, publicação e colaboração são entregas futuras. O [plano](development-plan.md) define recortes que podem ser validados separadamente.

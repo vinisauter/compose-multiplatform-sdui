@@ -1,6 +1,6 @@
 # Studio: modelo autoral e mecânicas
 
-O modelo/codec de T13 está implementado no módulo puro humming-studio-model; comandos, editor e geometria das seções posteriores continuam planejados e exigem os testes do [plano](development-plan.md). O primeiro recorte é autoria local de telas compatíveis com o [contrato legado](contract.md). Não incluir renderização gráfica de baixo nível, roteamento complexo de obstáculos ou colaboração na primeira entrega.
+O modelo/codec de T13 e os comandos/histórico de T14 estão implementados no módulo puro humming-studio-model; editor e geometria das seções posteriores continuam planejados e exigem os testes do [plano](development-plan.md). O primeiro recorte é autoria local de telas compatíveis com o [contrato legado](contract.md). Não incluir renderização gráfica de baixo nível, roteamento complexo de obstáculos ou colaboração na primeira entrega.
 
 ## Documento e índices
 
@@ -41,7 +41,7 @@ O documento possui entryNodeId. Cada AuthorNode também armazena nodeListShapes 
 
 AuthoringIndices deriva raízes, filhos por pai/slot, arestas por origem/porta e entradas por destino. Não existe índice persistido paralelo. validateAuthoringDocument valida identidade, entry, pais, chaves, papéis/slots, portas, cardinalidade de representação, referências, coordenadas finitas e ciclos. A validação estrutural permite preservar propriedades/rascunhos ainda não compiláveis; a importação/exportação legada também executa a validação do catálogo. Ciclos ACTION_FLOW são rejeitados. NAVIGATION usa portas navigate → entry com destino de tipo SCREEN/NAVIGATION e pode formar ciclos, sem criar contenção. Esse protocolo de autoria não instala ações no runtime.
 
-Limites padrão de autoria: 10.000 nós, 20.000 arestas, profundidade 64 e chaves de até 256 caracteres. Somam-se os limites JSON do contrato, inclusive orçamento de texto/valores/profundidade; aumentar um limite não suspende os demais. Importação gera ranks lexicográficos fixos terminados em V; geração de chaves intermediárias pertence a T14.
+Limites padrão de autoria: 10.000 nós, 20.000 arestas, profundidade 64 e chaves de até 256 caracteres. Somam-se os limites JSON do contrato, inclusive orçamento de texto/valores/profundidade; aumentar um limite não suspende os demais. Importação gera ranks lexicográficos fixos terminados em V; geração de chaves intermediárias usa generateKeyBetween de T14.
 
 LegacyAuthoringCodec importa/exporta uma árvore local e usa dados atuais, independentemente de toString(). Desconhecidos são preservados com diagnóstico, sem serem considerados editáveis. Exportar uma raiz específica avisa sobre nós não alcançados, que continuam salvos no documento autoral. Arestas explícitas NAVIGATION e compartilhamento de um mesmo nó por caminhos distintos exigem política de compilação/identidade e retornam erro de exportação; não são descartados nem expandidos com IDs duplicados. O codec autoral salva esses grafos quando estruturalmente válidos. O compilador de T15 continua responsável por capacidades, expansão e semântica de destinos.
 
@@ -98,11 +98,25 @@ Definir limite de comprimento e erro explícito. Se necessário, rebalancear cha
 
 ## Comandos, revisão e undo
 
-Comando contém `commandId`, `expectedRevision`, operação e argumentos. Aplicação local é serializada, valida invariantes e produz novo documento, revisão, mudanças e inversa. Falha não altera parcialmente o documento. Comandos mínimos: inserir, remover subárvore, mover, atualizar propriedades, adicionar/remover aresta e alterar posição macro.
+EditCommand contém commandId, expectedRevision e uma lista ordenada de EditOperation. Aplicação local é serializada, valida invariantes e produz novo documento, revisão, mudanças e inversa. Falha não altera parcialmente o documento. Comandos mínimos: inserir, remover subárvore, mover, atualizar propriedades, adicionar/remover aresta e alterar posição macro.
 
 `Move` recebe nó, novo pai/slot e IDs dos vizinhos após remover o nó da origem. Valida ancestralidade, capacidade do destino e revisão; resolve vizinhos atuais; gera chave; atualiza placement; incrementa revisão. IDs de vizinhos são preferíveis a um índice calculado em uma revisão antiga. Se revisão ou vizinhos não forem compatíveis, rejeitar e recalcular preview.
 
 A inversa de remoção preserva a subárvore completa, relações, chaves e arestas incidentes. Desfazer/refazer restaura o documento semanticamente, incluindo ordem, sem regenerar IDs. Eventos de seleção/hover não entram no histórico. Undo concorrente futuro não reutiliza cegamente uma inversa local sobre edição alheia.
+
+### API local de edição implementada
+
+[EditSession](../humming-studio-model/src/commonMain/kotlin/me/developes/humming/sdui/studio/EditSession.kt) possui execute, undo, redo e snapshot. [EditCommand](../humming-studio-model/src/commonMain/kotlin/me/developes/humming/sdui/studio/EditCommand.kt) oferece InsertNode, RemoveNode, MoveNode, SetProperties, PutProperty, RemoveProperty, SetCanvasPosition, InsertEdge, RemoveEdge e SetEntry. SetProperties substitui o mapa inteiro; PutProperty/RemoveProperty preservam os demais campos e distinguem JsonNull de remoção. Relações continuam em placements/arestas; propriedades com nós conhecidos não podem duplicá-las.
+
+InsertNode usa o container do placement recebido e gera a chave na revisão atual; a chave do template não é aplicada. MoveNode remove o próprio nó da lista de vizinhos antes do cálculo. previousId/nextId precisam descrever uma lacuna adjacente no destino completo. null identifica uma extremidade; ambos null só são válidos num destino vazio. Raízes de ação também integram a ordem das raízes. Não usar apenas os vizinhos da lista visual filtrada do drag preview.
+
+[generateKeyBetween](../humming-studio-model/src/commonMain/kotlin/me/developes/humming/sdui/studio/FractionalKeys.kt) implementa os vetores acima e valida alfabeto, ordem e comprimento. Ao esgotar 256 caracteres por padrão, retorna KEY_SPACE_EXHAUSTED; não trunca nem reindexa irmãos. Rebalanceamento automático não foi implementado. Consultas/validação/ordenação de índices continuam tendo seus próprios custos; não há promessa de transação O(1).
+
+A sessão copia profundamente documento inicial e comandos, trabalha sobre candidatos e valida antes de publicar. Um compare-and-set de AtomicReference comum publica documento, histórico e recibos juntos. Comandos concorrentes com a mesma revisão têm um vencedor; o outro recebe conflito. Cada comando aceito avança a revisão, inclusive undo/redo; a inversa restaura conteúdo/IDs/chaves, sem retroceder a revisão. DocumentPatch expõe alterações e inversa no resultado, mas a aplicação de patches internos pertence à sessão. Inserções dependentes devem ordenar pai antes de filho na lista de operações.
+
+commandId repetido com a mesma requisição na janela de recibos retorna replay com o documento atual e appliedRevision original; não devolve um snapshot antigo nem reaplica. Reutilizar o ID com outra requisição falha. Limites padrão: 1.000 operações/comando; histórico de 100 entradas e 8.000.000 caracteres serializados de patches; 256 recibos e 2.000.000 caracteres de recibos. Esses são orçamentos de representação, não medições exatas de RAM. O histórico mais antigo é descartado para caber; comando individual que não cabe é rejeitado inteiro. Nova edição após undo elimina redo. Não há deduplicação persistida entre processos/reinícios.
+
+Remoção apaga a subárvore de contenção e arestas incidentes; ações que são raízes independentes não são silenciosamente apagadas por perder seu gatilho. Undo restaura subárvore/arestas/hints completos. Hints OBJECT/STRING_OBJECT são retirados ao esvaziar o slot e promovidos a array ao receber mais de um alvo, mantendo representação legada consistente. Seleção/hover e preview transitório não fazem parte do documento/histórico. Isso entrega comandos locais; não é coordenação de editores remotos.
 
 ## Coordenadas, seleção e bounds
 
