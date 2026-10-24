@@ -20,7 +20,7 @@ class CatalogCompatibilityTest {
     private val catalog = NodeCatalog(SDLayoutMaterial3().definitions + SDActions().definitions + SDNavigation().definitions)
 
     @Test fun initialCapabilitiesAreVersionedAndUnmodeledRenderersStayOutsideTheEditableSubset() {
-        assertEquals(15, catalog.capabilities.size)
+        assertEquals(16, catalog.capabilities.size)
         assertTrue(catalog.capabilities.values.all { it == 1 })
         assertTrue(catalog["layout:textField"] != null)
         assertTrue(SDLayoutMaterial3().getComponent("image") != null)

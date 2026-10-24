@@ -82,5 +82,11 @@ object LayoutDefinitions {
         listOf("label", "placeholder", "leadingIcon", "trailingIcon").map { nodes(it, NodeRole.COMPONENT) })
         .copy(propertyOrders = listOf(IntegerPropertyOrder("minLines", "maxLines", 1, Int.MAX_VALUE, "singleLine")))
 
-    val all: List<NodeDefinition> = listOf(text, textField, button, row, column, box)
+    val reactiveText = component("reactiveText", listOf(
+        PropertyDefinition("value", PropertyKind.EXPRESSION_TEXT, required = true),
+        PropertyDefinition("visible", PropertyKind.EXPRESSION_BOOLEAN),
+        number("fontSize", default = "16", fallback = true), color("color"),
+    ))
+
+    val all: List<NodeDefinition> = listOf(text, textField, button, row, column, box, reactiveText)
 }

@@ -16,6 +16,7 @@ import me.developes.humming.sdui.layout.components.SDCRow
 import me.developes.humming.sdui.layout.components.SDCScaffold
 import me.developes.humming.sdui.layout.components.SDCStyle
 import me.developes.humming.sdui.layout.components.SDCText
+import me.developes.humming.sdui.layout.components.SDCReactiveText
 import me.developes.humming.sdui.layout.components.SDCTextField
 import me.developes.humming.sdui.layout.components.SDCTopAppBar
 
@@ -28,6 +29,7 @@ class SDLayoutMaterial3 : SDLibrary("layout") {
             "column" -> return { node, viewModel -> SDCColumn(node, viewModel) }
             "row" -> return { node, viewModel -> SDCRow(node, viewModel) }
             "text" -> return { node, viewModel -> SDCText(node, viewModel) }
+            "reactiveText" -> return { node, viewModel -> SDCReactiveText(node, viewModel) }
             "textField" -> return { node, viewModel -> SDCTextField(node, viewModel) }
             "animatedVisibility" -> return { node, viewModel -> SDCAnimatedVisibility(node, viewModel) }
             "image" -> return { node, viewModel -> SDCImage(node, viewModel) }

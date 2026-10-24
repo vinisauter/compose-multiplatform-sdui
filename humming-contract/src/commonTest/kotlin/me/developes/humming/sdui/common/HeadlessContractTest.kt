@@ -18,7 +18,7 @@ class HeadlessContractTest {
         assertEquals("form", restored.id)
         assertEquals(listOf("field", "submit"), restored.children!!.map { it.id })
         assertEquals("ok", restored.children!![1].propertyNodes("onClick").single().property("value"))
-        assertEquals(15, catalog.capabilities.size)
+        assertEquals(16, catalog.capabilities.size)
     }
 
     @Test fun schemasReportInvalidPayloadFieldsWithoutViewModel() {

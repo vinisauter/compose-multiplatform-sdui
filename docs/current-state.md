@@ -9,10 +9,10 @@ Atualizado após T08: linguagem pura opt-in implementada sobre os valores/escopo
 | Campo | Registro atual |
 | --- | --- |
 | Última atualização | 2026-10-24 — T19 em f85c566, T07 em 43527b7; T08 com código e evidência abaixo; commits locais sem push |
-| Última entrega | Primeiro recorte T09: análise de dependências e expressionValues frio com fallback tipado; testes JVM e compilação JS/Wasm; sem ativação em propriedades visuais |
+| Última entrega | T09 parcial: dependências (3e6faad), envelope versionado e layout:reactiveText com texto/visibilidade, autoria e execução Compose JVM |
 | Tarefa de implementação em execução | T09 — Codex; primeiro recorte: dependências e binding tipado com assinatura pertencente ao consumidor |
 | Próxima tarefa | **T09 — propriedades reativas, tokens e validação** |
-| Próxima ação concreta | Definir opt-in/versionamento de propriedades e política de apresentação tipada; integrar expressionValues ao lifecycle dos componentes do catálogo, preservando #{chave} e fixtures legadas |
+| Próxima ação concreta | Estender o recorte opt-in para habilitação e validação do formulário; definir tokens e máscaras por capacidade; qualificar no browser |
 | Critério para avançar | Mudar estado atualiza propriedades dependentes sem collectors duplicados; descarte cancela assinaturas; UI explicita erros de expressão/validação; dado canônico separado da apresentação e tokens/máscaras com capacidades declaradas |
 | Bloqueio de implementação conhecido | Nenhum para T09. Expressões testadas em JVM e compiladas JS/Wasm; execução browser da linguagem e Apple permanecem qualificação própria |
 | Limite do próximo recorte | Integração reativa por capacidade do cliente; sem substituir bindings legados, transporte HTTP, backend ou publicação |
@@ -166,3 +166,11 @@ Gradle 9.5.1 com Java 25.0.3 em Windows 11 x64 executou `projects`, descoberta d
 ## Evolução ainda não implementada
 
 Permanecem pendentes a integração visual completa de expressões/tokens/validação da T09, schemas para o restante do catálogo, transporte remoto, políticas de cache, bridge nativa, persistência remota, publicação e colaboração. Valores tipados, linguagem pura, isolamento opt-in e grafo visual local já possuem evidência nos recortes anteriores. O [plano](development-plan.md) define o escopo restante.
+
+### T09 — envelope e texto/visibilidade no catálogo
+
+Codex, 2026-10-24: ReactiveProperty com envelope 1 estrito, fallback Text/Boolean, validação de sintaxe/versionamento e diagnóstico localizado. layout:reactiveText schema 1 é uma capacidade nova; os 15 schemas legados permanecem versão 1. Inspector edita os envelopes como JSON; o botão “Exemplo de expressões” importa uma fixture neutra com campo legado e mensagem reativa. O componente acompanha o estado, oculta/reexibe conteúdo e mostra fallback/diagnóstico recuperável em falha de tipo.
+
+Executado no Windows/JVM: 49 testes contrato, 72 core, 94 autoria e 34 sample aprovados (ações não reexecutadas neste recorte). JS/Wasm do contrato e Wasm do sample compilados. Logs build/t09/visual-final.log e visual-image.log. Três novos testes de contrato e dois Compose cobrem envelope/tipos/versão/offset, importação → compilação → edição → ocultar/reexibir, falha/recuperação e assinaturas únicas/zero após descarte. Imagem build/t09/reactive-form-jvm.png renderizada e inspecionada com fundo branco no host de teste. As primeiras tentativas detectaram expectativa antiga do tamanho do catálogo e classificação do envelope legado; ambas corrigidas e reexecutadas. Sem execução browser/Android/Apple neste recorte.
+
+T09 permanece parcial: habilitação reativa, validação de campo, tokens/máscaras por capacidade e qualificação browser ainda precisam ser entregues. Não promover T10.

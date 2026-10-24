@@ -15,7 +15,7 @@ Preservar a fachada `HummingSDUI`, os nomes `humming-*` e as extensões `SDLibra
 | Responsabilidade | Local inicial | Evolução planejada |
 | --- | --- | --- |
 | Modelo/codec/schemas | humming-contract, sem tipos Compose/Lifecycle | Consumidores de autoria/compilação usam essa fronteira; adapters visuais ficam nas bibliotecas |
-| Registro | `SDLibrary` com handlers e 15 definições versionadas do subconjunto inicial | Ampliar definições sem acoplar seus metadados a tipos UI |
+| Registro | `SDLibrary` com handlers e definições versionadas; subconjunto inicial acrescido de reactiveText opt-in | Ampliar definições sem acoplar seus metadados a tipos UI |
 | Renderização | Catálogo Material 3 | Continuar resolvendo no catálogo; um `when` local ao catálogo não acopla o core ao Material 3 |
 | Execução | Executor suspenso no core, contexto/política por execução e fachada de lançamento | Novos efeitos usam a mesma execução estruturada |
 | Estado | ViewModel textual; bindings frios no catálogo e descarte imperativo explícito | Stores tipados e escopos de tela/jornada |

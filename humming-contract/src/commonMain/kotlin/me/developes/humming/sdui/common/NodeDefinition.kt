@@ -5,7 +5,7 @@ import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.contentOrNull
 
 enum class NodeRole { COMPONENT, ACTION, NAVIGATION_METADATA }
-enum class PropertyKind { TEXT, COLOR, BOOLEAN, INTEGER, LONG, FLOAT, ENUM, NODES, STRING_ARRAY, OPAQUE }
+enum class PropertyKind { TEXT, COLOR, BOOLEAN, INTEGER, LONG, FLOAT, ENUM, NODES, STRING_ARRAY, OPAQUE, EXPRESSION_TEXT, EXPRESSION_BOOLEAN }
 enum class InvalidPropertyPolicy { REJECT, LEGACY_FALLBACK, LEGACY_BOOLEAN, PRESENCE }
 enum class ValidationMode { LEGACY, AUTHORING }
 
@@ -80,6 +80,13 @@ data class NodeDefinition(
                 try { node.propertyNodes(property.name) } catch (error: PayloadException) {
                     diagnostics += error.diagnostic
                 }
+                continue
+            }
+            if (property.kind == PropertyKind.EXPRESSION_TEXT || property.kind == PropertyKind.EXPRESSION_BOOLEAN) {
+                try {
+                    node.reactiveProperty(property.name, if (property.kind == PropertyKind.EXPRESSION_TEXT)
+                        ReactiveValueType.TEXT else ReactiveValueType.BOOLEAN)
+                } catch (error: PayloadException) { diagnostics += error.diagnostic }
                 continue
             }
             if (property.allowsBinding && value.contains("#{")) continue

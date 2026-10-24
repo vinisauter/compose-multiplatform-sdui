@@ -11,6 +11,17 @@ import kotlinx.serialization.json.JsonPrimitive
 /** A payload failure retains an explicit fallback and its location. Programming defects still propagate. */
 data class ExpressionValue(val value: SduiValue, val diagnostic: NodeDiagnostic? = null)
 
+fun SDUIFormViewModel.expressionValues(
+    property: ReactiveProperty,
+    node: ServerDrivenNode,
+    propertyName: String,
+): Flow<ExpressionValue> = expressionValues(property.expression, node, propertyName, property.fallback).map { result ->
+    if (result.diagnostic != null || property.type.accepts(result.value)) result
+    else ExpressionValue(property.fallback, node.diagnostic("REACTIVE_PROPERTY_TYPE",
+        "Expression result must be ${property.type}", "evaluateProperty",
+        "${node.sourcePath}.properties[${JsonPrimitive(propertyName)}]"))
+}
+
 /**
  * Cold, consumer-owned stream. No ViewModel job or subscription is allocated until collection.
  * This API does not reinterpret legacy strings or install a property in a component schema.

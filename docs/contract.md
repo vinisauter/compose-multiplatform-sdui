@@ -98,11 +98,11 @@ Este exemplo ilustra a estrutura. T00 executou um payload local equivalente em f
 
 | Definições | Responsável |
 | --- | --- |
-| `layout:text`, `textField`, `button`, `row`, `column`, `box` | [LayoutDefinitions](../humming-contract/src/commonMain/kotlin/me/developes/humming/sdui/layout/LayoutDefinitions.kt) |
+| `layout:text`, `textField`, `button`, `row`, `column`, `box`, `reactiveText` | [LayoutDefinitions](../humming-contract/src/commonMain/kotlin/me/developes/humming/sdui/layout/LayoutDefinitions.kt) |
 | `action:update`, `method`, `ifState`, `then`; componente `action:event` | [ActionDefinitions](../humming-contract/src/commonMain/kotlin/me/developes/humming/sdui/action/ActionDefinitions.kt) |
 | `navigation:graph`, `node`, `goTo`, `goBack` | [NavigationDefinitions](../humming-contract/src/commonMain/kotlin/me/developes/humming/sdui/navigation/NavigationDefinitions.kt) |
 
-São 15 definições, versão 1. `parse(node)` produz `ParsedNodeProperties`: strings originais, diagnóstico por campo e `requireValid()` para rejeitar erros. Os adapters dos seis componentes, das ações update/method/ifState e da navegação usam esse parser; conversões finais para tipos Compose permanecem no catálogo visual. Defaults informam o Inspector, sem serem injetados no payload: ausência, string vazia e valor explícito continuam distintos. FontWeight.Normal, estado TextField_<id>, limites derivados da máscara e scroll por presença possuem descrição explícita em vez de um default wire inventado. O parser é compartilhável por código; não há exportação JSON Schema entregue.
+São 16 definições, versão 1, incluindo o componente opt-in reactiveText. `parse(node)` produz `ParsedNodeProperties`: strings originais, diagnóstico por campo e `requireValid()` para rejeitar erros. Os adapters modelados usam esse parser; conversões finais para tipos Compose permanecem no catálogo visual. Defaults informam o Inspector, sem serem injetados no payload: ausência, string vazia e valor explícito continuam distintos. FontWeight.Normal, estado TextField_<id>, limites derivados da máscara e scroll por presença possuem descrição explícita em vez de um default wire inventado. O parser é compartilhável por código; não há exportação JSON Schema entregue.
 
 ### Validação e compatibilidade
 
@@ -233,3 +233,15 @@ IDENT      = (ASCII_LETTER | "_"), { ASCII_LETTER | DIGIT | "_" } ;
 No core, `SDUIFormViewModel.expressionValues(spec, node, propertyName, fallback)` é uma API opt-in de código cliente, sem novo wire de propriedades. O stream é frio: cada consumidor possui sua coleta, cancelada pelo próprio consumidor. Projeta o snapshot das chaves relevantes e compara por conteúdo antes de avaliar; mudanças alheias ainda passam pela projeção, mas não executam o evaluator. Revisões são confladas, como os bindings existentes; não é um log de cada mutação intermediária.
 
 `server` e `nav` vêm dos inputs da entrada. `response` e `error` são rejeitados com `EXPRESSION_PROPERTY_SCOPE`, inclusive em ramos não executados, pois não pertencem ao lifecycle da propriedade. Erros de payload produzem `ExpressionValue(fallback, diagnostic)`, com nó, propriedade e offset quando disponível; alterações relevantes posteriores podem recuperar o resultado. Cancelamento e defeitos de programação propagam. O fallback é obrigatório e tipado; nenhum valor é gravado no estado durante avaliação. Strings legadas permanecem inalteradas.
+
+## Propriedades reativas opt-in
+
+O identificador novo `layout:reactiveText` (schema 1) declara `value` obrigatório como EXPRESSION_TEXT e `visible` opcional como EXPRESSION_BOOLEAN, além dos modificadores comuns, fontSize e color. Sem visible, o texto é visível. Nenhum schema legado muda de versão. Consumidores sem essa definição devem rejeitar a capacidade; não há downgrade automático para layout:text.
+
+Cada propriedade contém exatamente os três campos abaixo. O fallback tem de ser Text para value ou Boolean para visible; Missing/Null/números não sofrem coerção para esses tipos. Versões, campos extras, descritor inválido, sintaxe e limites são validados no contrato puro. Erros de avaliação/tipo em runtime entregam fallback e diagnóstico visível com código, nó e caminho. Um fallback false de visible esconde o conteúdo, mas o diagnóstico de visibilidade continua visível. Quando oculto, o componente mantém somente a assinatura de visibilidade; ao reaparecer, lê o texto atual.
+
+```json
+{"version":1,"expression":{"language":"humming.expression","version":1,"source":"state.nome ?? \"Visitante\""},"fallback":"Visitante"}
+```
+
+O Inspector edita esse envelope como JSON limitado. Importação, histórico e compilação usam os schemas existentes; o payload serializado permanece um objeto JSON no wire legado. A avaliação não escreve no estado e a apresentação não converte strings numéricas em números. A API tipada não fornece formatação monetária/decimal implícita.

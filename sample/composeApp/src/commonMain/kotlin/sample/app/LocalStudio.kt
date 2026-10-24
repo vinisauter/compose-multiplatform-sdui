@@ -101,6 +101,9 @@ fun LocalStudio(files: StudioFiles? = null, workspace: LocalWorkspace = remember
                 OutlinedButton(onClick = { requestReplace {
                     replaced(workspace.openAuthoring(AuthoringDocumentCodec(workspace.catalog).encode(isolationExample()).requireValue()))
                 } }) { Text("Exemplo de estado isolado") }
+                OutlinedButton(onClick = { requestReplace { replaced(workspace.importContract(REACTIVITY_EXAMPLE)) } }) {
+                    Text("Exemplo de expressões")
+                }
                 OutlinedButton(onClick = { showInteractions = !showInteractions }) {
                     Text(if (showInteractions) "Executar preview" else "Canvas de interações")
                 }
@@ -311,7 +314,8 @@ private fun PropertyInspector(node: AuthorNode, definition: NodeDefinition?, hid
         Row {
             Button(onClick = {
                 try {
-                    val value = if (property.kind == PropertyKind.STRING_ARRAY) parseBoundedJson(text) else JsonPrimitive(text)
+                    val value = if (property.kind in setOf(PropertyKind.STRING_ARRAY, PropertyKind.EXPRESSION_TEXT,
+                        PropertyKind.EXPRESSION_BOOLEAN)) parseBoundedJson(text) else JsonPrimitive(text)
                     parseError = ""; change(name, value)
                 } catch (error: PayloadException) { parseError = "${error.diagnostic.code}: ${error.diagnostic.message}" }
             }) { Text("Aplicar propriedade") }
