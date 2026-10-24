@@ -172,6 +172,15 @@ fun LocalStudio(files: StudioFiles? = null, workspace: LocalWorkspace = remember
                 }
                 Column(Modifier.weight(.38f).fillMaxHeight()) {
                     Text("Preview executável", style = MaterialTheme.typography.titleMedium)
+                    val emptyScreen = document.nodes[document.entryNodeId]?.definition in setOf("layout:column", "layout:row", "layout:box") &&
+                        document.nodes.values.none { it.placement is Placement.Child }
+                    if (emptyScreen) {
+                        Text("Tela vazia: ainda não há elementos para arrastar.", Modifier.testTag("studio-empty-preview"))
+                        Text("Crie um componente no Inspector ou carregue os dois containers do exemplo.")
+                        OutlinedButton(onClick = { requestReplace { replaced(workspace.importContract(DROP_EXAMPLE)) } }) {
+                            Text("Carregar exemplo de arraste")
+                        }
+                    }
                     if (!compilation.isSuccess) {
                         Text("Preview indisponível: corrija os diagnósticos.")
                         Text(diagnostics(compilation.diagnostics), Modifier.verticalScroll(rememberScrollState()).testTag("studio-compile-error"))

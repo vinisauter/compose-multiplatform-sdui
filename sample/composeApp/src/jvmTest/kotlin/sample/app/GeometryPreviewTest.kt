@@ -152,6 +152,24 @@ class GeometryPreviewTest {
         compose.waitForIdle()
     }
 
+    @Test fun emptyScreenExplainsWhyThereIsNothingToDragAndLoadsTheExampleInPlace() {
+        val workspace = LocalWorkspace()
+        val mounted = mutableStateOf(true)
+        compose.setContent { if (mounted.value) LocalStudio(workspace = workspace) }
+        compose.onNodeWithTag("studio-empty-preview").assertTextContains("ainda não há elementos para arrastar", substring = true)
+        compose.onNodeWithText("Modo edição").performClick()
+        compose.onNodeWithText("Carregar exemplo de arraste").performClick()
+        awaitText("Arraste A ou B entre os containers")
+        compose.onNodeWithTag("studio-empty-preview").assertDoesNotExist()
+        compose.onNodeWithText("Modo execução").assertExists()
+        compose.runOnIdle {
+            assertEquals(listOf("drop-a", "drop-b"), children(workspace, "drop-left"))
+            assertTrue(children(workspace, "drop-right").isEmpty())
+            mounted.value = false
+        }
+        compose.waitForIdle()
+    }
+
     private fun awaitText(value: String) { compose.waitUntil(10_000) { compose.onAllNodesWithText(value, substring = false).fetchSemanticsNodes().isNotEmpty() } }
     private fun children(workspace: LocalWorkspace, parent: String) = AuthoringIndices(workspace.document)
         .childrenByParentAndSlot[ParentSlot(parent, "children")].orEmpty().map { it.id }
