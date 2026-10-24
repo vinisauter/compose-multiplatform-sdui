@@ -98,6 +98,9 @@ fun LocalStudio(files: StudioFiles? = null, workspace: LocalWorkspace = remember
                 OutlinedButton(onClick = { requestReplace {
                     replaced(workspace.openAuthoring(AuthoringDocumentCodec(workspace.catalog).encode(journeyExample()).requireValue()))
                 } }) { Text("Exemplo de navegação") }
+                OutlinedButton(onClick = { requestReplace {
+                    replaced(workspace.openAuthoring(AuthoringDocumentCodec(workspace.catalog).encode(isolationExample()).requireValue()))
+                } }) { Text("Exemplo de estado isolado") }
                 OutlinedButton(onClick = { showInteractions = !showInteractions }) {
                     Text(if (showInteractions) "Executar preview" else "Canvas de interações")
                 }
@@ -344,6 +347,7 @@ internal fun CompiledPreview(compiled: CompiledContracts) {
     CompositionLocalProvider(LocalViewModelStoreOwner provides owner) {
         val provider = compiled.providerType ?: "compiled-preview"
         HummingSDUI().Content(HummingSDUI.Config(provider, compiled.entryDestination, theme = Material3Theme(),
+            screenStateMode = ScreenStateMode.ISOLATED_ENTRIES,
             placeholder = { Text("Carregando preview…") }, errorHandler = { error, vm -> Column {
                 Text("${error.code}: ${error.message}")
                 error.diagnostic?.let { Text("${it.nodeId} | ${it.path}") }

@@ -6,12 +6,16 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.createSavedStateHandle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import me.developes.humming.sdui.common.ComposableContent
 import me.developes.humming.sdui.common.ErrorData
 import me.developes.humming.sdui.common.SDUIFormViewModel
+import me.developes.humming.sdui.common.ScreenStateMode
+import me.developes.humming.sdui.common.ScreenInputs
+import me.developes.humming.sdui.common.LocalScreenFeedbackHandler
 
 interface ThemeProvider {
     @Composable
@@ -26,6 +30,8 @@ class HummingSDUI {
         val loadingHandler: @Composable () -> Unit = {},
         val errorHandler: @Composable (error: ErrorData, viewModel: SDUIFormViewModel) -> Unit = { _, _ -> },
         val theme: ThemeProvider = NoTheme,
+        val screenStateMode: ScreenStateMode = ScreenStateMode.LEGACY_SHARED,
+        val entryInputs: (entryId: String, route: String) -> ScreenInputs = { _, _ -> ScreenInputs() },
         val block: SDUIFormViewModel.() -> Unit
     ) {
         private object NoTheme : ThemeProvider {
@@ -47,7 +53,8 @@ class HummingSDUI {
     ) = config.theme.Content {
         val viewModel = viewModel {
             SDUIFormViewModel(
-                handle = savedStateHandleFactory?.invoke() ?: createSavedStateHandle()
+                handle = savedStateHandleFactory?.invoke() ?: createSavedStateHandle(),
+                screenStateMode = config.screenStateMode, entryInputs = config.entryInputs,
             ).apply {
                 config.block(this)
             }
@@ -66,6 +73,13 @@ class HummingSDUI {
             isLoading -> config.loadingHandler()
             errorDialogData != null -> config.errorHandler(errorDialogData!!, viewModel)
         }
-        contentState.value?.Content() ?: config.placeholder()
+        CompositionLocalProvider(LocalScreenFeedbackHandler provides { owner ->
+            val loading by owner.isLoading.collectAsState()
+            val error by owner.errorState.collectAsState()
+            when {
+                loading -> config.loadingHandler()
+                error != null -> config.errorHandler(checkNotNull(error),owner)
+            }
+        }) { contentState.value?.Content() ?: config.placeholder() }
     }
 }

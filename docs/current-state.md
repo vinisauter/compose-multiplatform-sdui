@@ -2,20 +2,20 @@
 
 Este é o ponto de entrada para **continuar o desenvolvimento**. Reúne o estado observado, o rastreamento das etapas e a próxima ação. O [plano](development-plan.md) define dependências, escopo e critérios de aceite; este documento é a única fonte de status e retomada.
 
-Atualizado após T19: autoria local, drop e grafo de interações integrados. Última execução: 94 testes autorais e 30 sample aprovados (124 casos, zero falhas/erros/ignorados); metadata/JS e host Wasm compilados. Chrome confirmou navegação/retorno, curva selecionada e download completo. Demais módulos não foram reexecutados neste recorte.
+Atualizado após T07: valores tipados, modo de estado isolado por entrada e resultados por execução integrados. Suíte JVM: 33 contrato + 69 core + 4 ações + 94 autoria + 32 sample = 232 casos, zero falhas/erros/ignorados. Compilação Wasm/JS/metadata e core/navegação Android aprovadas; Chrome confirmou nova visita independente e retorno com edição preservada.
 
 ## Ponto de retomada
 
 | Campo | Registro atual |
 | --- | --- |
 | Última atualização | 2026-10-24 — base e05985b (T13), anteriores c6a1e46 e 6441ec0; T14 no commit local bde7c23 e T15 em eb8726e e T16 em b6c1ff3 e implementação T17 em 2d9d6eb, aceite ce2bd7e e geometria T18 em 8a12ea0 e integração em 04df7c0 e orientação de tela vazia em 75f50f6; sem push |
-| Última entrega | T19: geometria 28a3140, relações ca81ddc, jornadas d57e219 e canvas/qualificação neste recorte; commits locais sem push |
-| Tarefa de implementação em execução | Nenhuma; T19 concluída |
-| Próxima tarefa | **T07 — valores tipados e escopos de tela/ação** |
-| Próxima ação concreta | Ler T07 e execução/navegação atuais; definir valores ausente/null/tipos e lifetime de server/nav/state por entrada e response/error por execução; preservar adapter textual e adicionar fixtures de isolamento antes da integração |
-| Critério para avançar | Duas entradas da mesma rota isoladas; resultados concorrentes independentes; descarte/retorno liberam recursos; compatibilidade textual e distinção null/ausente testadas |
-| Bloqueio de implementação conhecido | Nenhum para iniciar T07; qualificação Android/Apple continua separada de JVM/Wasm |
-| Limite do próximo recorte | Modelo/escopos locais do cliente; sem backend, infraestrutura remota ou publicação |
+| Última entrega | T07: SduiValue, visão textual, ActionValues, owners por NavBackStackEntry e exemplo no Studio; 232 testes JVM e prova Chrome, sem push |
+| Tarefa de implementação em execução | Nenhuma; T07 concluída |
+| Próxima tarefa | **T08 — linguagem de expressões limitada** |
+| Próxima ação concreta | Especificar gramática/versão opt-in e semântica de tipos/escopos/curto-circuito/limites no contrato; depois tokenizer, AST, parser e evaluator puros sobre SduiValue. Não reinterpretar bindings legados nem integrar propriedades antes dos testes |
+| Critério para avançar | Suíte pura de precedência, escopos, tipos, null/ausente, curto-circuito, divisão inválida e orçamentos; sem reflexão ou execução arbitrária; integração de UI fica em T09 |
+| Bloqueio de implementação conhecido | Nenhum para T08. Android foi compilado, não executado em dispositivo; Apple/process restore continuam fora da evidência |
+| Limite do próximo recorte | Expressões puras e opt-in; sem mudar bindings legados, UI reativa, backend ou publicação |
 
 ### Protocolo quando o pedido for “continue o desenvolvimento”
 
@@ -40,8 +40,8 @@ Estados: **pronta**, **pendente**, **em execução**, **bloqueada**, **concluíd
 | T04 | Lifecycle, loading e bindings legados | concluída | 78 core, 3 ações e 6 Compose aprovados em JVM; descarte/recomposição, loading concorrente, eventos causais, navegação/retorno e falha recuperável; ver [validação](validation.md) |
 | T05 | Definições/schema do catálogo inicial | concluída | 15 definições versão 1, diagnóstico por campo/papel e adapters compatíveis; 110 testes JVM aprovados; ver [validação](validation.md) |
 | T06 | Fronteira pura e consumo sem UI | concluída | 114 testes JVM aprovados, classpath puro e core Android compilado; migração/recompilação descritas no contrato |
-| T07 | Valores tipados e escopos de tela/ação | pronta | Próxima etapa após autoria/manipulação local; definir stores e integrar com fixtures de isolamento |
-| T08 | Linguagem de expressões limitada | pendente | Especificar gramática/tipos/limites e executar suíte pura |
+| T07 | Valores tipados e escopos de tela/ação | concluída | Codex, 2026-10-24: 232 testes JVM no conjunto; 33 contrato/69 core/32 sample incluem tipos, concorrência, owner distinto, duas entradas da mesma rota, retorno, erro e cancelamento no pop. Wasm, JS/metadata e core/navegação Android compilados; Chrome confirmou isolamento/retorno |
+| T08 | Linguagem de expressões limitada | pronta | Próxima etapa: contrato opt-in, tokenizer/AST/parser/evaluator limitado, sem alterar #{chave} |
 | T09 | Propriedades reativas, tokens e validação | pendente | Integrar evaluator com lifecycle e componentes |
 | T10 | Transporte HTTP com ownership e resultado | pendente | Implementar métodos reais e integração HTTP local |
 | T11 | Jornada, navegação e cache versionado | pendente | Isolar entradas, fixar snapshot e definir políticas |
@@ -65,13 +65,21 @@ Os requisitos completos e a ordem das dependências estão no [plano](developmen
 
 ### Trabalho parcial e bloqueios
 
+T07 concluída no recorte local, responsável Codex. Nenhum trabalho parcial ativo. O estado agora tem autoridade tipada e projeção textual viva; Missing remove, Null permanece explícito e strings/IDs não passam por inferência. response/error são slots por execução/owner, herdados por sequências aninhadas e limpos em finally. ISOLATED_ENTRIES é opt-in do host, ativado no preview compilado do Studio; LEGACY_SHARED permanece o padrão compatível. server/nav vêm de entryInputs; state pertence ao owner. Retorno na pilha conserva a entrada e pop limpa valores e cancela jobs. Não há restauração automática após processo/página reiniciados.
+
+Execução: .\gradlew.bat :humming-contract:jvmTest :humming-core:jvmTest :humming-actions:jvmTest :humming-studio-model:jvmTest :sample:composeApp:jvmTest :humming-contract:compileCommonMainKotlinMetadata :humming-contract:compileKotlinJs :sample:composeApp:compileKotlinWasmJs --console=plain (build/t07/full-check-retry.log), mais :humming-core:jvmTest após o caso entre owners (build/t07/owner-context.log). Resultado acumulado atual: 232 testes, zero falhas/erros/ignorados. :humming-core:compileDebugKotlinAndroid :humming-navigation:compileDebugKotlinAndroid :humming-core:compileCommonMainKotlinMetadata :humming-navigation:compileCommonMainKotlinMetadata passaram em build/t07/android-metadata.log. Metadata emitiu warnings de unique_name duplicado de SavedState entre dependências; não se alteraram versões. Isso não comprova execução Android nem binário Apple.
+
+ScreenIsolationTest executou o renderer real: Alpha na primeira entrada, Beta na segunda, erros de método e provider somente na segunda, tarefa aguardando cancelada no pop, Alpha restaurado e terceira visita com valor inicial. Revisão final: navegação resolve provider pelo owner que iniciou a ação, preservando MISSING_PROVIDER e diagnosticando UNKNOWN_ROUTE, sem contaminar o grafo global. Checks completos repetidos em build/t07/provider-owner.log (232 testes, Wasm e navegação Android/metadata aprovados). Testes core verificam slots concorrentes, herança em ramos, limpeza em cancelamento e troca de owner; as regressões legadas permanecem aprovadas. As primeiras tentativas pararam por inferência/import de testes, corrigidos sem mudar dependências.
+
+Chrome/Wasm em 127.0.0.1:8080: Exemplo de estado isolado recebeu edição na primeira visita; Nova visita começou com inicial; segunda recebeu Segunda visita; Voltar à visita anterior restaurou a edição original. Capturas build/t07/browser-first-entry.png, browser-second-fresh.png, browser-second-edited.png e browser-return-preserved.png. A substituição pela textarea oculta se comportou como inserção; foi usado o texto efetivamente desenhado no canvas como prova, não o valor DOM isolado. Duplo clique no campo seguido de paste substituiu o valor da segunda visita. Servidor e logs em build/t07/studio-server.log, ignorados pelo Git. Sem efeitos externos ou push.
+
 T19 concluída no recorte local. Comandos finais: .\gradlew.bat :humming-studio-model:jvmTest :humming-studio-model:compileCommonMainKotlinMetadata :humming-studio-model:compileKotlinJs :sample:composeApp:jvmTest :sample:composeApp:compileKotlinWasmJs --console=plain (build/t19/final-checks.log). BUILD SUCCESSFUL; 94 testes autorais + 30 sample, zero falhas/erros/ignorados. Captura Compose build/reports/interaction-canvas.png no sample: botão interno → borda da tela e curva rosa; teste cobre zoom e Escape. Projeção de interações limita visitas/arestas, trata compartilhamento/ramos sem seguir ciclos de tela. Política de autoconexão visual explícita e testada; navegação de botão para sua própria tela permanece válida.
 
 No Chrome/Wasm: exemplo abriu segunda tela e voltou; canvas desenhou a conexão, clique na curva selecionou navigation:goTo e pintou rosa. Captura final build/t19/browser-final-connector.png confirma rótulos, árvore sem duplicação e Inspector com destino derivado da relação; download real humming-journey.json contém graph.json e 2 screens/*.json. O teste StudioJourneyTest executou o pacote exportado após decode pelo mesmo host. Na revisão foram corrigidos glifos de direção, duplicação de ação raiz na árvore e edição redundante de destiny quando há relação. O teste antigo de inserção passou após rolagem explícita para acomodar os campos de posição. Verificação adicional após preservar viewport entre revisões: build/t19/viewport-check.log, 30 testes sample e Wasm aprovados. Logs de tentativas e correções em build/t19, ignorados pelo Git. Sem nova prova Android/Apple, roteamento de obstáculos, drag para criar conexões ou servidor.
 
 Após a orientação de carregar o exemplo, o usuário respondeu “agora sim”, confirmando a guia que faltava no aceite de T18. Essa é evidência manual, distinta da observação automatizada do commit no Chrome e da captura de pixels em Compose; detalhes e limites estão em [validação](validation.md). Não repetir a verificação sem motivo novo.
 
-Retomar por T07, dependências concluídas. T20–T25 permanecem posteriores; este recorte não criou servidor nem persistência remota.
+Retomar por T08, dependência T07 concluída. T20–T25 permanecem posteriores; este recorte não criou servidor, transporte HTTP ou persistência remota.
 
 ### Manutenção documental independente da implementação
 
@@ -87,11 +95,11 @@ HummingUI é uma POC de cliente SDUI. Interpreta nós JSON, mantém estado textu
 
 | Módulo | Responsabilidade observada |
 | --- | --- |
-| `humming-contract` | Modelo, codec, diagnósticos e schemas puros; catálogo inicial sem handlers |
+| `humming-contract` | Modelo, valores tipados, codec, diagnósticos e schemas puros; catálogo inicial sem handlers |
 | `humming-studio-model` | Documento autoral normalizado, comandos, histórico, compilador por capacidades e codecs; não depende do runtime |
 | `humming-core` | Registro, ViewModel, estado, despacho e helpers visuais; exporta o contrato |
 | `humming-actions` | Métodos registrados, eventos, atualização e condições |
-| `humming-navigation` | Grafo e ações com Compose Navigation; cache de nós por rota em memória |
+| `humming-navigation` | Grafo e ações com Compose Navigation; cache de definições por rota e owners por entrada no modo isolado |
 | `humming-layout-material3` | Catálogo de componentes Compose Material 3 e leitura de propriedades |
 | `sample:composeApp` | Host, providers e exemplos compartilhados com targets de aplicação |
 | `sample:iosApp` | Projeto incluído para integração Apple; execução depende de ambiente compatível |

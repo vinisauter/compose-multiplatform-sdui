@@ -35,7 +35,7 @@ O compilador precisa distinguir componente visual, metadado de navegação e aç
 
 Separar `server` (dados resolvidos), `nav` (argumentos de navegação) e `state` (estado editável) por entrada de back stack. `response` e `error` pertencem ao contexto temporário de uma execução de ação. Duas requisições simultâneas não podem escrever implicitamente na mesma variável global de resposta.
 
-Introduzir valores internos tipados com distinção entre ausente, null, string, boolean, número, objeto e array. O adaptador legado preserva o contrato textual. IDs permanecem strings; valores decimais exatos exigem representação e arredondamento explícitos quando o domínio os solicitar.
+SduiValue distingue ausente, null, string, boolean, número, objeto e array. O adaptador legado preserva o contrato textual. IDs permanecem strings; valores decimais exatos exigem representação e arredondamento explícitos quando o domínio os solicitar.
 
 Expressões são uma linguagem futura, opcional e versionada. Tokenizer, parser com precedência, AST puro e evaluator limitado devem ser testados antes de uso em propriedades. Definir curto-circuito, tipos, acesso ausente, null, coerção, erros e orçamento de operações. Nenhuma reflexão, script ou função arbitrária do payload. Bindings legados `#{chave}` continuam disponíveis pelo caminho legado.
 
@@ -88,3 +88,9 @@ O [plano](development-plan.md) define entregas independentes: runtime verificáv
 ## Bounds e interação do host
 
 A biblioteca de layout expõe LocalNodeBoundsObserver sem dependência do modelo autoral. O sample observa medidas reais por ID, cria LayoutSnapshot puro e consulta DropGeometry/DropGesture. Overlay, foco, viewport e entrada de ponteiro ficam no host; edição usa o mesmo EditSession do Inspector. A medição não acrescenta nós visuais nem transfere componentes Material 3 para o core.
+
+## Ownership dos dados do cliente
+
+humming-contract contém SduiValue e os inputs tipados sem dependência UI. humming-core mantém o mapa de estado e sua visão textual no mesmo owner, além de ActionValues no contexto da execução. O contexto distingue owners para que uma chamada a outro ViewModel não herde os resultados/política da tela anterior.
+
+No modo ISOLATED_ENTRIES, Graph pede um owner ao ViewModelStore de cada NavBackStackEntry. Bibliotecas/providers registrados são capacidades compartilhadas; o formulário não é compartilhado. Entradas fora de foco retidas na pilha preservam estado; o descarte pelo Navigation cancela o owner e limpa dados. LocalScreenFeedbackHandler encaminha UI de erro/loading do host ao owner correto, sem dependência de Material no core. A seleção LEGACY_SHARED preserva o caminho anterior; cache de nós continua sendo definição, não store de dados personalizados ou snapshot persistido.

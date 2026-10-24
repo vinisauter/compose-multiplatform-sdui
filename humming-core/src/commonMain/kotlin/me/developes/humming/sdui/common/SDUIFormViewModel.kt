@@ -23,8 +23,14 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 class SDUIFormViewModel(
-    private val handle: SavedStateHandle, libraries: List<SDLibrary> = listOf()
+    private val handle: SavedStateHandle, libraries: List<SDLibrary> = listOf(),
+    val screenStateMode: ScreenStateMode = ScreenStateMode.LEGACY_SHARED,
+    screenInputs: ScreenInputs = ScreenInputs(),
+    val screenEntryId: String? = null,
+    val entryInputs: (entryId: String, route: String) -> ScreenInputs = { _, _ -> ScreenInputs() },
 ) : ViewModel() {
+    private var currentInputs = screenInputs
+    val screenInputs: ScreenInputs get() = currentInputs
     private val _runningTasks = MutableStateFlow(0)
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
@@ -47,6 +53,8 @@ class SDUIFormViewModel(
     override fun onCleared() {
         legacyBindings.values.forEach { it.cancel() }
         legacyBindings.clear()
+        typedState.clear()
+        currentInputs = ScreenInputs()
         _isLoading.value = false
         super.onCleared()
     }
@@ -73,8 +81,28 @@ class SDUIFormViewModel(
     private var mutationRevision = 0
     private var mutationListeners = emptySet<StateEventToken>()
     val onStateUpdated = MutableStateFlow(0)
-    private val _formState = mutableStateMapOf<String, String>()
-    val formState: Map<String, String> = _formState
+    private val typedState = mutableStateMapOf<String, SduiValue>()
+    private val _formState = LegacyStateAccess(typedState)
+    val formState: Map<String, String> = _formState.view
+    val stateValues: Map<String, SduiValue> = typedState
+
+    fun stateValue(key: String): SduiValue = typedState[key] ?: SduiValue.Missing
+
+    fun updateValue(key: String, value: SduiValue) = recordValue(key,value,emptySet())
+
+    suspend fun updateValueFromAction(key: String, value: SduiValue) {
+        recordValue(key,value,currentCoroutineContext()[StateMutationOrigin]?.listeners.orEmpty())
+    }
+
+    suspend fun actionValues(): ActionValues = checkNotNull(currentCoroutineContext()[ActionValuesContext]?.takeIf {
+        it.owner === this
+    }) { "Action values require executeActions on their owning ViewModel" }.values
+
+    /** New entry, same registered capabilities; form values are never copied from another entry. */
+    fun createScreenEntry(entryId: String, inputs: ScreenInputs = ScreenInputs()): SDUIFormViewModel =
+        SDUIFormViewModel(SavedStateHandle(), libraries.values.toList(), screenStateMode, inputs, entryId, entryInputs).also { child ->
+            nodeTypeProviders.forEach { (type,provider) -> child.addNodeProvider(type,provider) }
+        }
 
     private val nodeTypeProviders: HashMap<String, NodeProvider> = HashMap()
     private val libraries: HashMap<String, SDLibrary> = HashMap<String, SDLibrary>().apply {
@@ -257,8 +285,12 @@ class SDUIFormViewModel(
     }
 
     private fun recordState(key: String, value: String?, listeners: Set<StateEventToken>) {
-        if (_formState[key] == value) return
-        if (value == null) _formState.remove(key) else _formState[key] = value
+        recordValue(key, value?.let(SduiValue::Text) ?: SduiValue.Missing,listeners)
+    }
+
+    private fun recordValue(key: String, value: SduiValue, listeners: Set<StateEventToken>) {
+        if (stateValue(key) == value) return
+        if (value === SduiValue.Missing) typedState.remove(key) else typedState[key] = value
         mutationListeners = listeners
         mutationRevision = onStateUpdated.value + 1
         onStateUpdated.value = mutationRevision

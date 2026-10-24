@@ -30,7 +30,7 @@ private class ExecutionState(
     val errors = mutableListOf<ErrorData>()
 }
 
-private class ExecutionFrame(val state: ExecutionState, val depth: Int) :
+private class ExecutionFrame(val state: ExecutionState, val depth: Int, val owner: SDUIFormViewModel) :
     AbstractCoroutineContextElement(Key) {
     companion object Key : CoroutineContext.Key<ExecutionFrame>
 }
@@ -44,14 +44,17 @@ internal class ActionExecutor(
         policy: ActionFailurePolicy?,
         limits: ActionExecutionLimits?,
     ): ActionExecutionResult {
-        val parent = currentCoroutineContext()[ExecutionFrame]
+        val parent = currentCoroutineContext()[ExecutionFrame]?.takeIf { it.owner === owner }
         require(parent == null || policy == null && limits == null) { "Nested executions inherit policy and limits" }
         val state = parent?.state ?: ExecutionState(policy ?: ActionFailurePolicy.CONTINUE, limits ?: ActionExecutionLimits())
-        val frame = ExecutionFrame(state, (parent?.depth ?: 0) + 1)
+        val frame = ExecutionFrame(state, (parent?.depth ?: 0) + 1, owner)
+        val values = if (parent == null) ActionValues() else checkNotNull(currentCoroutineContext()[ActionValuesContext]).values
         try {
-            withContext(frame) { sequence(actions, frame) }
+            withContext(frame + ActionValuesContext(owner,values)) { sequence(actions, frame) }
         } catch (aborted: SequenceAborted) {
             if (parent != null) throw aborted
+        } finally {
+            if (parent == null) values.clear()
         }
         return state.mutex.withLock { ActionExecutionResult(state.attempted, state.errors.toList()) }
     }
@@ -96,6 +99,8 @@ internal class ActionExecutor(
     }
 
     private suspend fun fail(state: ExecutionState, error: ErrorData) {
+        owner.actionValues().error = SduiValue.ObjectValue(mapOf(
+            "code" to SduiValue.Text(error.code), "message" to SduiValue.Text(error.message)))
         state.mutex.withLock { state.errors += error }
         owner.setError(error)
         if (state.policy == ActionFailurePolicy.STOP_ON_ERROR) throw SequenceAborted()

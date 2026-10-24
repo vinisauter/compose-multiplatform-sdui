@@ -2,6 +2,9 @@ package me.developes.humming.sdui.navigation.components
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.remember
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -12,6 +15,10 @@ import kotlinx.serialization.json.jsonPrimitive
 import me.developes.humming.sdui.common.ComposableContent
 import me.developes.humming.sdui.common.SDUIFormViewModel
 import me.developes.humming.sdui.common.ServerDrivenNode
+import me.developes.humming.sdui.common.ScreenStateMode
+import me.developes.humming.sdui.common.LocalScreenFeedbackHandler
+import me.developes.humming.sdui.common.PayloadException
+import me.developes.humming.sdui.common.diagnostic
 import me.developes.humming.sdui.navigation.NavigationDefinitions
 
 class Graph(
@@ -35,12 +42,15 @@ class Graph(
             }
         }
     private val componentNodes: HashMap<String, ServerDrivenNode> = HashMap()
-    private suspend fun loadComponentNode(routeName: String): ServerDrivenNode {
+    private suspend fun loadComponentNode(routeName: String, owner: SDUIFormViewModel = viewModel): ServerDrivenNode {
         return componentNodes[routeName] ?: let {
-            val graphRouteNode = graphRoutes[routeName]!!
+            val graphRouteNode = graphRoutes[routeName] ?: throw PayloadException(
+                graphNode.diagnostic("UNKNOWN_ROUTE", "Navigation route is not registered: $routeName", "navigate"))
             val nodeType = graphRouteNode.property("type")!!
             val destiny = graphRouteNode.property("destiny")!!
-            val componentNode = viewModel.loadNodeTypeProvider(nodeType)!!.invoke(destiny)
+            val provider = owner.loadNodeTypeProvider(nodeType) ?: throw PayloadException(
+                graphRouteNode.diagnostic("MISSING_PROVIDER", "Provider is not registered: $nodeType", "navigate"))
+            val componentNode = provider(destiny)
             componentNodes[routeName] = componentNode
             componentNode
         }
@@ -50,6 +60,7 @@ class Graph(
     override fun Content() {
         val navController = rememberNavController()
         this.navController = navController
+        DisposableEffect(navController) { onDispose { if (this@Graph.navController === navController) this@Graph.navController = null } }
         NavHost(navController = navController, startDestination = "PreLoadContent") {
             composable("PreLoadContent") {
                 preLoadContent?.invoke()
@@ -70,8 +81,16 @@ class Graph(
                         ?.mapNotNull { it.jsonPrimitive.contentOrNull }?.map {
                             navDeepLink { uriPattern = it }
                         } ?: emptyList(),
-                ) {
-                    viewModel.loadComponent(node = componentNodes[routeName]!!)?.Content()
+                ) { entry ->
+                    val owner = if (viewModel.screenStateMode == ScreenStateMode.ISOLATED_ENTRIES) {
+                        viewModel<SDUIFormViewModel>(viewModelStoreOwner = entry, key = "humming-screen") {
+                            viewModel.createScreenEntry(entry.id, viewModel.entryInputs(entry.id,routeName))
+                        }
+                    } else viewModel
+                    val node = componentNodes[routeName]!!
+                    val content = remember(owner,node) { owner.loadComponent(node) }
+                    if (owner !== viewModel) LocalScreenFeedbackHandler.current(owner)
+                    content?.Content()
                 }
             }
         }
@@ -93,8 +112,9 @@ class Graph(
         routeName: String,
         popStack: Boolean = false,
         clearStack: Boolean = false,
+        owner: SDUIFormViewModel = viewModel,
     ) {
-            loadComponentNode(routeName)// Preload the component node
+            loadComponentNode(routeName, owner)// Preload the component node
             if (clearStack) {
                 navController?.navigate(routeName) {
                     popUpTo(0) {

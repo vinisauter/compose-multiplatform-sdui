@@ -14,14 +14,15 @@ class SDNavigation(
             addAction("goBack") { _, _ ->
                 graph.navigateBack()
             }
-            addAction("goTo") { node, _ ->
+            addAction("goTo") { node, owner ->
                 val properties = NavigationDefinitions.goTo.parse(node).requireValid()
                 val popStack = properties.property("popStack")?.toBoolean() ?: false
                 val clearStack = properties.property("clearStack")?.toBoolean() ?: false
                 graph.navigateToAwaited(
                     routeName = properties.property("destiny")!!,
                     popStack = popStack,
-                    clearStack = clearStack
+                    clearStack = clearStack,
+                    owner = owner,
                 )
             }
             graph
