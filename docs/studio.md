@@ -293,3 +293,9 @@ No Studio, Exemplo de arraste cria dois containers e os textos A/B. Modo ediçã
 Os controles Zoom +/− e Esquerda/Direita/Acima/Abaixo alteram só o viewport; Centralizar restaura-o. Modos e viewport sobrevivem ao commit, enquanto o estado do formulário é reiniciado pela nova revisão conforme T17. A seleção respeita clipping e o elemento à frente; o alvo de drop é o ancestral elegível mais próximo dessa região, excluindo o arrastado e seus descendentes. Box oferece somente append; reordenação fina permanece no Inspector.
 
 Uma tela nova começa sem componentes. Seu contorno de seleção pode ser pequeno e não é a linha de inserção. O preview mostra Tela vazia e oferece Carregar exemplo de arraste. Antes de testar drag, conferir A/B e os dois containers; ativar Modo edição, pressionar um texto e movê-lo sobre o outro container. A guia só corresponde a um alvo elegível durante esse gesto.
+
+### API de geometria dos conectores
+
+`ConnectorGeometry.between(sourceId, sourceBounds, targetId, targetBounds)` deriva `CubicConnector` em world; retorna null para IDs iguais. `point(t)` e `tangent(t)` aceitam t entre 0 e 1. Centros coincidentes de nós diferentes usam saída direita/entrada esquerda. Não há desvio de obstáculos.
+
+`arrow` retorna triângulo em pixels físicos, com dimensões padrão 12×8, após aplicar `CanvasViewport` (zoom, densidade e pan). Tangente final nula retorna null. `flatten` aplica a mesma viewport e subdivide por De Casteljau usando distância ao segmento finito; tolerância padrão 1 pixel, profundidade padrão 12 (máximo permitido 16). `FlattenedConnector.maxErrorPixels` é o maior limite conservador das folhas; `toleranceMet=false` indica orçamento insuficiente. O host deve tratar esse resultado explicitamente. `hit` consulta a aproximação com raio padrão de 8 pixels; não declara interseção exata com a cúbica. Pontos/setas são derivados, não serializados no documento.

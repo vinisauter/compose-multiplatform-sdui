@@ -10,9 +10,9 @@ Atualizado após T18: 77 testes de autoria/geometria, 30 contrato, 64 core, 4 a�
 | --- | --- |
 | Última atualização | 2026-10-24 — base e05985b (T13), anteriores c6a1e46 e 6441ec0; T14 no commit local bde7c23 e T15 em eb8726e e T16 em b6c1ff3 e implementação T17 em 2d9d6eb, aceite ce2bd7e e geometria T18 em 8a12ea0 e integração em 04df7c0 e orientação de tela vazia em 75f50f6; sem push |
 | Última entrega | T18: geometria, bounds, seleção/drop e viewport; 202 testes JVM e aceite visual manual da guia; ver [validação](validation.md) |
-| Tarefa de implementação em execução | Nenhuma; T18 concluída |
+| Tarefa de implementação em execução | T19 — em execução por Codex: geometria pura dos conectores |
 | Próxima tarefa | **T19 — grafo de interações e conectores** |
-| Próxima ação concreta | Ler o recorte T19 e as equações de conectores em Studio; implementar geometria pura de âncoras/cúbicas/hit e edição de portas/ações/navegação compatíveis com o compilador |
+| Próxima ação concreta | Integrar ConnectorGeometry ao canvas macro e implementar edição de portas/ações/navegação compatíveis com o compilador; preservar o preview de uma tela e exportar todos os artefatos da jornada |
 | Critério para avançar | Testar âncoras/tangentes/zoom/hit e edição/undo das relações; executar navegação exportada no sample |
 | Bloqueio de implementação conhecido | Nenhum para T19; limites de plataforma e de automação permanecem registrados em validação. |
 | Limite do próximo recorte | Interações locais e conectores; sem roteador complexo de obstáculos, servidor ou publicação |
@@ -52,7 +52,7 @@ Estados: **pronta**, **pendente**, **em execução**, **bloqueada**, **concluíd
 | T16 | Preview do catálogo no host Wasm | concluída | Chrome/Wasm observado: edição/binding/update/MISSING_METHOD/recuperação; host sem provider URL; teste JVM de descarte; ver [validação](validation.md) |
 | T17 | Editor local e Inspector | concluída | Implementação 2d9d6eb; 183 testes JVM; importação/ação/downloads observados pelo agente e abertura manual/confirmado relatados pelo usuário em 2026-10-24; ver [validação](validation.md) |
 | T18 | Seleção, bounds e drop geométrico | concluída | 8a12ea0/04df7c0/75f50f6; 202 testes JVM; commit de drag no Chrome e guia confirmada manualmente pelo usuário em 2026-10-24; ver [validação](validation.md) |
-| T19 | Grafo de interações e conectores | pronta | Portas/curvas/ações compiláveis e navegação observada |
+| T19 | Grafo de interações e conectores | em execução | Codex: geometria pura validada com 84 testes do módulo autoral; faltam edição de relações, canvas e navegação no host |
 | T20 | Aplicação de servidor e interfaces | pendente | Criar fronteiras/casos de uso/host local com autorização |
 | T21 | Rascunhos/revisões em PostgreSQL | pendente | Validar persistência/transações em banco real local |
 | T22 | Publicação imutável e capacidades | pendente | Publicar snapshot local compatível sem dados de sessão |
@@ -65,7 +65,9 @@ Os requisitos completos e a ordem das dependências estão no [plano](developmen
 
 ### Trabalho parcial e bloqueios
 
-Nenhum recorte parcial ativo. Após a orientação de carregar o exemplo, o usuário respondeu “agora sim”, confirmando a guia que faltava no aceite de T18. Essa é evidência manual, distinta da observação automatizada do commit no Chrome e da captura de pixels em Compose; detalhes e limites estão em [validação](validation.md). Não repetir a verificação sem motivo novo.
+T19 parcial: ConnectorGeometry em commonMain implementa âncoras, cúbica/tangente, seta em pixels e flatten/hit limitado. Sete testes novos aprovados (84 no módulo autoral, zero falhas/erros/ignorados); metadata/JS/Wasm compilados. Geometria ainda não desenhada no host; edição de relações e navegação/exportação no Studio permanecem pendentes. Responsável: Codex. Próxima ação na tabela de retomada. Comando/log: build/t19/geometry.log (ignorado). Não houve nova validação browser neste recorte.
+
+Após a orientação de carregar o exemplo, o usuário respondeu “agora sim”, confirmando a guia que faltava no aceite de T18. Essa é evidência manual, distinta da observação automatizada do commit no Chrome e da captura de pixels em Compose; detalhes e limites estão em [validação](validation.md). Não repetir a verificação sem motivo novo.
 
 Retomar por T19, cujas dependências T15/T17 estão concluídas. Grafo visual de interações, conectores e servidor ainda não estão implementados.
 

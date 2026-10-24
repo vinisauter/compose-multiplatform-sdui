@@ -141,3 +141,7 @@ Observar bounds nos modificadores existentes em vez de envolver componentes em c
 Drop considera a região pintada à frente e seus ancestrais elegíveis, impedindo movimentação para um container encoberto por um overlay de outra cadeia. O slot completo resolve vizinhos; igualdade de centro insere depois. Separar modos edição/execução para que seleção/drag não acionem o formulário. Captura é coordenada pelo stream Compose e pointerId; cancelamento limpa estado transitório em finally. Cancelar também quando o foco é perdido.
 
 Primeiro host usa LTR, Row/Column sem wrap/reverse, children e Box append. Zoom dos botões mantém a origem do conteúdo como âncora; a função pura também oferece zoom em ponto arbitrário. Viewport é estado do host e não reseta a cada edição. O aceite visual da guia no navegador é distinto da prova de pixels nos testes Compose; sua confirmação fica rastreada no estado atual.
+
+## T19 — geometria e autoconexão visual
+
+Rejeitar inicialmente a curva visual quando sourceId == targetId, sem alterar a permissão de ciclos de navegação no compilador. Um loop visual exige roteamento e fixture próprios. Geometria permanece pura em commonMain; seta e seleção usam pixels físicos, incluindo densidade exatamente uma vez. Subdivisão tem orçamento explícito e reporta tolerância não atingida, permitindo ao host diagnosticar a aproximação em vez de assumir precisão. Nenhuma coordenada derivada vira autoridade persistida.
