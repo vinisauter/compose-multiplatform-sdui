@@ -125,3 +125,11 @@ Navegação explícita usa uma única autoridade: a aresta de destino; `destiny`
 ## Host local do preview
 
 Usar LocalPreview separado de App para não herdar providers URL e métodos do sample. O target Wasm abre esse host, com estado em memória e diagnóstico recuperável com nó/caminho. O servidor de desenvolvimento serve somente recursos gerados em loopback. A prova browser não exige atualizar versões; uma instalação incompleta no cache de tooling foi reparada preservando seu lockfile.
+
+## T17 — autoria local e estado do preview
+
+A orquestração pura fica em LocalWorkspace no módulo autoral existente; UI e arquivos ficam no sample, sem um módulo Studio vazio. A árvore é derivada da revisão do documento e observa explicitamente essa revisão na composição. Ações ligadas aparecem abaixo do evento; sua reordenação edita arestas. Desconectados são preservados e diagnosticados, sem coleta automática destrutiva.
+
+O Inspector valida campos editáveis pelo schema compartilhado e preserva dados desconhecidos. Rascunhos importados podem continuar incompletos; o compilador bloqueia a execução incompatível. Preview recompõe com outro ViewModelStore após edição ou abertura, incluindo abertura do mesmo arquivo/revisão; estado de formulário nunca é serializado no documento.
+
+Arquivos no navegador usam seletor e downloads padrão, sem adicionar dependência ou persistência remota. A UI informa solicitação de download e mantém alterações locais indicadas, pois não controla a confirmação de gravação do navegador. A permissão de arquivos locais da extensão de automação não foi ampliada: aceite manual de abertura é suficiente.

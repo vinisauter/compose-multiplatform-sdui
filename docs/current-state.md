@@ -2,19 +2,19 @@
 
 Este é o ponto de entrada para **continuar o desenvolvimento**. Reúne o estado observado, o rastreamento das etapas e a próxima ação. O [plano](development-plan.md) define dependências, escopo e critérios de aceite; este documento é a única fonte de status e retomada.
 
-Atualizado após T16: 57 testes de autoria, 30 contrato, 64 core, 4 ações e 18 sample aprovados em JVM (173 casos, sem falhas/erros). Compilador puro gera árvores e jornadas determinísticas; o sample executou navegação, condição, método registrado e atualização de estado compilados. Preview local observado no Chrome/Wasm: edição, binding, ação e diagnóstico recuperável; não há editor/canvas entregue.
+Atualizado no recorte T17: 65 testes de autoria, 30 contrato, 64 core, 4 ações e 20 sample aprovados em JVM (183 casos, sem falhas/erros/ignorados). Editor por árvore/Inspector integrado ao compilador e preview real; importação JSON, edição e downloads observados no Chrome/Wasm. Abertura pelo seletor de arquivos ainda exige validação manual; T17 não está concluída.
 
 ## Ponto de retomada
 
 | Campo | Registro atual |
 | --- | --- |
-| Última atualização | 2026-10-24 — base e05985b (T13), anteriores c6a1e46 e 6441ec0; T14 no commit local bde7c23 e T15 em eb8726e; sem push |
-| Última entrega | T16: preview local observado no Chrome/Wasm e 173 testes JVM aprovados, evidência em [validação](validation.md) |
-| Tarefa de implementação em execução | Nenhuma; T16 validada |
-| Próxima tarefa | **T17 — editor local e Inspector** |
-| Próxima ação concreta | Integrar documento/comandos/compilador a árvore, Inspector e preview; criar/importar/editar/desfazer/salvar/exportar localmente |
+| Última atualização | 2026-10-24 — base e05985b (T13), anteriores c6a1e46 e 6441ec0; T14 no commit local bde7c23 e T15 em eb8726e e T16 em b6c1ff3; sem push |
+| Última entrega | Recorte T17: modelo/UI integrados, 183 testes JVM e downloads reais; falta aceite manual do seletor, ver [validação](validation.md) |
+| Tarefa de implementação em execução | T17 — Codex: editor local e Inspector |
+| Próxima tarefa | **T17 — concluir a validação de abrir arquivo no Chrome** |
+| Próxima ação concreta | No Studio em localhost:8080, Abrir documento → selecionar Downloads/humming-document.json → confirmar Substituir. Verificar texto Editor: Pessoa Studio /, Confirmar → confirmado e Desfazer desabilitado após reabrir. Registrar o resultado antes de concluir T17 |
 | Critério para avançar | Criar tela, editar/desfazer, salvar/reabrir, exportar/reimportar e executar no renderer |
-| Bloqueio de implementação conhecido | Nenhum para T17; qualificação de outras plataformas continua pendente |
+| Bloqueio de implementação conhecido | Nenhum defeito pendente reproduzido no código; automação do seletor exige permissão de arquivos locais na extensão Chrome. Não alterar essa permissão sem autorização. Abertura manual é alternativa suficiente |
 | Limite do próximo recorte | Editor local, sem servidor, colaboração ou publicação |
 
 ### Protocolo quando o pedido for “continue o desenvolvimento”
@@ -50,7 +50,7 @@ Estados: **pronta**, **pendente**, **em execução**, **bloqueada**, **concluíd
 | T14 | Comandos, chaves de ordem e undo local | concluída | 158 testes JVM no conjunto, metadata/JS/Wasm compilados; midpoint, transações por CAS, inversas e undo/redo com limites e concorrência |
 | T15 | Compilador puro do subconjunto legado | concluída | 172 testes JVM aprovados; golden, capacidades, expansão limitada, ciclos e jornada compilada executada pelo renderer real; ver [validação](validation.md) |
 | T16 | Preview do catálogo no host Wasm | concluída | Chrome/Wasm observado: edição/binding/update/MISSING_METHOD/recuperação; host sem provider URL; teste JVM de descarte; ver [validação](validation.md) |
-| T17 | Editor local e Inspector | pronta | Criar/editar/desfazer/salvar/exportar sem servidor |
+| T17 | Editor local e Inspector | em execução | LocalWorkspace, árvore, Inspector, comandos e preview; 183 testes JVM; importação JSON/ação/downloads no Chrome. Falta abrir arquivo pelo seletor real; não avançar para T18 antes desse aceite |
 | T18 | Seleção, bounds e drop geométrico | pendente | Validar Row/Column, transformações e commit por revisão |
 | T19 | Grafo de interações e conectores | pendente | Portas/curvas/ações compiláveis e navegação observada |
 | T20 | Aplicação de servidor e interfaces | pendente | Criar fronteiras/casos de uso/host local com autorização |
@@ -65,7 +65,13 @@ Os requisitos completos e a ordem das dependências estão no [plano](developmen
 
 ### Trabalho parcial e bloqueios
 
-T15 concluída. A ponte legada continua recusando navegação explícita e compartilhamento; ContractCompiler resolve esses casos com política explícita. Não há canvas/editor. Próximo recorte: T17. Para registrar o recorte, preencher:
+T17 — Codex, 2026-10-24, sobre b6c1ff3: LocalWorkspace puro e LocalStudio no sample implementados; seis componentes, action:update por evento, seleção/ordem/movimento, edição validada por schema, undo/redo, codecs e preview isolado. Abrir inválido preserva documento/histórico; reabrir reinicia preview mesmo com conteúdo idêntico. Desconhecidos ficam salvos e somente leitura; compilação incompatível bloqueia o preview.
+
+Verificação: build/t17/final.log passou; 183 testes JVM sem falhas/erros/ignorados, metadata/JS puros e sample Wasm compilados. Browser: importou contrato pelo diálogo JSON, mostrou árvore completa, executou Confirmar, editou binding pelo Inspector e gerou dois arquivos em Downloads. humming-document.json contém seis nós, uma aresta, revisão 1 e Editor: #{nome} / #{status}; humming-contract.json contém o contrato atualizado. Captura build/t17/browser-studio.png inspecionada.
+
+Pendente: abertura pelo seletor real. fileChooser.setFiles falhou porque a extensão ChatGPT do Chrome não permite URLs de arquivos; nenhuma permissão foi alterada. O evento automatizado de download também expirou, porém a existência e o conteúdo dos arquivos foram confirmados em Downloads. Não repetir a chamada de upload sem mudança de permissão ou intervenção manual.
+
+Retomada: pedir/observar a abertura manual do arquivo salvo conforme a tabela. Se carregar sem erro e a ação funcionar, concluir T17 e promover T18. A UI de salvar solicita download; não promete gravação concluída nem limpa automaticamente o indicador de alterações locais. Não há persistência de sessão, canvas geométrico ou servidor. Para registrar o recorte, preencher:
 
 ```text
 Etapa / responsável / data / revisão:
@@ -88,7 +94,7 @@ Os relatórios e planos antigos estão ausentes. O registro de M01 conserva o re
 
 ## Escopo implementado
 
-HummingUI é uma POC de cliente SDUI. Interpreta nós JSON, mantém estado textual, resolve componentes e ações por namespace e integra bibliotecas no sample. Não há editor visual, backend de contratos, publicação imutável ou colaboração implementados nos módulos incluídos.
+HummingUI é uma POC de cliente SDUI. Interpreta nós JSON, mantém estado textual, resolve componentes e ações por namespace e integra bibliotecas no sample. O editor local por árvore/Inspector está integrado no sample e em validação T17. Não há canvas geométrico, backend de contratos, publicação imutável ou colaboração implementados nos módulos incluídos.
 
 | Módulo | Responsabilidade observada |
 | --- | --- |
@@ -125,8 +131,8 @@ O fluxo básico é host → provider → parsing → resolução de biblioteca/c
 | Área | Comportamento observado | Consequência para a implementação |
 | --- | --- | --- |
 | Parsing | `parseNode` valida estrutura, nomes e limites com diagnóstico; propriedades continuam textuais, inclusive JSON null como `"null"` | T07: adaptação tipada preservando o legado |
-| Serialização | O wrapper de JSON pode retornar o JSON original em `toString()` depois de mutações no nó | Exportação do editor precisa de codec explícito e teste de round trip |
-| Identidade | ID ausente é gerado durante parsing e persistido na importação autoral | Exportações posteriores preservam a identidade; expansão compartilhada exige política do compilador |
+| Serialização | O wrapper de JSON pode retornar o JSON original em `toString()` depois de mutações no nó | Editor usa codecs explícitos e testes de round trip; não usa o toString legado |
+| Identidade | ID ausente é gerado durante parsing e persistido na importação autoral | Exportações posteriores preservam a identidade; expansão compartilhada usa IDs determinísticos e mapa de origem do compilador |
 | Registro | Nome inválido e handler/provider ausente possuem diagnóstico com localização | Schemas do subconjunto validam campo/papel; ampliar somente com fixtures |
 | Ações | `executeActions` aguarda ramos e providers; `invokeActions` continua sendo lançamento independente | Handlers customizados devem aguardar a API suspensa |
 | Falha/cancelamento | Cancelamento propaga, contadores finalizam, callbacks preservam causa; ações da UI cancelam ao sair da composição | Novos efeitos devem preservar essas garantias |
@@ -142,7 +148,7 @@ Essas limitações descrevem o código, não comportamentos que devam ser perpet
 
 Os builds principais declaram toolchain JVM **25** e compatibilidade Java Android **17**. O [catálogo](../gradle/libs.versions.toml) declara Kotlin `2.4.21`, Compose `1.8.2`, AGP `8.13.2`, Ktor `3.6.0` e Navigation `2.9.2`; aliases JVM/Spring usam Kotlin `2.2.10`. Esses valores não demonstram resolução dos artefatos ou compatibilidade entre versões.
 
-A suíte atual tem 173 casos aprovados em JVM, distribuídos entre contrato puro, core, ações e sample. As fixtures originais de parsing/limites foram movidas para commonTest do contrato; regressões de runtime e schemas permanecem nos consumidores. O teste headless comprova ausência de classes UI no classpath. A execução detalhada e os resultados históricos estão em [validação](validation.md).
+A suíte atual tem 183 casos aprovados em JVM, distribuídos entre contrato puro, core, ações e sample. As fixtures originais de parsing/limites foram movidas para commonTest do contrato; regressões de runtime e schemas permanecem nos consumidores. O teste headless comprova ausência de classes UI no classpath. A execução detalhada e os resultados históricos estão em [validação](validation.md).
 
 A dependência Lifecycle do core permanece api porque seu ViewModel aparece na API pública. O host JVM fornece handle de estado em memória por factory explícita; os outros hosts mantêm o caminho padrão. O contrato é exportado pelo core e usa bytecode JVM 17 com toolchain 25.
 
@@ -150,4 +156,4 @@ Gradle 9.5.1 com Java 25.0.3 em Windows 11 x64 executou `projects`, descoberta d
 
 ## Evolução ainda não implementada
 
-Schemas para o restante do catálogo, valores tipados, linguagem de expressões, isolamento por entrada de back stack, transporte completo, políticas de cache, bridge nativa, editor visual de autoria, Studio, persistência, publicação e colaboração são entregas futuras. O [plano](development-plan.md) define recortes que podem ser validados separadamente.
+Schemas para o restante do catálogo, valores tipados, linguagem de expressões, isolamento por entrada de back stack, transporte completo, políticas de cache, bridge nativa, canvas geométrico de autoria, persistência, publicação e colaboração são entregas futuras. O [plano](development-plan.md) define recortes que podem ser validados separadamente.

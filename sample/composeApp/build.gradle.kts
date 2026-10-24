@@ -42,6 +42,7 @@ kotlin {
             implementation(project(":humming-actions"))
             implementation(project(":humming-navigation"))
             implementation(project(":humming-layout-material3"))
+            implementation(project(":humming-studio-model"))
 
             implementation(libs.ktor.client.core)
             implementation(libs.ktor.client.content.negotiation)
@@ -61,7 +62,6 @@ kotlin {
         }
 
         jvmTest.dependencies {
-            implementation(project(":humming-studio-model"))
             implementation(kotlin("test-junit"))
             implementation(compose.desktop.uiTestJUnit4)
             implementation(libs.lifecycle.runtime)

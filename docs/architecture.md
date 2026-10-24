@@ -27,7 +27,7 @@ A necessidade de um consumidor JVM sem UI justificou humming-contract. Ele cont�
 
 ### Definições e schemas
 
-NodeDefinition/PropertyDefinition e NodeCatalog implementam a descrição compartilhada do subconjunto inicial, inventariado no contrato. O schema descreve tipo, obrigatoriedade, defaults, enums, slots, eventos e papéis; o parser preserva strings legadas para os adapters. Metadados, validação e as definições iniciais residem em humming-contract. Seu consumidor de teste JVM valida e serializa sem classes UI disponíveis; o core e os adapters continuam compilando sobre a mesma API. O Inspector futuro deve consumir essas definições e usar o modo AUTHORING; comportamentos visuais específicos continuam no handler.
+NodeDefinition/PropertyDefinition e NodeCatalog implementam a descrição compartilhada do subconjunto inicial, inventariado no contrato. O schema descreve tipo, obrigatoriedade, defaults, enums, slots, eventos e papéis; o parser preserva strings legadas para os adapters. Metadados, validação e as definições iniciais residem em humming-contract. Seu consumidor de teste JVM valida e serializa sem classes UI disponíveis; o core e os adapters continuam compilando sobre a mesma API. O Inspector local consome essas definições e deve continuar a usá-las e usar o modo AUTHORING; comportamentos visuais específicos continuam no handler.
 
 O compilador precisa distinguir componente visual, metadado de navegação e ação. A classe wire compartilhada não elimina essa validação. Schemas precisam declarar capacidade/versão; apenas um número global de versão não prova que o cliente consegue executar todos os nós.
 
@@ -83,4 +83,4 @@ O [plano](development-plan.md) define entregas independentes: runtime verificáv
 
 ## Fronteira do compilador autoral
 
-`humming-studio-model` depende apenas do contrato puro e contém documento, codecs, comandos/histórico e `ContractCompiler`. O compilador recebe capacidades do destino e produz JSON mais mapa de origem, sem Compose, IO ou registro de handlers. O host integra esses artefatos ao NodeProvider existente. O sample depende do módulo autoral somente em jvmTest para validar a jornada compilada; o aplicativo de produção ainda não contém editor.
+`humming-studio-model` depende apenas do contrato puro e contém documento, codecs, comandos/histórico e `ContractCompiler`. O compilador recebe capacidades do destino e produz JSON mais mapa de origem, sem Compose, IO ou registro de handlers. O host integra esses artefatos ao NodeProvider existente. Em T15 o sample consumia o módulo autoral somente em jvmTest. O host de edição LocalStudio agora o consome em commonMain; o runtime não depende do modelo autoral. O editor está em validação, conforme o estado atual.

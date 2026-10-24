@@ -168,3 +168,7 @@ Novos formatos de tokens reativos, temas e máscaras exigem versionamento ou ext
 ## Compilação de documentos autorais
 
 O módulo puro `humming-studio-model` oferece `ContractCompiler` e `TargetCapabilities`. A saída reutiliza o contrato existente de `navigation:graph`, `navigation:node`, `navigation:goTo` e ações; não introduz execução arbitrária nem novo formato no renderer. Versões dos schemas devem coincidir exatamente com as capacidades declaradas. Providers e métodos precisam ser registrados pelo host. A declaração de provider externo não comprova disponibilidade de seus recursos; jornadas locais compiladas fornecem o mapa de artefatos para o host resolver.
+
+## Edição local de propriedades
+
+LocalWorkspace usa PropertyDefinition para autorizar campos escalares e valida com AUTHORING antes de publicar o comando. O Inspector grava valores textuais compatíveis com o wire legado; STRING_ARRAY passa pelo parser JSON limitado. Não injeta defaults nem apaga propriedades desconhecidas. Remover o valor é comando distinto de definir string vazia. Slots/eventos são relações do documento autoral e não podem ser sobrescritos como escalares pelo Inspector. Nenhum nome, binding ou sintaxe wire foi alterado por essa integração.

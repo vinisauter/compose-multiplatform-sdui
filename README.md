@@ -2,7 +2,7 @@
 
 POC de um cliente de Server-Driven UI em Kotlin Multiplatform e Compose Multiplatform. O cliente interpreta uma árvore JSON e resolve componentes e ações registrados por namespace.
 
-O repositório contém o contrato puro humming-contract, o runtime, bibliotecas de ações, navegação, componentes Material 3 e um sample. Editor visual, servidor de contratos, publicação e colaboração fazem parte do planejamento; ainda precisam de implementação e validação.
+O repositório contém o contrato puro humming-contract, modelo autoral/comandos/compilador humming-studio-model, runtime, bibliotecas e sample. Um editor local por árvore/Inspector está integrado ao sample Wasm; seu alcance e aceite pendente constam no estado atual. Canvas geométrico, servidor, publicação e colaboração permanecem planejados.
 
 ## Comece aqui
 
@@ -31,6 +31,14 @@ O recorte local JVM de T00 já foi verificado. Para reproduzi-lo:
 ```
 
 O modo local carrega uma tela de formulário sem rede. O teste verifica edição, binding e ação registrada, gerando uma imagem em `sample/composeApp/build/reports/local-smoke.png`. O modo padrão continua disponível sem o argumento. Consulte o estado atual para a próxima tarefa e os limites da qualificação.
+
+## Editor local no navegador
+
+```powershell
+.\gradlew.bat :sample:composeApp:wasmJsBrowserDevelopmentRun
+```
+
+Abrir http://127.0.0.1:8080 para o Studio: selecionar pela árvore, editar propriedades por schema, inserir/remover/ordenar, desfazer/refazer, importar JSON, salvar documento e exportar contrato. O preview executa somente capacidades locais. Abrir documento usa o seletor do navegador; downloads exigem preservação pelo usuário. O modo anterior de fixture está em http://127.0.0.1:8080/?preview. Veja o [guia do Studio](docs/studio.md) e a [validação](docs/validation.md) para limites.
 
 ## Consumir o contrato sem UI
 

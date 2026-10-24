@@ -1,6 +1,6 @@
 # Studio: modelo autoral e mecânicas
 
-O modelo/codec de T13 e os comandos/histórico de T14 estão implementados no módulo puro humming-studio-model; editor e geometria das seções posteriores continuam planejados e exigem os testes do [plano](development-plan.md). O primeiro recorte é autoria local de telas compatíveis com o [contrato legado](contract.md). Não incluir renderização gráfica de baixo nível, roteamento complexo de obstáculos ou colaboração na primeira entrega.
+O modelo/codec de T13 e os comandos/histórico de T14 estão implementados no módulo puro humming-studio-model; o editor local está integrado ao sample, com aceite rastreado no estado atual; a geometria das seções posteriores continua planejada e exige os testes do [plano](development-plan.md). O primeiro recorte é autoria local de telas compatíveis com o [contrato legado](contract.md). Não incluir renderização gráfica de baixo nível, roteamento complexo de obstáculos ou colaboração na primeira entrega.
 
 ## Documento e índices
 
@@ -262,4 +262,16 @@ Nós/arestas desconectados são rejeitados por padrão; `UnreachablePolicy.REPOR
 
 ## Executar o preview local
 
-Na raiz, executar `./gradlew.bat :sample:composeApp:wasmJsBrowserDevelopmentRun` e abrir http://127.0.0.1:8080. LocalPreview usa renderer e catálogo reais, provider limitado à fixture local, SavedStateHandle em memória e ViewModelStore descartado com o host. Edição e update são reais; Testar diagnóstico invoca propositalmente um método ausente. A fixture não oferece rede, navegação ou métodos do aplicativo. O host de produção App permanece separado.
+Na raiz, executar `./gradlew.bat :sample:composeApp:wasmJsBrowserDevelopmentRun` e abrir http://127.0.0.1:8080/?preview. LocalPreview usa renderer e catálogo reais, provider limitado à fixture local, SavedStateHandle em memória e ViewModelStore descartado com o host. Edição e update são reais; Testar diagnóstico invoca propositalmente um método ausente. A fixture não oferece rede, navegação ou métodos do aplicativo. O host de produção App permanece separado.
+
+## Editor local por árvore e Inspector
+
+`LocalWorkspace` orquestra o modelo puro e `EditSession`: criar documento Column, importar contrato, abrir/salvar documento autoral, editar campos, inserir componentes e action:update por evento, remover, reordenar e mover entre slots. `tree()` projeta contenção e relações de ações; não mantém outra árvore mutável. A ordem de ações segue suas arestas, incluindo Subir/Descer. Remover um botão preserva ações que ficam desconectadas; elas aparecem como raízes e a compilação acusa o problema em vez de descartá-las.
+
+`LocalStudio`, no commonMain do sample, apresenta árvore, Inspector e preview. Insere Column, Row, Box, text, textField e button; este recebe um label text. Campos são descritos pelo catálogo: tipo, enum, obrigatoriedade, default e bindings. Aplicar valida o campo antes do comando; remover valor distingue ausência de string vazia. Propriedades desconhecidas/não editáveis e nós sem schema permanecem somente leitura e salvos. Relações usam comandos, sem edição textual de slots/eventos. Campos inválidos preservam o documento.
+
+Abrir documento lê o formato autoral; Importar JSON aceita documento ou contrato, por escolha explícita. Importação inválida preserva documento e histórico. Novo/abrir/importar pedem confirmação quando há alterações locais. Undo/redo são locais à sessão e não acompanham o arquivo. Reabrir cria outra sessão e reinicia o estado do preview, mesmo quando documento/revisão coincidem. Cada edição válida também recria o preview; estado de formulário não faz parte do documento.
+
+O sample agora depende de humming-studio-model em commonMain. `CompiledPreview` consome o JSON do compilador com renderer real e ViewModelStore próprio, descartado ao substituir a composição. Compilação usa capacidades layout/action do catálogo, nenhum método de aplicativo/provider externo, e rejeita desconectados por padrão. Incompatibilidade mostra diagnósticos e retira o preview, evitando exibir uma revisão anterior como atual. Navegação de telas e edição gráfica de interações continuam nos recortes próprios.
+
+`StudioFiles` é uma porta do host. `BrowserStudioFiles` usa seletor de um arquivo JSON e download via Blob, sem rede. Limites de leitura: 8 MB antes de alocar o texto, 2 milhões de caracteres antes de entregar ao codec, mais os limites do modelo. Cancelar o seletor preserva o documento; erro de leitura aparece na UI. URLs temporárias de download são revogadas. Solicitar download não comprova que o usuário preservou o arquivo; por isso o indicador de alterações locais não é apagado. Outros hosts podem omitir a porta, ficando com botões de arquivo indisponíveis; não há integração nativa de arquivos entregue.
