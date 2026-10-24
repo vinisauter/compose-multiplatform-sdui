@@ -26,6 +26,7 @@ import me.developes.humming.sdui.action.SDActions
 import me.developes.humming.sdui.common.*
 import me.developes.humming.sdui.layout.SDLayoutMaterial3
 import me.developes.humming.sdui.layout.components.Material3Theme
+import me.developes.humming.sdui.navigation.SDNavigation
 import me.developes.humming.sdui.studio.*
 
 @Composable
@@ -41,7 +42,7 @@ fun LocalStudio(files: StudioFiles? = null, workspace: LocalWorkspace = remember
     var jsonText by remember { mutableStateOf("") }
     var active by remember { mutableStateOf(true) }
     DisposableEffect(Unit) { onDispose { active = false } }
-    val compilation = remember(document) { workspace.compile() }
+    val compilation = remember(document) { workspace.compilePreview() }
     val treeRows = remember(document) { workspace.tree() }
     val previewControls = remember { PreviewControls() }
     val selected = document.nodes[selectedId]
@@ -92,11 +93,28 @@ fun LocalStudio(files: StudioFiles? = null, workspace: LocalWorkspace = remember
             FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 OutlinedButton(onClick = { jsonText = ""; jsonDialog = true }) { Text("Importar JSON") }
                 OutlinedButton(onClick = { requestReplace { replaced(workspace.importContract(DROP_EXAMPLE)) } }) { Text("Exemplo de arraste") }
+                OutlinedButton(onClick = { requestReplace {
+                    replaced(workspace.openAuthoring(AuthoringDocumentCodec(workspace.catalog).encode(journeyExample()).requireValue()))
+                } }) { Text("Exemplo de navegação") }
+                OutlinedButton(onClick = {
+                    val before = document.nodes.keys
+                    changed(workspace.addScreen(CanvasPoint(document.nodes.values.count { it.kind == AuthorNodeKind.SCREEN } * 400.0, 0.0)))
+                    document.nodes.values.firstOrNull { it.id !in before && it.kind == AuthorNodeKind.SCREEN }?.let {
+                        selectedId = it.id; selectedEdge = null
+                    }
+                }) { Text("+ Tela") }
                 OutlinedButton(enabled = files != null && compilation.isSuccess, onClick = {
-                    val result = workspace.compile()
+                    val result = workspace.compilePreview()
                     messages = diagnostics(result.diagnostics)
-                    result.value?.let { compiled -> compiled.artifacts.getValue(compiled.entryDestination) }?.let {
-                        files?.download("humming-contract.json", it); messages = "Download do contrato solicitado"
+                    result.value?.let { compiled ->
+                        if (compiled.providerType == null) {
+                            files?.download("humming-contract.json", compiled.artifacts.getValue(compiled.entryDestination))
+                            messages = "Download do contrato solicitado"
+                        } else {
+                            val bundle = CompiledBundleCodec().encode(compiled)
+                            messages = diagnostics(bundle.diagnostics)
+                            bundle.value?.let { files?.download("humming-journey.json", it); messages = "Download da jornada completa solicitado" }
+                        }
                     }
                 }) { Text("Exportar contrato") }
                 Text("Selecione um nó na árvore. Arquivos permanecem no seu computador.")
@@ -159,9 +177,13 @@ fun LocalStudio(files: StudioFiles? = null, workspace: LocalWorkspace = remember
                         if (ports.isNotEmpty()) {
                             var port by remember(node.id) { mutableStateOf(ports.first()) }
                             Choice(if (node.kind == AuthorNodeKind.ACTION) "Ramo" else "Evento", port, ports) { port = it }
-                            if (node.kind != AuthorNodeKind.ACTION) {
-                                OutlinedButton(onClick = { changed(workspace.addUpdate(node.id, port)) }) { Text("+ action:update") }
+                            LocalWorkspace.actionDefinitions.filter { it != "navigation:goTo" }.forEach { action ->
+                                OutlinedButton(onClick = { changed(workspace.addAction(node.id, port, action)) }) { Text("+ $action") }
                             }
+                            val screens = document.nodes.values.filter { it.kind == AuthorNodeKind.SCREEN && it.placement is Placement.Root }.map { it.id }.sorted()
+                            var destination by remember(node.id) { mutableStateOf(screens.firstOrNull().orEmpty()) }
+                            Choice("Tela de destino", destination, screens) { destination = it }
+                            OutlinedButton(onClick = { changed(workspace.addAction(node.id, port, "navigation:goTo", destination)) }) { Text("+ navigation:goTo") }
                             var target by remember(node.id) { mutableStateOf("") }
                             OutlinedTextField(target, { target = it }, label = { Text("ID da ação existente") },
                                 modifier = Modifier.testTag("studio-action-target"))
@@ -176,6 +198,13 @@ fun LocalStudio(files: StudioFiles? = null, workspace: LocalWorkspace = remember
                                     Text("Desconectar ${edge.targetNodeId}")
                                 }
                             }
+                        }
+                        if (node.definition == "navigation:goTo") {
+                            val screens = document.nodes.values.filter { it.kind == AuthorNodeKind.SCREEN && it.placement is Placement.Root }.map { it.id }.sorted()
+                            val current = document.edges.values.firstOrNull { it.sourceNodeId == node.id && it.role == EdgeRole.NAVIGATION }?.targetNodeId
+                            var destination by remember(node.id, current) { mutableStateOf(current ?: screens.firstOrNull().orEmpty()) }
+                            Choice("Tela de destino", destination, screens) { destination = it }
+                            OutlinedButton(onClick = { changed(workspace.setNavigation(node.id, destination)) }) { Text("Aplicar destino") }
                         }
                         if (node.id != document.entryNodeId && node.placement is Placement.Child) {
                             var parent by remember(node.id) { mutableStateOf(document.entryNodeId) }
@@ -202,11 +231,14 @@ fun LocalStudio(files: StudioFiles? = null, workspace: LocalWorkspace = remember
                         Text(diagnostics(compilation.diagnostics), Modifier.verticalScroll(rememberScrollState()).testTag("studio-compile-error"))
                     } else key(openedVersion, document.documentId, document.revision) {
                         val compiled = compilation.requireValue()
-                        val json = compiled.artifacts.getValue(compiled.entryDestination)
                         Box(Modifier.fillMaxSize().background(Color.White)) {
-                            EditablePreview(workspace, document, compiled.sourceNodeIds, selectedId,
-                                select = { selectedId = it; selectedEdge = null }, commit = ::changed,
-                                controls = previewControls) { CompiledPreview(json) }
+                            if (compiled.providerType != null) {
+                                CompiledPreview(compiled)
+                            } else {
+                                EditablePreview(workspace, document, compiled.sourceNodeIds, selectedId,
+                                    select = { selectedId = it; selectedEdge = null }, commit = ::changed,
+                                    controls = previewControls) { CompiledPreview(compiled) }
+                            }
                         }
                     }
                 }
@@ -274,17 +306,24 @@ private fun Choice(label: String, selected: String, values: List<String>, choose
 
 @Composable
 internal fun CompiledPreview(json: String) {
+    CompiledPreview(CompiledContracts("preview", 0, "screen.json", null, mapOf("screen.json" to json), emptyMap()))
+}
+
+@Composable
+internal fun CompiledPreview(compiled: CompiledContracts) {
     val owner = remember { object : ViewModelStoreOwner { override val viewModelStore = ViewModelStore() } }
     DisposableEffect(owner) { onDispose { owner.viewModelStore.clear() } }
     CompositionLocalProvider(LocalViewModelStoreOwner provides owner) {
-        HummingSDUI().Content(HummingSDUI.Config("compiled-preview", "tree.json", theme = Material3Theme(),
+        val provider = compiled.providerType ?: "compiled-preview"
+        HummingSDUI().Content(HummingSDUI.Config(provider, compiled.entryDestination, theme = Material3Theme(),
             placeholder = { Text("Carregando preview…") }, errorHandler = { error, vm -> Column {
                 Text("${error.code}: ${error.message}")
                 error.diagnostic?.let { Text("${it.nodeId} | ${it.path}") }
                 TextButton(onClick = vm::dismissError) { Text("Limpar erro do preview") }
             } }) {
             addLibrary(SDActions()); addLibrary(SDLayoutMaterial3())
-            addNodeProvider("compiled-preview") { path -> require(path == "tree.json"); parseNode(json, documentId = path) }
+            if (compiled.providerType != null) addLibrary(SDNavigation())
+            addNodeProvider(provider) { path -> parseNode(checkNotNull(compiled.artifacts[path]) { "Artefato ausente: $path" }, documentId = path) }
         }, savedStateHandleFactory = { SavedStateHandle() })
     }
 }

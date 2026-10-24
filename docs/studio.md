@@ -307,3 +307,11 @@ Uma tela nova começa sem componentes. Seu contorno de seleção pode ser pequen
 `addScreen` cria uma raiz SCREEN com canvasPosition autoral. `setNavigation` exige navigation:goTo → SCREEN raiz, substitui as saídas NAVIGATION e remove destiny legado em uma transação; undo restaura ambos. Enquanto há relação NAVIGATION, putProperty rejeita destiny explícito. Autonavegação de tela e ciclos continuam permitidos semanticamente; a rejeição geométrica de IDs iguais não altera o compilador.
 
 `compile()` preserva o preview de árvore existente. `compileJourney(providerType)` é explícito: o consumidor deve registrar esse provider real e conservar todos os artefatos, incluindo graph.json e screens/*.json. A existência dessa API não instala navegação no host nem exporta automaticamente os arquivos da jornada. Nenhum método customizado é declarado por esse helper.
+
+### Jornadas no host local
+
+O Studio usa compilePreview: árvore sem navegação conserva o caminho anterior; múltiplas telas ou nós de navegação selecionam compileJourney com provider compiled-preview. O host registra SDNavigation somente na jornada e resolve destinos exclusivamente no mapa de artefatos em memória. Preview de jornada é de execução; manipulação entre telas pertence ao canvas macro. Cada revisão/abertura descarta o estado de formulário do preview anterior.
+
+O Inspector cria update, ifState, then, goTo e goBack, em eventos/ramos tipados; goTo e sua relação são inseridos atomicamente. Ações customizadas e transições não suportadas não são oferecidas. Telas desconectadas continuam rascunhos diagnosticados pelo compilador, sem exclusão automática.
+
+A exportação de árvore mantém humming-contract.json. Jornada usa humming-journey.json, envelope local formatVersion=1 com CompiledContracts completo (entryDestination, providerType, artifacts e sourceNodeIds). CompiledBundleCodec ordena mapas, valida manifesto/caminhos gerados e payloads, limita 256 artefatos, 4 milhões de caracteres de contratos e 8 milhões no envelope. Esse envelope é transporte local; o runtime continua recebendo cada artefato no wire existente através do provider registrado pelo host. O arquivo autoral continua separado em humming-document.json; não há importação automática de pacote compilado como documento editável.

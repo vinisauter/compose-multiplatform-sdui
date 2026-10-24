@@ -1,6 +1,7 @@
 package me.developes.humming.sdui.studio
 
 import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
@@ -32,6 +33,7 @@ data class CompilationLimits(
     init { require(maxExpandedNodes > 0 && maxArtifacts > 0 && maxDepth in 1..256 && maxOutputChars > 0) }
 }
 
+@Serializable
 data class CompiledContracts(
     val documentId: String,
     val revision: Long,

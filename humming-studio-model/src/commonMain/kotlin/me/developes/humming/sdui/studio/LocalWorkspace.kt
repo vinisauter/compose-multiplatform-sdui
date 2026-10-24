@@ -30,6 +30,9 @@ class LocalWorkspace(
     fun save(): AuthoringResult<String> = codec.encode(document)
     fun compile(): AuthoringResult<CompiledContracts> = ContractCompiler(catalog).compileTree(document,
         TargetCapabilities(catalog.capabilities.filterKeys { it.startsWith("layout:") || it.startsWith("action:") }))
+    fun compilePreview(): AuthoringResult<CompiledContracts> = if (document.nodes.values.count { it.kind == AuthorNodeKind.SCREEN } > 1 ||
+        document.nodes.values.any { it.definition.startsWith("navigation:") } || document.edges.values.any { it.role == EdgeRole.NAVIGATION })
+        compileJourney("compiled-preview") else compile()
     fun apply(operations: List<EditOperation>): EditOutcome = session.execute(EditCommand(identity(), document.revision, operations))
     fun undo(): EditOutcome = session.undo(identity(), document.revision)
     fun redo(): EditOutcome = session.redo(identity(), document.revision)
@@ -85,6 +88,31 @@ class LocalWorkspace(
 
     fun disconnect(edgeId: String): EditOutcome = apply(listOf(EditOperation.RemoveEdge(edgeId)))
 
+    fun addAction(sourceId: String, port: String, definition: String, targetScreenId: String? = null): EditOutcome {
+        if (definition !in actionDefinitions) return rejected("EDITOR_DEFINITION", "Ação indisponível no editor", sourceId)
+        val source = document.nodes[sourceId] ?: return rejected("NODE_NOT_FOUND", "Origem inexistente", sourceId)
+        if (definition == "navigation:goTo") {
+            val target = document.nodes[targetScreenId]
+            if (target?.kind != AuthorNodeKind.SCREEN || target.placement !is Placement.Root)
+                return rejected("EDITOR_NAVIGATION", "Selecione uma tela raiz de destino", sourceId)
+        }
+        val indices = AuthoringIndices(document)
+        val id = identity()
+        val properties = when (definition) {
+            "action:update" -> mapOf("state" to JsonPrimitive("status"), "value" to JsonPrimitive("confirmado"))
+            "action:ifState" -> mapOf("state" to JsonPrimitive("ready"))
+            else -> emptyMap()
+        }
+        val operations = mutableListOf<EditOperation>(
+            EditOperation.InsertNode(AuthorNode(id, AuthorNodeKind.ACTION, definition, JsonObject(properties), Placement.Root("V")),
+                previousId = indices.roots.lastOrNull()?.id),
+            EditOperation.InsertEdge(AuthorEdge(identity(), if (source.kind == AuthorNodeKind.ACTION) EdgeRole.ACTION_FLOW else EdgeRole.EVENT,
+                sourceId, port, id, "input", "V"), previousId = indices.edgesBySourcePort[SourcePort(sourceId, port)]?.lastOrNull()?.id))
+        if (definition == "navigation:goTo") operations += EditOperation.InsertEdge(
+            AuthorEdge(identity(), EdgeRole.NAVIGATION, id, "navigate", targetScreenId!!, "entry"))
+        return apply(operations)
+    }
+
     fun insertVisual(parentId: String, definition: String, slot: String = "children"): EditOutcome {
         if (definition !in visualDefinitions) return rejected("EDITOR_DEFINITION", "Componente indisponível no editor", parentId)
         val indices = AuthoringIndices(document)
@@ -103,15 +131,7 @@ class LocalWorkspace(
     }
 
     fun addUpdate(sourceId: String, port: String): EditOutcome {
-        val indices = AuthoringIndices(document)
-        val id = identity()
-        return apply(listOf(
-            EditOperation.InsertNode(AuthorNode(id, AuthorNodeKind.ACTION, "action:update",
-                JsonObject(mapOf("state" to JsonPrimitive("status"), "value" to JsonPrimitive("confirmado"))), Placement.Root("V")),
-                previousId = indices.roots.lastOrNull()?.id),
-            EditOperation.InsertEdge(AuthorEdge(identity(), EdgeRole.EVENT, sourceId, port, id, "input", "V"),
-                previousId = indices.edgesBySourcePort[SourcePort(sourceId, port)]?.lastOrNull()?.id),
-        ))
+        return addAction(sourceId, port, "action:update")
     }
 
     /** Only known scalar fields are editable here. Relationships use commands, never raw JSON fields. */
@@ -200,6 +220,7 @@ class LocalWorkspace(
         listOf(NodeDiagnostic(code, message, "editor", nodeId = id, documentId = document.documentId)))
 
     companion object {
+        val actionDefinitions = listOf("action:update", "action:ifState", "action:then", "navigation:goTo", "navigation:goBack")
         val visualDefinitions = listOf("layout:column", "layout:row", "layout:box", "layout:text", "layout:textField", "layout:button")
         @OptIn(ExperimentalUuidApi::class)
         private fun identity() = Uuid.random().toString()
