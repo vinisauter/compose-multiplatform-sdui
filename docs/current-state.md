@@ -2,20 +2,20 @@
 
 Este é o ponto de entrada para **continuar o desenvolvimento**. Reúne o estado observado, o rastreamento das etapas e a próxima ação. O [plano](development-plan.md) define dependências, escopo e critérios de aceite; este documento é a única fonte de status e retomada.
 
-Atualizado no recorte T17: 65 testes de autoria, 30 contrato, 64 core, 4 ações e 20 sample aprovados em JVM (183 casos, sem falhas/erros/ignorados). Editor por árvore/Inspector integrado ao compilador e preview real; importação JSON, edição e downloads observados no Chrome/Wasm. Abertura pelo seletor de arquivos ainda exige validação manual; T17 não está concluída.
+Atualizado no recorte T17: 65 testes de autoria, 30 contrato, 64 core, 4 ações e 20 sample aprovados em JVM (183 casos, sem falhas/erros/ignorados). Editor por árvore/Inspector integrado ao compilador e preview real; importação JSON, edição e downloads observados no Chrome/Wasm. O usuário confirmou a abertura manual do arquivo e a ação exibindo confirmado; T17 concluída.
 
 ## Ponto de retomada
 
 | Campo | Registro atual |
 | --- | --- |
-| Última atualização | 2026-10-24 — base e05985b (T13), anteriores c6a1e46 e 6441ec0; T14 no commit local bde7c23 e T15 em eb8726e e T16 em b6c1ff3; sem push |
-| Última entrega | Recorte T17: modelo/UI integrados, 183 testes JVM e downloads reais; falta aceite manual do seletor, ver [validação](validation.md) |
-| Tarefa de implementação em execução | T17 — Codex: editor local e Inspector |
-| Próxima tarefa | **T17 — concluir a validação de abrir arquivo no Chrome** |
-| Próxima ação concreta | No Studio em localhost:8080, Abrir documento → selecionar Downloads/humming-document.json → confirmar Substituir. Verificar texto Editor: Pessoa Studio /, Confirmar → confirmado e Desfazer desabilitado após reabrir. Registrar o resultado antes de concluir T17 |
-| Critério para avançar | Criar tela, editar/desfazer, salvar/reabrir, exportar/reimportar e executar no renderer |
-| Bloqueio de implementação conhecido | Nenhum defeito pendente reproduzido no código; automação do seletor exige permissão de arquivos locais na extensão Chrome. Não alterar essa permissão sem autorização. Abertura manual é alternativa suficiente |
-| Limite do próximo recorte | Editor local, sem servidor, colaboração ou publicação |
+| Última atualização | 2026-10-24 — base e05985b (T13), anteriores c6a1e46 e 6441ec0; T14 no commit local bde7c23 e T15 em eb8726e e T16 em b6c1ff3 e implementação T17 em 2d9d6eb; sem push |
+| Última entrega | T17: editor local, 183 testes JVM, downloads reais e aceite manual de abertura/ação confirmado pelo usuário; ver [validação](validation.md) |
+| Tarefa de implementação em execução | Nenhuma; T17 concluída |
+| Próxima tarefa | **T18 — seleção, bounds e drop geométrico** |
+| Próxima ação concreta | Ler a geometria em Studio, integrar bounds derivados do renderer e transformações de viewport; iniciar testes puros de seleção/alvo/índice para Column/Row antes de conectar o gesto aos comandos |
+| Critério para avançar | Testar seleção/alvo/índice e cancelamento/revisões obsoletas; observar guia e commit de drop no navegador, preservando ordem exportada |
+| Bloqueio de implementação conhecido | Nenhum para T18. Seleção automática de arquivos continua limitada pela extensão Chrome; aceite manual de T17 foi informado pelo usuário, sem alterar permissões |
+| Limite do próximo recorte | Geometria e manipulação local em Column/Row sem wrap/reverse; Box limitado; sem servidor ou publicação |
 
 ### Protocolo quando o pedido for “continue o desenvolvimento”
 
@@ -50,8 +50,8 @@ Estados: **pronta**, **pendente**, **em execução**, **bloqueada**, **concluíd
 | T14 | Comandos, chaves de ordem e undo local | concluída | 158 testes JVM no conjunto, metadata/JS/Wasm compilados; midpoint, transações por CAS, inversas e undo/redo com limites e concorrência |
 | T15 | Compilador puro do subconjunto legado | concluída | 172 testes JVM aprovados; golden, capacidades, expansão limitada, ciclos e jornada compilada executada pelo renderer real; ver [validação](validation.md) |
 | T16 | Preview do catálogo no host Wasm | concluída | Chrome/Wasm observado: edição/binding/update/MISSING_METHOD/recuperação; host sem provider URL; teste JVM de descarte; ver [validação](validation.md) |
-| T17 | Editor local e Inspector | em execução | LocalWorkspace, árvore, Inspector, comandos e preview; 183 testes JVM; importação JSON/ação/downloads no Chrome. Falta abrir arquivo pelo seletor real; não avançar para T18 antes desse aceite |
-| T18 | Seleção, bounds e drop geométrico | pendente | Validar Row/Column, transformações e commit por revisão |
+| T17 | Editor local e Inspector | concluída | Implementação 2d9d6eb; 183 testes JVM; importação/ação/downloads observados pelo agente e abertura manual/confirmado relatados pelo usuário em 2026-10-24; ver [validação](validation.md) |
+| T18 | Seleção, bounds e drop geométrico | pronta | Validar Row/Column, transformações e commit por revisão |
 | T19 | Grafo de interações e conectores | pendente | Portas/curvas/ações compiláveis e navegação observada |
 | T20 | Aplicação de servidor e interfaces | pendente | Criar fronteiras/casos de uso/host local com autorização |
 | T21 | Rascunhos/revisões em PostgreSQL | pendente | Validar persistência/transações em banco real local |
@@ -65,13 +65,9 @@ Os requisitos completos e a ordem das dependências estão no [plano](developmen
 
 ### Trabalho parcial e bloqueios
 
-T17 — Codex, 2026-10-24, sobre b6c1ff3: LocalWorkspace puro e LocalStudio no sample implementados; seis componentes, action:update por evento, seleção/ordem/movimento, edição validada por schema, undo/redo, codecs e preview isolado. Abrir inválido preserva documento/histórico; reabrir reinicia preview mesmo com conteúdo idêntico. Desconhecidos ficam salvos e somente leitura; compilação incompatível bloqueia o preview.
+T17 concluída após o usuário responder “apareceu confirmado” ao procedimento solicitado de abrir o documento salvo e executar Confirmar. O relato manual completa a evidência dos testes e do browser registrada em [validação](validation.md); não equivale a observação automatizada do seletor nem a confirmação manual adicional de todos os controles. O descarte de estado/histórico ao reabrir está coberto pelos testes Compose existentes.
 
-Verificação: build/t17/final.log passou; 183 testes JVM sem falhas/erros/ignorados, metadata/JS puros e sample Wasm compilados. Browser: importou contrato pelo diálogo JSON, mostrou árvore completa, executou Confirmar, editou binding pelo Inspector e gerou dois arquivos em Downloads. humming-document.json contém seis nós, uma aresta, revisão 1 e Editor: #{nome} / #{status}; humming-contract.json contém o contrato atualizado. Captura build/t17/browser-studio.png inspecionada.
-
-Pendente: abertura pelo seletor real. fileChooser.setFiles falhou porque a extensão ChatGPT do Chrome não permite URLs de arquivos; nenhuma permissão foi alterada. O evento automatizado de download também expirou, porém a existência e o conteúdo dos arquivos foram confirmados em Downloads. Não repetir a chamada de upload sem mudança de permissão ou intervenção manual.
-
-Retomada: pedir/observar a abertura manual do arquivo salvo conforme a tabela. Se carregar sem erro e a ação funcionar, concluir T17 e promover T18. A UI de salvar solicita download; não promete gravação concluída nem limpa automaticamente o indicador de alterações locais. Não há persistência de sessão, canvas geométrico ou servidor. Para registrar o recorte, preencher:
+Não há trabalho parcial ativo. Retomar por T18; não repetir o seletor nem ampliar permissões da extensão para revalidar T17 sem motivo novo. A UI de salvar solicita download e não limpa automaticamente o indicador de alterações locais. Não há canvas geométrico ou servidor implementados. Para registrar o recorte, preencher:
 
 ```text
 Etapa / responsável / data / revisão:
