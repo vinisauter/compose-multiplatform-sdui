@@ -132,7 +132,8 @@ class LegacyAuthoringCodec(
                         else -> JsonArray(nodes)
                     }
                     properties[property.name] = if (shape in setOf(NodeListShape.STRING_ARRAY, NodeListShape.STRING_OBJECT))
-                        JsonPrimitive(canonicalJson(element).toString()) else element
+                        JsonPrimitive(boundedCanonicalJson(element, payloadLimits.maxPropertyChars, payloadLimits.maxDepth,
+                            "legacyExport", document.documentId)) else element
                 }
                 if (node.hasProperties || properties.isNotEmpty()) output["properties"] = JsonObject(properties)
                 val children = indices.childrenByParentAndSlot[ParentSlot(id, "children")].orEmpty()
@@ -141,7 +142,7 @@ class LegacyAuthoringCodec(
             }
             val root = materialize(rootId, 1)
             validateBoundedJson(root, payloadLimits, document.documentId)
-            val encoded = canonicalJson(root).toString()
+            val encoded = boundedCanonicalJson(root, payloadLimits.maxInputChars, payloadLimits.maxDepth, "legacyExport", document.documentId)
             val parsed = parseNode(encoded, payloadLimits, document.documentId)
             diagnostics += catalog.validate(parsed, maxNodes = limits.maxNodes, maxDepth = limits.maxDepth)
             val omitted = document.nodes.keys - reached

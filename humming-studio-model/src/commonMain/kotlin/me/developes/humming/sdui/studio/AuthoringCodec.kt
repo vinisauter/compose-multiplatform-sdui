@@ -24,10 +24,49 @@ private data class WireDocument(
     val edges: List<AuthorEdge>,
 )
 
-internal fun canonicalJson(element: JsonElement): JsonElement = when (element) {
-    is JsonObject -> JsonObject(element.keys.sorted().associateWith { canonicalJson(element.getValue(it)) })
-    is JsonArray -> JsonArray(element.map { canonicalJson(it) })
-    else -> element
+/** Checks the character budget while writing, before a large expansion allocates its full JSON string. */
+internal fun boundedCanonicalJson(
+    element: JsonElement, maxChars: Int, maxDepth: Int = 64,
+    operation: String = "authoringEncode", documentId: String? = null, code: String = "INPUT_LIMIT",
+): String {
+    require(maxChars >= 0 && maxDepth > 0)
+    val output = StringBuilder(minOf(maxChars, 4096))
+    fun fail(budgetCode: String = code): Nothing = throw PayloadException(NodeDiagnostic(
+        budgetCode, "JSON encoding budget exceeded", operation, documentId = documentId))
+    fun append(value: String) {
+        if (output.length.toLong() + value.length > maxChars) fail()
+        output.append(value)
+    }
+    fun primitive(value: kotlinx.serialization.json.JsonPrimitive) {
+        if (output.length.toLong() + value.content.length > maxChars) fail()
+        append(value.toString())
+    }
+    fun write(value: JsonElement, depth: Int) {
+        if (depth > maxDepth) fail("DEPTH_LIMIT")
+        when (value) {
+            is JsonObject -> {
+                append("{")
+                value.keys.sorted().forEachIndexed { index, key ->
+                    if (index > 0) append(",")
+                    primitive(kotlinx.serialization.json.JsonPrimitive(key))
+                    append(":")
+                    write(value.getValue(key), depth + 1)
+                }
+                append("}")
+            }
+            is JsonArray -> {
+                append("[")
+                value.forEachIndexed { index, child ->
+                    if (index > 0) append(",")
+                    write(child, depth + 1)
+                }
+                append("]")
+            }
+            is kotlinx.serialization.json.JsonPrimitive -> primitive(value)
+        }
+    }
+    write(element, 1)
+    return output.toString()
 }
 
 class AuthoringDocumentCodec(
@@ -45,7 +84,8 @@ class AuthoringDocumentCodec(
                 document.nodes.values.sortedBy { it.id }, document.edges.values.sortedBy { it.id })
             val element = json.encodeToJsonElement(WireDocument.serializer(), wire)
             validateBoundedJson(element, payloadLimits, document.documentId)
-            val encoded = canonicalJson(element).toString()
+            val encoded = boundedCanonicalJson(element, payloadLimits.maxInputChars, payloadLimits.maxDepth,
+                documentId = document.documentId)
             if (encoded.length > payloadLimits.maxInputChars) return AuthoringResult(null, diagnostics + NodeDiagnostic(
                 "INPUT_LIMIT", "Encoded document exceeds character budget", "authoringEncode", documentId = document.documentId))
             AuthoringResult(encoded, diagnostics)

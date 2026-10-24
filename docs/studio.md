@@ -249,3 +249,13 @@ Tolerância de 8 pixels é parâmetro inicial do host. Testar zoom, densidade, e
 ## Fronteira de entrega
 
 T13–T15 entregam modelo, comandos e compilação puros. T13/T14 são verificadas com fixtures semânticas e testes puros; a integração de exportar e executar o contrato no cliente começa em T15. T16–T17 entregam preview e edição local utilizável. T18 acrescenta o drop geométrico e T19 o grafo visual, também validados pela execução do contrato resultante. Persistência e múltiplos usuários só entram nas tarefas remotas. Uma imagem do canvas isolada não valida a semântica.
+
+## Compilação local e capacidades
+
+`ContractCompiler.compileTree` gera uma árvore; `compileJourney` gera `graph.json` e `screens/<id-em-hex-UTF8>.json`. `TargetCapabilities` declara versões exatas de definições, métodos e providers disponíveis. O host deve registrar implementações reais: a declaração não instala handlers. O compilador não executa efeitos.
+
+Arestas NAVIGATION de `navigation:goTo` usam `navigate → entry` para uma SCREEN raiz e substituem a necessidade de `destiny` literal; manter ambos é erro. Ciclos de navegação são permitidos. Ciclos de ações são rejeitados. A ponte LegacyAuthoringCodec continua conservadora; a compilação resolve navegação explícita e expande ações compartilhadas.
+
+Na expansão, a primeira ocorrência preserva o ID; repetições recebem `__expanded:<sourceID>:<ocorrência>`, evitando colisões com IDs autorais e emitidos. `sourceNodeIds` relaciona IDs gerados às origens. Mapas embaralhados produzem os mesmos artefatos. Essa identidade não promete estabilidade após qualquer edição do grafo.
+
+Nós/arestas desconectados são rejeitados por padrão; `UnreachablePolicy.REPORT` permite omissão com aviso explícito, sem alterar o documento. Extensões e metadados sem semântica compilável são rejeitados. Limites padrão: 20.000 nós expandidos, 256 artefatos, profundidade 64 e 4.000.000 caracteres somados; os limites de payload também se aplicam. A escrita JSON canônica verifica tamanho antes de formar a saída completa. Falhas não retornam compilação parcial.

@@ -164,3 +164,7 @@ Novos formatos de tokens reativos, temas e máscaras exigem versionamento ou ext
 ## Limites de entrada
 
 `PayloadLimits` limita texto a 2.000.000 caracteres UTF-16, profundidade JSON a 64, objetos com `component` a 10.000, valores JSON a 100.000 e propriedades/strings a 65.536 caracteres por padrão. `JsonObject.toNode()` valida a árvore já construída; use `parseNode` para limitar também o texto antes do parser. `NodeDiagnostic` inclui código, severidade, operação, caminho, documento opcional e nó quando conhecido. Fallback de resolução: retornar null e expor erro ao host, preservando causa; não substituir erro de componente por provider ausente. O subconjunto descrito neste documento já valida papel e propriedades; ampliar a cobertura exige definição e fixture próprias.
+
+## Compilação de documentos autorais
+
+O módulo puro `humming-studio-model` oferece `ContractCompiler` e `TargetCapabilities`. A saída reutiliza o contrato existente de `navigation:graph`, `navigation:node`, `navigation:goTo` e ações; não introduz execução arbitrária nem novo formato no renderer. Versões dos schemas devem coincidir exatamente com as capacidades declaradas. Providers e métodos precisam ser registrados pelo host. A declaração de provider externo não comprova disponibilidade de seus recursos; jornadas locais compiladas fornecem o mapa de artefatos para o host resolver.

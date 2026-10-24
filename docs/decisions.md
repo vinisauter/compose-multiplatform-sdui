@@ -117,3 +117,7 @@ EditSession publica documento/histórico/recibos num AtomicReference comum. Isso
 Midpoint segue os vetores de Studio; limite resulta em erro explícito, sem truncamento/rebalanceamento automático. Vizinhos são IDs adjacentes no container completo após excluir o movido. Undo/redo aplicam patches inversos mantendo revisão monotônica, sem regenerar identidades. Alterações semânticas e ajustes dos hints de representação integram o mesmo commit local de documento.
 
 Histórico e deduplicação têm limites de entradas e caracteres serializados. Requisição repetida retorna o estado atual, com revisão aplicada original; ID reutilizado para outro conteúdo falha. A janela não promete deduplicação persistida nem colaboração entre processos. SetProperties é substituição explícita; PutProperty/RemoveProperty são a API segura para um campo do Inspector, inclusive JsonNull. A declaração inválida de namespace é rejeitada também em inserções programáticas.
+
+## Compilador: autoridade, expansão e limites
+
+Navegação explícita usa uma única autoridade: a aresta de destino; `destiny` simultâneo é conflito. Ações compartilhadas são expandidas com IDs únicos determinísticos e mapa de origem, pois o contrato legado é uma árvore. Ciclos de navegação permanecem válidos; ciclos de ações não. Desconectados exigem rejeição ou aviso solicitado explicitamente. A geração é atômica, limitada por profundidade, quantidade e caracteres; o writer canônico limita a saída durante a escrita, inclusive nos codecs e comandos, em vez de só validar uma string já alocada.

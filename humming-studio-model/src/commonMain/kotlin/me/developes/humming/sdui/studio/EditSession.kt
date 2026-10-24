@@ -45,7 +45,8 @@ class EditSession(
                 "COMMAND_OPERATIONS", "Command operation count is outside its budget")
             val element = json.encodeToJsonElement(EditCommand.serializer(), command)
             validateBoundedJson(element, payloadLimits, snapshot().documentId)
-            val signature = "edit:" + canonicalJson(element).toString()
+            val signature = "edit:" + boundedCanonicalJson(element, maxOf(0, payloadLimits.maxInputChars - 5),
+                payloadLimits.maxDepth, "edit", snapshot().documentId)
             if (signature.length > payloadLimits.maxInputChars) return rejected("COMMAND_BUDGET", "Command character budget exceeded")
             // Snapshot the command too: callers cannot mutate an input map after commit.
             val owned = json.decodeFromString(EditCommand.serializer(), signature.removePrefix("edit:"))

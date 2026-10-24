@@ -80,3 +80,7 @@ Colaboração vem depois de edição local e persistência com revisão. Um `Mut
 ## Marcas de entrega
 
 O [plano](development-plan.md) define entregas independentes: runtime verificável; autoria local; cliente com capacidades adicionais; publicação remota; colaboração. Cada uma requer evidência adequada em [validação](validation.md). Nenhuma etapa remota deve ser usada para adiar a demonstração local de uma capacidade já implementável.
+
+## Fronteira do compilador autoral
+
+`humming-studio-model` depende apenas do contrato puro e contém documento, codecs, comandos/histórico e `ContractCompiler`. O compilador recebe capacidades do destino e produz JSON mais mapa de origem, sem Compose, IO ou registro de handlers. O host integra esses artefatos ao NodeProvider existente. O sample depende do módulo autoral somente em jvmTest para validar a jornada compilada; o aplicativo de produção ainda não contém editor.

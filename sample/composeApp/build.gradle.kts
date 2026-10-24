@@ -61,6 +61,7 @@ kotlin {
         }
 
         jvmTest.dependencies {
+            implementation(project(":humming-studio-model"))
             implementation(kotlin("test-junit"))
             implementation(compose.desktop.uiTestJUnit4)
             implementation(libs.lifecycle.runtime)
