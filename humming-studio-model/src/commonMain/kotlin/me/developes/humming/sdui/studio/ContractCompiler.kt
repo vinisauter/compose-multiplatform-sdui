@@ -20,6 +20,8 @@ data class TargetCapabilities(
     val definitions: Map<String, Int>,
     val methods: Set<String> = emptySet(),
     val providers: Set<String> = emptySet(),
+    val colorTokens: Set<String> = emptySet(),
+    val maskTokens: Set<String> = emptySet(),
 )
 
 enum class UnreachablePolicy { REJECT, REPORT }
@@ -118,6 +120,16 @@ class ContractCompiler(
                 if (!reached.add(id)) continue
                 val node = document.nodes.getValue(id)
                 capability(node.definition, id)
+                for (definition in catalog[node.definition]?.properties.orEmpty()) {
+                    val names = when (definition.kind) {
+                        PropertyKind.COLOR_TOKEN -> target.colorTokens
+                        PropertyKind.MASK_TOKEN -> target.maskTokens
+                        else -> continue
+                    }
+                    property(node, definition.name)?.let { token -> if (token !in names)
+                        report("UNSUPPORTED_PRESENTATION_TOKEN", "Target does not declare token $token", id,
+                            "$.nodes[${JsonPrimitive(id)}].properties[${JsonPrimitive(definition.name)}]") }
+                }
                 if (node.extensions.isNotEmpty()) report("UNSUPPORTED_EXTENSION", "Extra wire fields have no target schema", id)
                 if (node.definition == "navigation:graph" && (provider != null || id != rootId)) report(
                     "NESTED_NAV_GRAPH", "Nested navigation graphs are outside the initial compiler subset", id)

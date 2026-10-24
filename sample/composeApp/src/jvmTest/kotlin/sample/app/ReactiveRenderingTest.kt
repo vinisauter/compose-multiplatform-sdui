@@ -101,4 +101,34 @@ class ReactiveRenderingTest {
         compose.waitForIdle()
         compose.runOnIdle { assertEquals(0, vm.onStateUpdated.subscriptionCount.value) }
     }
+
+    @Test fun declaredMaskChangesOnlyPresentationAndUnknownTokensRejectCompilation() {
+        val source = """{"component":"layout:validatedTextField","id":"code-input","properties":{
+          "stateKey":"code","label":"Código","maskToken":"code","errorText":"Código inválido",
+          "valid":{"version":1,"expression":{"language":"humming.expression","version":1,"source":"true"},"fallback":false}
+        }}"""
+        val workspace = LocalWorkspace()
+        workspace.importContract(source).requireValue()
+        assertNotNull(workspace.compile().value)
+        val unsupported = ContractCompiler(workspace.catalog).compileTree(workspace.document,
+            TargetCapabilities(workspace.catalog.capabilities))
+        assertTrue(unsupported.diagnostics.any { it.code == "UNSUPPORTED_PRESENTATION_TOKEN" })
+        val node = parseNode(source)
+        lateinit var vm: SDUIFormViewModel
+        compose.runOnIdle {
+            vm = SDUIFormViewModel(SavedStateHandle(), listOf(SDLayoutMaterial3()))
+            store.put("test", vm)
+        }
+        compose.setContent { MaterialTheme { if (mounted.value) vm.loadComponent(node)?.Content() } }
+        compose.onNode(hasSetTextAction()).performTextReplacement("001234")
+        compose.onNodeWithText("001-234").assertExists()
+        compose.runOnIdle { assertEquals(SduiValue.Text("001234"), vm.stateValue("code")) }
+        compose.onNode(hasSetTextAction()).performTextReplacement("ABC")
+        compose.onNodeWithText("MASK_INPUT: code-input", substring = true).assertExists()
+        compose.runOnIdle { assertEquals(SduiValue.Text("ABC"), vm.stateValue("code")) }
+        compose.onNode(hasSetTextAction()).performTextReplacement("000007")
+        compose.onNodeWithText("000-007").assertExists()
+        compose.onNodeWithText("MASK_INPUT", substring = true).assertDoesNotExist()
+        compose.runOnIdle { assertEquals(SduiValue.Text("000007"), vm.stateValue("code")) }
+    }
 }

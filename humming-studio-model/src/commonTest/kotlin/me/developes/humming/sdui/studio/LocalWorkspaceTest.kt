@@ -4,6 +4,24 @@ import kotlinx.serialization.json.JsonPrimitive
 import kotlin.test.*
 
 class LocalWorkspaceTest {
+    @Test fun reactiveComponentsStartWithValidEnvelopesAndDistinctCanonicalFieldKeys() {
+        val workspace = LocalWorkspace()
+        val root = workspace.document.entryNodeId
+        val text = insert(workspace, root, "layout:reactiveText")
+        val button = insert(workspace, root, "layout:reactiveButton")
+        val first = insert(workspace, root, "layout:validatedTextField")
+        val second = insert(workspace, root, "layout:validatedTextField")
+        val nodes = workspace.document.nodes
+        assertNotEquals(nodes.getValue(first).properties["stateKey"], nodes.getValue(second).properties["stateKey"])
+        assertTrue(nodes.getValue(text).properties["value"] is kotlinx.serialization.json.JsonObject)
+        assertTrue(workspace.document.nodes.values.any { (it.placement as? Placement.Child)?.parentId == button })
+        assertNotNull(workspace.compile().value)
+        assertTrue(workspace.undo().isSuccess)
+        assertFalse(second in workspace.document.nodes)
+        assertTrue(workspace.redo().isSuccess)
+        assertNotNull(workspace.compile().value)
+    }
+
     @Test fun createsEditsUndoesSavesReopensAndCompilesARealContract() {
         val workspace = LocalWorkspace()
         val root = workspace.document.entryNodeId

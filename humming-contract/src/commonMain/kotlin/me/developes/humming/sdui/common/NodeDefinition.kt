@@ -5,7 +5,7 @@ import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.contentOrNull
 
 enum class NodeRole { COMPONENT, ACTION, NAVIGATION_METADATA }
-enum class PropertyKind { TEXT, COLOR, BOOLEAN, INTEGER, LONG, FLOAT, ENUM, NODES, STRING_ARRAY, OPAQUE, EXPRESSION_TEXT, EXPRESSION_BOOLEAN }
+enum class PropertyKind { TEXT, COLOR, BOOLEAN, INTEGER, LONG, FLOAT, ENUM, NODES, STRING_ARRAY, OPAQUE, EXPRESSION_TEXT, EXPRESSION_BOOLEAN, COLOR_TOKEN, MASK_TOKEN }
 enum class InvalidPropertyPolicy { REJECT, LEGACY_FALLBACK, LEGACY_BOOLEAN, PRESENCE }
 enum class ValidationMode { LEGACY, AUTHORING }
 

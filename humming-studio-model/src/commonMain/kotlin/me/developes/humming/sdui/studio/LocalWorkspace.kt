@@ -13,6 +13,7 @@ data class EditorTreeRow(val node: AuthorNode, val depth: Int, val relation: Str
 class LocalWorkspace(
     initialDocument: AuthoringDocument = blankDocument(),
     val catalog: NodeCatalog = initialNodeCatalog(),
+    val presentationTokens: PresentationTokens = defaultPresentationTokens(),
 ) {
     var session: EditSession = EditSession(initialDocument, catalog)
         private set
@@ -29,7 +30,8 @@ class LocalWorkspace(
     fun newDocument() { session = EditSession(blankDocument(), catalog) }
     fun save(): AuthoringResult<String> = codec.encode(document)
     fun compile(): AuthoringResult<CompiledContracts> = ContractCompiler(catalog).compileTree(document,
-        TargetCapabilities(catalog.capabilities.filterKeys { it.startsWith("layout:") || it.startsWith("action:") }))
+        TargetCapabilities(catalog.capabilities.filterKeys { it.startsWith("layout:") || it.startsWith("action:") },
+            colorTokens = presentationTokens.colorNames, maskTokens = presentationTokens.maskNames))
     fun compilePreview(): AuthoringResult<CompiledContracts> = if (document.nodes.values.count { it.kind == AuthorNodeKind.SCREEN } > 1 ||
         document.nodes.values.any { it.definition.startsWith("navigation:") } || document.edges.values.any { it.role == EdgeRole.NAVIGATION })
         compileJourney("compiled-preview") else compile()
@@ -42,7 +44,8 @@ class LocalWorkspace(
         ContractCompiler(catalog).compileJourney(document,
             TargetCapabilities(catalog.capabilities.filterKeys {
                 it.startsWith("layout:") || it.startsWith("action:") || it.startsWith("navigation:")
-            }, providers = setOf(providerType)), providerType)
+            }, providers = setOf(providerType), colorTokens = presentationTokens.colorNames,
+                maskTokens = presentationTokens.maskNames), providerType)
 
     fun addScreen(position: CanvasPoint): EditOutcome = apply(listOf(EditOperation.InsertNode(
         AuthorNode(identity(), AuthorNodeKind.SCREEN, "layout:column",
@@ -125,15 +128,21 @@ class LocalWorkspace(
         if (definition !in visualDefinitions) return rejected("EDITOR_DEFINITION", "Componente indisponível no editor", parentId)
         val indices = AuthoringIndices(document)
         val id = identity()
+        val stateKey = "field_$id"
         val properties = when (definition) {
             "layout:text" -> mapOf("text" to JsonPrimitive("Texto"))
             "layout:textField" -> mapOf("text" to JsonPrimitive("Visitante"), "onChangeUpdateState" to JsonPrimitive("nome"))
+            "layout:reactiveText" -> mapOf("value" to expression("\"Texto\"", JsonPrimitive("Texto")))
+            "layout:reactiveButton" -> mapOf("enabled" to expression("true", JsonPrimitive(false)))
+            "layout:validatedTextField" -> mapOf("stateKey" to JsonPrimitive(stateKey), "label" to JsonPrimitive("Campo"),
+                "errorText" to JsonPrimitive("Preencha o campo"),
+                "valid" to expression("(state[${JsonPrimitive(stateKey)}] ?? \"\") + \"\" != \"\"", JsonPrimitive(false)))
             else -> emptyMap()
         }
         val node = AuthorNode(id, AuthorNodeKind.VISUAL, definition, JsonObject(properties), Placement.Child(parentId, slot, "V"))
         val operations = mutableListOf<EditOperation>(EditOperation.InsertNode(node,
             previousId = indices.childrenByParentAndSlot[ParentSlot(parentId, slot)]?.lastOrNull()?.id))
-        if (definition == "layout:button") operations += EditOperation.InsertNode(AuthorNode(identity(), AuthorNodeKind.VISUAL,
+        if (definition in setOf("layout:button", "layout:reactiveButton")) operations += EditOperation.InsertNode(AuthorNode(identity(), AuthorNodeKind.VISUAL,
             "layout:text", JsonObject(mapOf("text" to JsonPrimitive("Confirmar"))), Placement.Child(id, "children", "V")))
         return apply(operations)
     }
@@ -243,7 +252,12 @@ class LocalWorkspace(
 
     companion object {
         val actionDefinitions = listOf("action:update", "action:ifState", "action:then", "navigation:goTo", "navigation:goBack")
-        val visualDefinitions = listOf("layout:column", "layout:row", "layout:box", "layout:text", "layout:textField", "layout:button")
+        val visualDefinitions = listOf("layout:column", "layout:row", "layout:box", "layout:text", "layout:textField", "layout:button",
+            "layout:reactiveText", "layout:reactiveButton", "layout:validatedTextField")
+        private fun expression(source: String, fallback: JsonPrimitive) = JsonObject(mapOf(
+            "version" to JsonPrimitive(1), "fallback" to fallback,
+            "expression" to JsonObject(mapOf("language" to JsonPrimitive("humming.expression"),
+                "version" to JsonPrimitive(1), "source" to JsonPrimitive(source)))))
         @OptIn(ExperimentalUuidApi::class)
         private fun identity() = Uuid.random().toString()
         fun blankDocument(): AuthoringDocument {

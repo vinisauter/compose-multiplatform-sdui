@@ -2,20 +2,20 @@
 
 Este é o ponto de entrada para **continuar o desenvolvimento**. Reúne o estado observado, o rastreamento das etapas e a próxima ação. O [plano](development-plan.md) define dependências, escopo e critérios de aceite; este documento é a única fonte de status e retomada.
 
-Atualizado após T08: linguagem pura opt-in implementada sobre os valores/escopos da T07. Suíte JVM: 43 contrato + 69 core + 4 ações + 94 autoria + 32 sample = 242 casos, zero falhas/erros/ignorados. Expressões compiladas para metadata/JS/Wasm; integração reativa nas propriedades ainda pertence à T09. T07 também foi compilada para Android e observada no Chrome.
+Atualizado após T09: propriedades opt-in com texto/visibilidade/habilitação reativos, validação de campo, tokens de tema e máscaras declaradas. Suíte JVM: 52 contrato + 72 core + 4 ações + 95 autoria + 35 sample = 258 casos, zero falhas/erros/ignorados. Metadata/JS/Wasm afetados compilados; biblioteca visual compilada para Android, sem execução em dispositivo. Formulário executado e observado no Chrome/Wasm; máscaras e falhas recuperáveis verificadas em JVM. Apple permanece sem execução.
 
 ## Ponto de retomada
 
 | Campo | Registro atual |
 | --- | --- |
-| Última atualização | 2026-10-24 — T19 em f85c566, T07 em 43527b7; T08 com código e evidência abaixo; commits locais sem push |
-| Última entrega | T09 parcial: dependências (3e6faad), texto/visibilidade (d30bd0e), habilitação e validação de formulário; 253 testes JVM no conjunto |
-| Tarefa de implementação em execução | T09 — Codex; primeiro recorte: dependências e binding tipado com assinatura pertencente ao consumidor |
-| Próxima tarefa | **T09 — propriedades reativas, tokens e validação** |
-| Próxima ação concreta | Definir tokens e máscaras por capacidade, separar apresentação do valor canônico e qualificar o formulário no browser |
-| Critério para avançar | Mudar estado atualiza propriedades dependentes sem collectors duplicados; descarte cancela assinaturas; UI explicita erros de expressão/validação; dado canônico separado da apresentação e tokens/máscaras com capacidades declaradas |
-| Bloqueio de implementação conhecido | Nenhum para T09. Expressões testadas em JVM e compiladas JS/Wasm; execução browser da linguagem e Apple permanecem qualificação própria |
-| Limite do próximo recorte | Integração reativa por capacidade do cliente; sem substituir bindings legados, transporte HTTP, backend ou publicação |
+| Última atualização | 2026-10-24 — T08 fe918d4; T09 3e6faad, d30bd0e, d23267e e recorte de tokens/máscaras descrito abaixo; commits locais sem push |
+| Última entrega | T09: formulário reativo opt-in, apresentação separada do canônico e capacidades de tokens/máscaras; 258 testes JVM e fluxo real Chrome |
+| Tarefa de implementação em execução | Nenhuma; T09 concluída no escopo abaixo |
+| Próxima tarefa | **T10 — transporte HTTP com ownership e resultado** |
+| Próxima ação concreta | Inspecionar humming-network experimental e provider URL, definir API tipada e política de segurança/limites; injetar HttpClient do host e preparar testes com engine controlada e servidor HTTP loopback real |
+| Critério para avançar | Métodos/body reais, resultado em response/error da execução, GET/POST/erros/timeout/cancelamento/concorrrência comprovados; cliente reutilizado e fechado pelo host |
+| Bloqueio de implementação conhecido | Nenhum para iniciar T10 local. Não há backend ou credenciais necessários para o endpoint de teste loopback |
+| Limite do próximo recorte | Transporte cliente e testes locais; sem backend remoto, publicação, credenciais no payload ou mudanças de infraestrutura |
 
 ### Protocolo quando o pedido for “continue o desenvolvimento”
 
@@ -42,8 +42,8 @@ Estados: **pronta**, **pendente**, **em execução**, **bloqueada**, **concluíd
 | T06 | Fronteira pura e consumo sem UI | concluída | 114 testes JVM aprovados, classpath puro e core Android compilado; migração/recompilação descritas no contrato |
 | T07 | Valores tipados e escopos de tela/ação | concluída | Codex, 2026-10-24: 232 testes JVM no conjunto; 33 contrato/69 core/32 sample incluem tipos, concorrência, owner distinto, duas entradas da mesma rota, retorno, erro e cancelamento no pop. Wasm, JS/metadata e core/navegação Android compilados; Chrome confirmou isolamento/retorno |
 | T08 | Linguagem de expressões limitada | concluída | Codex, 2026-10-24: 10 testes novos da linguagem; 43 contrato/242 JVM no conjunto; grammar/versão, escopos, precedência, curto-circuito, tipos, números/índices inválidos, limites e cancelamento. Metadata/JS/Wasm compilados; sem integração UI |
-| T09 | Propriedades reativas, tokens e validação | em execução | Codex: dependências e binding tipado primeiro; formato/capacidade opt-in, apresentação, tokens/máscaras, validação e UI permanecem no escopo da etapa |
-| T10 | Transporte HTTP com ownership e resultado | pendente | Implementar métodos reais e integração HTTP local |
+| T09 | Propriedades reativas, tokens e validação | concluída | Codex: três componentes opt-in, envelopes 1, schema 2 para tokens/máscara, 258 testes JVM, metadata/JS/Wasm e Android visual compilados; texto/habilitação/visibilidade/ação observados Chrome; evidência e limites nos recortes T09 abaixo |
+| T10 | Transporte HTTP com ownership e resultado | pronta | Implementar métodos reais e integração HTTP loopback; seguir API/ownership/limites do plano |
 | T11 | Jornada, navegação e cache versionado | pendente | Isolar entradas, fixar snapshot e definir políticas |
 | T12 | Bridge de capacidades nativas | pendente | Capacidade real no host e não suporte explícito nos demais |
 | T13 | Documento autoral e importação/exportação | concluída | 21 testes autorais; 135 JVM no conjunto; metadata/JS/Wasm compilados; modelo, índices, codec canônico e ponte legada com diagnósticos |
@@ -157,7 +157,7 @@ Essas limitações descrevem o código, não comportamentos que devam ser perpet
 
 Os builds principais declaram toolchain JVM **25** e compatibilidade Java Android **17**. O [catálogo](../gradle/libs.versions.toml) declara Kotlin `2.4.21`, Compose `1.8.2`, AGP `8.13.2`, Ktor `3.6.0` e Navigation `2.9.2`; aliases JVM/Spring usam Kotlin `2.2.10`. Esses valores não demonstram resolução dos artefatos ou compatibilidade entre versões.
 
-A referência agregada mais recente é 242 testes JVM após T08; o primeiro recorte T09 acrescenta seis casos, com 46 do contrato e 72 do core aprovados novamente. Ações/autoria/sample mantêm os resultados anteriores. As fixtures de parsing/limites pertencem ao commonTest do contrato; o teste headless comprova ausência de classes UI no classpath. Evidências incrementais estão nos recortes acima; procedimentos em [validação](validation.md).
+A referência agregada mais recente é 258 testes JVM após T09, sem falhas/erros/ignorados. As fixtures de parsing/limites pertencem ao commonTest do contrato; o teste headless comprova ausência de classes UI no classpath. Evidências incrementais estão nos recortes T09; procedimentos em [validação](validation.md).
 
 A dependência Lifecycle do core permanece api porque seu ViewModel aparece na API pública. O host JVM fornece handle de estado em memória por factory explícita; os outros hosts mantêm o caminho padrão. O contrato é exportado pelo core e usa bytecode JVM 17 com toolchain 25.
 
@@ -165,7 +165,7 @@ Gradle 9.5.1 com Java 25.0.3 em Windows 11 x64 executou `projects`, descoberta d
 
 ## Evolução ainda não implementada
 
-Permanecem pendentes a integração visual completa de expressões/tokens/validação da T09, schemas para o restante do catálogo, transporte remoto, políticas de cache, bridge nativa, persistência remota, publicação e colaboração. Valores tipados, linguagem pura, isolamento opt-in e grafo visual local já possuem evidência nos recortes anteriores. O [plano](development-plan.md) define o escopo restante.
+Permanecem pendentes schemas para o restante do catálogo, transporte HTTP T10, políticas de cache, bridge nativa, persistência remota, publicação e colaboração. Valores tipados, linguagem pura, formulário reativo opt-in, isolamento por entrada e grafo visual local possuem evidência nos recortes anteriores. Máscaras de domínio adicionais e aritmética decimal exata não são capacidades instaladas; nenhuma propriedade monetária foi declarada. O [plano](development-plan.md) define o escopo restante.
 
 ### T09 — envelope e texto/visibilidade no catálogo
 
@@ -182,3 +182,13 @@ Codex, 2026-10-24: reactiveButton e validatedTextField, ambos schema 1, ampliam 
 Executado: :humming-contract:jvmTest, :humming-core:jvmTest, :humming-actions:jvmTest, :humming-studio-model:jvmTest, :sample:composeApp:jvmTest e :sample:composeApp:compileKotlinWasmJs; build/t09/form-final.log, BUILD SUCCESSFUL. 49 + 72 + 4 + 94 + 34 = 253 testes JVM sem falhas. O teste Compose do formulário cobre estado Missing preservado, validação vazia, habilitação, ação de confirmação, ocultar/reexibir e Number inválido preservado até edição corretiva; outros testes verificam recuperação e descarte. A primeira compilação encontrou colisão de nome interno com Layout.key; corrigida para stateKey sem mudar API pública. Sem browser/Android/Apple neste recorte.
 
 Próximo recorte T09: tokens de tema e máscaras declarados como capacidades, testes da apresentação separada do valor canônico e qualificação browser. T09 ainda não concluída.
+
+### T09 — conclusão: tokens, máscaras e qualificação
+
+Codex, 2026-10-24: PresentationTokens imutável, AsciiDigitMask pura limitada e mapas de cursor monótonos. TargetCapabilities declara colorTokens/maskTokens e o compilador rejeita nomes ausentes. LocalWorkspace compartilha seu registro com CompiledPreview. reactiveText e validatedTextField passam a schema 2 para colorToken/maskToken; reactiveButton e os 15 schemas legados permanecem versão 1. Envelope continua versão 1. Novos componentes também podem ser inseridos pela paleta com defaults válidos; campos geram chaves canônicas distintas e histórico/compilação são preservados.
+
+Evidência JVM: 52 contrato + 72 core + 4 ações + 95 autoria + 35 sample = 258 testes, zero failures/errors/skipped nos XMLs. Logs build/t09/tokens.log, final-check.log e editor-components-final.log. Testes adicionais cobrem zeros à esquerda, overflow sem truncamento, limites, caracteres inválidos, cursores/roundtrip, cópia do registro, capacidades ausentes, edição mascarada preservando canônico, recuperação e criação/undo/redo dos novos componentes. Full check compilou metadata contrato/core/layout, Android debug da biblioteca visual e Wasm do sample. tokens.log também compilou JS/Wasm do contrato. O ajuste final de autoria foi reexecutado em JVM e compilado no Wasm; uma referência local de stateKey inicialmente fora do escopo foi corrigida antes do resultado final. Warning SavedState KLIB duplicado e warnings legados permanecem sem atualização de dependências.
+
+Chrome/Wasm, servidor de desenvolvimento somente em 127.0.0.1:8080: carregado “Exemplo de expressões”; vazio exibiu “Preencha o nome” e botão desabilitado; entrada Ana atualizou “Olá, Ana” e habilitou Confirmar; clique executou action:update e mostrou “confirmado” com token positive; valor ocultar removeu a mensagem e desabilitou o botão; alteração posterior reexibiu a mensagem com o valor corrente. Capturas build/t09/browser-initial.png, browser-confirmed.png, browser-hidden.png e browser-restored.png. A tentativa de substituir o último texto anexou Pronto ao valor anterior; a captura comprova o valor real ocultarPronto e sua mensagem correspondente, sem alegar substituição exata. Substituição exata também passou nos testes Compose JVM. Na primeira observação Chrome houve timeout de leitura de frame durante carga; a captura posterior e o fluxo real concluíram normalmente.
+
+Limites: execução de máscaras/erros de tipo e descarte comprovada em Compose JVM; o fluxo browser comprovou texto, visibilidade, habilitação, validação, ação e cor, sem qualificar toda a matriz de máscaras no browser. Compilação Android não é execução; Apple não executado. Não há aritmética monetária, rede, backend ou publicação nesta entrega. O restante da POC segue o plano: T09 concluída, T10 pronta e próxima ação na tabela inicial.

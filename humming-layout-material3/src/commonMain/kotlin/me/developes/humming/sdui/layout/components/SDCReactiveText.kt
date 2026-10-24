@@ -20,6 +20,9 @@ class SDCReactiveText(private val node: ServerDrivenNode, viewModel: SDUIFormVie
     private val modifier = Modifier.fromNode(node)
 
     @Composable override fun Content() {
+        val tokens = LocalPresentationTokens.current
+        val colorName = properties.property("colorToken")
+        val tokenColor = colorName?.let(tokens::color)
         val visible = visibleValues?.collectAsState(ExpressionValue(checkNotNull(visibility).fallback))?.value
         val visibilityError = visible?.diagnostic
         if (visibilityError != null) Text("${visibilityError.code}: ${node.id} ${visibilityError.path}", color = Color.Red)
@@ -27,8 +30,10 @@ class SDCReactiveText(private val node: ServerDrivenNode, viewModel: SDUIFormVie
         val result by values.collectAsState(ExpressionValue(value.fallback))
         Column(modifier.observeNodeBounds(node)) {
             Text((result.value as SduiValue.Text).value,
-                fontSize = (properties.property("fontSize")?.toFloatOrNull() ?: 16f).sp,
-                color = properties.property("color")?.toColor() ?: Color.Unspecified)
+                fontSize = (properties.property("fontSize")?.toFloatOrNull()?.takeIf { it.isFinite() } ?: 16f).sp,
+                color = tokenColor?.toColor() ?: properties.property("color")?.toColor() ?: Color.Unspecified)
+            if (colorName != null && tokenColor == null)
+                Text("UNKNOWN_COLOR_TOKEN: ${node.id} ${node.sourcePath}.properties.colorToken", color = Color.Red)
             result.diagnostic?.let { Text("${it.code}: ${node.id} ${it.path}", color = Color.Red) }
         }
     }

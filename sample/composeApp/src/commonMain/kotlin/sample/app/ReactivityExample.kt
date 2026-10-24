@@ -15,6 +15,7 @@ internal const val REACTIVITY_EXAMPLE = """{
       "onClick":{"component":"action:update","id":"reactivity-confirm","properties":{"state":"status","value":"confirmado"}}
     },"children":[{"component":"layout:text","id":"reactivity-submit-label","properties":{"text":"Confirmar"}}]},
     {"component":"layout:reactiveText","id":"reactivity-status","properties":{
+      "colorToken":"positive",
       "value":{"version":1,"expression":{"language":"humming.expression","version":1,"source":"state.status ?? \"Aguardando confirmação\""},"fallback":"Status indisponível"}
     }}
   ]

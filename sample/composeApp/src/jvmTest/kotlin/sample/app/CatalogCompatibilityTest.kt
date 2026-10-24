@@ -21,7 +21,9 @@ class CatalogCompatibilityTest {
 
     @Test fun initialCapabilitiesAreVersionedAndUnmodeledRenderersStayOutsideTheEditableSubset() {
         assertEquals(18, catalog.capabilities.size)
-        assertTrue(catalog.capabilities.values.all { it == 1 })
+        assertEquals(2, catalog.capabilities["layout:reactiveText"])
+        assertEquals(2, catalog.capabilities["layout:validatedTextField"])
+        assertTrue(catalog.capabilities.filterKeys { it !in setOf("layout:reactiveText", "layout:validatedTextField") }.values.all { it == 1 })
         assertTrue(catalog["layout:textField"] != null)
         assertTrue(SDLayoutMaterial3().getComponent("image") != null)
         assertFalse("layout:image" in catalog.capabilities)

@@ -26,6 +26,7 @@ import me.developes.humming.sdui.action.SDActions
 import me.developes.humming.sdui.common.*
 import me.developes.humming.sdui.layout.SDLayoutMaterial3
 import me.developes.humming.sdui.layout.components.Material3Theme
+import me.developes.humming.sdui.layout.components.LocalPresentationTokens
 import me.developes.humming.sdui.navigation.SDNavigation
 import me.developes.humming.sdui.studio.*
 
@@ -264,11 +265,11 @@ fun LocalStudio(files: StudioFiles? = null, workspace: LocalWorkspace = remember
                                 InteractionCanvas(document,compiled,selectedEdge,select = { id, edge -> selectedId=id; selectedEdge=edge },
                                     viewportState=interactionViewport)
                             } else if (compiled.providerType != null) {
-                                CompiledPreview(compiled)
+                                CompiledPreview(compiled, workspace.presentationTokens)
                             } else {
                                 EditablePreview(workspace, document, compiled.sourceNodeIds, selectedId,
                                     select = { selectedId = it; selectedEdge = null }, commit = ::changed,
-                                    controls = previewControls) { CompiledPreview(compiled) }
+                                    controls = previewControls) { CompiledPreview(compiled, workspace.presentationTokens) }
                             }
                         }
                     }
@@ -345,10 +346,10 @@ internal fun CompiledPreview(json: String) {
 }
 
 @Composable
-internal fun CompiledPreview(compiled: CompiledContracts) {
+internal fun CompiledPreview(compiled: CompiledContracts, tokens: PresentationTokens = defaultPresentationTokens()) {
     val owner = remember { object : ViewModelStoreOwner { override val viewModelStore = ViewModelStore() } }
     DisposableEffect(owner) { onDispose { owner.viewModelStore.clear() } }
-    CompositionLocalProvider(LocalViewModelStoreOwner provides owner) {
+    CompositionLocalProvider(LocalViewModelStoreOwner provides owner, LocalPresentationTokens provides tokens) {
         val provider = compiled.providerType ?: "compiled-preview"
         HummingSDUI().Content(HummingSDUI.Config(provider, compiled.entryDestination, theme = Material3Theme(),
             screenStateMode = ScreenStateMode.ISOLATED_ENTRIES,

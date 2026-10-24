@@ -86,7 +86,8 @@ object LayoutDefinitions {
         PropertyDefinition("value", PropertyKind.EXPRESSION_TEXT, required = true),
         PropertyDefinition("visible", PropertyKind.EXPRESSION_BOOLEAN),
         number("fontSize", default = "16", fallback = true), color("color"),
-    ))
+        PropertyDefinition("colorToken", PropertyKind.COLOR_TOKEN),
+    )).copy(version = 2)
 
     val reactiveButton = component("reactiveButton", listOf(
         PropertyDefinition("enabled", PropertyKind.EXPRESSION_BOOLEAN, required = true),
@@ -97,7 +98,8 @@ object LayoutDefinitions {
         text("stateKey", required = true), text("label"),
         PropertyDefinition("valid", PropertyKind.EXPRESSION_BOOLEAN, required = true),
         PropertyDefinition("enabled", PropertyKind.EXPRESSION_BOOLEAN), text("errorText", required = true),
-    ))
+        PropertyDefinition("maskToken", PropertyKind.MASK_TOKEN),
+    )).copy(version = 2)
 
     val all: List<NodeDefinition> = listOf(text, textField, button, row, column, box, reactiveText, reactiveButton, validatedTextField)
 }
