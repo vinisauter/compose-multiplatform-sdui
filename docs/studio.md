@@ -1,6 +1,6 @@
 # Studio: modelo autoral e mecânicas
 
-O modelo/codec de T13 e os comandos/histórico de T14 estão implementados no módulo puro humming-studio-model; o editor local está integrado ao sample, com aceite rastreado no estado atual; a geometria de seleção/drop está implementada e seu aceite está no estado atual; conectores das seções posteriores continuam planejados conforme o [plano](development-plan.md). O primeiro recorte é autoria local de telas compatíveis com o [contrato legado](contract.md). Não incluir renderização gráfica de baixo nível, roteamento complexo de obstáculos ou colaboração na primeira entrega.
+O modelo/codec de T13 e os comandos/histórico de T14 estão implementados no módulo puro humming-studio-model; o editor local está integrado ao sample, com aceite rastreado no estado atual; a geometria de seleção/drop está implementada e seu aceite está no estado atual; conectores, canvas de interações e jornadas locais seguem as APIs descritas abaixo, com aceite e limites no estado atual. O primeiro recorte é autoria local de telas compatíveis com o [contrato legado](contract.md). Não incluir renderização gráfica de baixo nível, roteamento complexo de obstáculos ou colaboração na primeira entrega.
 
 ## Documento e índices
 
@@ -315,3 +315,13 @@ O Studio usa compilePreview: árvore sem navegação conserva o caminho anterior
 O Inspector cria update, ifState, then, goTo e goBack, em eventos/ramos tipados; goTo e sua relação são inseridos atomicamente. Ações customizadas e transições não suportadas não são oferecidas. Telas desconectadas continuam rascunhos diagnosticados pelo compilador, sem exclusão automática.
 
 A exportação de árvore mantém humming-contract.json. Jornada usa humming-journey.json, envelope local formatVersion=1 com CompiledContracts completo (entryDestination, providerType, artifacts e sourceNodeIds). CompiledBundleCodec ordena mapas, valida manifesto/caminhos gerados e payloads, limita 256 artefatos, 4 milhões de caracteres de contratos e 8 milhões no envelope. Esse envelope é transporte local; o runtime continua recebendo cada artefato no wire existente através do provider registrado pelo host. O arquivo autoral continua separado em humming-document.json; não há importação automática de pacote compilado como documento editável.
+
+### Canvas de interações do sample
+
+InteractionProjection deriva NavigationLink por evento e aresta NAVIGATION alcançável por ACTION_FLOW. Ramos representam possibilidades, não uma previsão do estado de execução. Subárvores compartilhadas geram uma ligação por evento/destino autoral; a projeção ordena IDs, usa visited e limita 4096 ligações/100000 visitas. Excesso retorna INTERACTION_LIMIT sem resultado parcial silencioso.
+
+InteractionCanvas desenha cartões de 280×240 dp com o renderer existente, recortando conteúdo a esse tamanho inicial. PreviewGeometry mede o componente interno; os cartões de destino são medidos em LayoutCoordinates e copiados para retângulos. As duas medidas são convertidas pelo mesmo CanvasViewport. Âncoras/curvas/setas e flatten são derivados dessas medidas, sem persistência de pixels. Posição dos cartões usa canvasPosition (editável no Inspector, com undo) ou ordenação determinística para o fallback.
+
+O canvas separa seleção de execução: seu overlay consome o ponteiro, seleciona a relação NAVIGATION pela curva ou o componente pelos bounds e não aciona o onClick do formulário. Zoom/pan são locais; movimento acima de touchSlop, Escape, múltiplos ponteiros ou perda de foco cancelam a seleção pendente. A aproximação sem tolerância suficiente exibe diagnóstico e desativa hit daquela curva. A seleção de uma curva abre a ação/destino no Inspector; conexões são criadas/editadas por portas no Inspector, sem gesto de arraste para criar arestas neste recorte.
+
+GoBack depende do histórico em execução e não ganha destino estático fictício. Autoconexão em que origem visual e tela destino têm o mesmo ID é rejeitada pelos comandos do editor; importações existentes continuam compiláveis e exibem SELF_CONNECTION_UNSUPPORTED no canvas. Botão interno → tela que o contém e ciclos entre telas são permitidos. Não há roteamento de obstáculos. Artefatos de execução e rascunho autoral continuam separados.

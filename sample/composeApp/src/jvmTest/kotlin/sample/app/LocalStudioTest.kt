@@ -36,7 +36,7 @@ class LocalStudioTest {
         val mounted = mutableStateOf(true)
         val root = workspace.document.entryNodeId
         compose.setContent { if (mounted.value) LocalStudio(files, workspace) }
-        compose.onNodeWithText("+ textField").performClick()
+        compose.onNodeWithText("+ textField").performScrollTo().performClick()
         val field = workspace.document.nodes.values.single { it.definition == "layout:textField" }.id
         select(field)
         compose.onNodeWithTag("studio-property-value").performTextReplacement("Pessoa Studio")
@@ -47,12 +47,12 @@ class LocalStudioTest {
         compose.onNodeWithText("Refazer").performClick()
         awaitText("Pessoa Studio")
         select(root)
-        compose.onNodeWithText("+ text").performClick()
+        compose.onNodeWithText("+ text").performScrollTo().performClick()
         compose.onNodeWithTag("studio-property-value").performTextReplacement("Nome: #{nome} / #{status}")
         compose.onNodeWithText("Aplicar propriedade").performClick()
         awaitText("Nome: Pessoa Studio / ")
         select(root)
-        compose.onNodeWithText("+ button").performClick()
+        compose.onNodeWithText("+ button").performScrollTo().performClick()
         val button = workspace.document.nodes.values.single { it.definition == "layout:button" }.id
         compose.onNodeWithText("+ action:update").performScrollTo().performClick()
         awaitText("Confirmar")

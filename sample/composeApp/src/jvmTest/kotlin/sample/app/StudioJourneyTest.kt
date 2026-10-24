@@ -16,6 +16,7 @@ class StudioJourneyTest {
     @Test fun studioNavigatesExportsEveryArtifactAndReplaysTheExportedBundle() {
         val owner = object : LifecycleOwner { override val lifecycle = LifecycleRegistry(this) }
         val workspace = LocalWorkspace(journeyExample())
+        assertEquals(1,workspace.tree().count { it.node.definition == "navigation:goBack" })
         val downloads = mutableMapOf<String,String>()
         val files = object : StudioFiles {
             override fun open(callback: (StudioFileResult) -> Unit) = Unit

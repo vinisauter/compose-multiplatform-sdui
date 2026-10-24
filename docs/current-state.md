@@ -2,20 +2,20 @@
 
 Este é o ponto de entrada para **continuar o desenvolvimento**. Reúne o estado observado, o rastreamento das etapas e a próxima ação. O [plano](development-plan.md) define dependências, escopo e critérios de aceite; este documento é a única fonte de status e retomada.
 
-Atualizado após T18: 77 testes de autoria/geometria, 30 contrato, 64 core, 4 ações e 27 sample aprovados em JVM (202 casos, sem falhas/erros/ignorados). Seleção/drop integrados ao renderer real; Chrome confirmou mudança de container e árvore. A guia foi comprovada em Compose e confirmada manualmente pelo usuário após carregar o exemplo. T18 concluída.
+Atualizado após T19: autoria local, drop e grafo de interações integrados. Última execução: 94 testes autorais e 30 sample aprovados (124 casos, zero falhas/erros/ignorados); metadata/JS e host Wasm compilados. Chrome confirmou navegação/retorno, curva selecionada e download completo. Demais módulos não foram reexecutados neste recorte.
 
 ## Ponto de retomada
 
 | Campo | Registro atual |
 | --- | --- |
 | Última atualização | 2026-10-24 — base e05985b (T13), anteriores c6a1e46 e 6441ec0; T14 no commit local bde7c23 e T15 em eb8726e e T16 em b6c1ff3 e implementação T17 em 2d9d6eb, aceite ce2bd7e e geometria T18 em 8a12ea0 e integração em 04df7c0 e orientação de tela vazia em 75f50f6; sem push |
-| Última entrega | T19 parcial: geometria 28a3140 e relações ca81ddc; host/exportação de jornadas, 91 testes autorais + 29 sample aprovados, metadata/JS/Wasm compilados |
-| Tarefa de implementação em execução | T19 — em execução por Codex: canvas macro e conectores |
-| Próxima tarefa | **T19 — grafo de interações e conectores** |
-| Próxima ação concreta | Integrar ConnectorGeometry ao canvas macro com bounds dos componentes internos; desenhar e selecionar curvas/setas; conferir o fluxo browser |
-| Critério para avançar | Testar âncoras/tangentes/zoom/hit e edição/undo das relações; executar navegação exportada no sample |
-| Bloqueio de implementação conhecido | Nenhum para T19; limites de plataforma e de automação permanecem registrados em validação. |
-| Limite do próximo recorte | Interações locais e conectores; sem roteador complexo de obstáculos, servidor ou publicação |
+| Última entrega | T19: geometria 28a3140, relações ca81ddc, jornadas d57e219 e canvas/qualificação neste recorte; commits locais sem push |
+| Tarefa de implementação em execução | Nenhuma; T19 concluída |
+| Próxima tarefa | **T07 — valores tipados e escopos de tela/ação** |
+| Próxima ação concreta | Ler T07 e execução/navegação atuais; definir valores ausente/null/tipos e lifetime de server/nav/state por entrada e response/error por execução; preservar adapter textual e adicionar fixtures de isolamento antes da integração |
+| Critério para avançar | Duas entradas da mesma rota isoladas; resultados concorrentes independentes; descarte/retorno liberam recursos; compatibilidade textual e distinção null/ausente testadas |
+| Bloqueio de implementação conhecido | Nenhum para iniciar T07; qualificação Android/Apple continua separada de JVM/Wasm |
+| Limite do próximo recorte | Modelo/escopos locais do cliente; sem backend, infraestrutura remota ou publicação |
 
 ### Protocolo quando o pedido for “continue o desenvolvimento”
 
@@ -40,7 +40,7 @@ Estados: **pronta**, **pendente**, **em execução**, **bloqueada**, **concluíd
 | T04 | Lifecycle, loading e bindings legados | concluída | 78 core, 3 ações e 6 Compose aprovados em JVM; descarte/recomposição, loading concorrente, eventos causais, navegação/retorno e falha recuperável; ver [validação](validation.md) |
 | T05 | Definições/schema do catálogo inicial | concluída | 15 definições versão 1, diagnóstico por campo/papel e adapters compatíveis; 110 testes JVM aprovados; ver [validação](validation.md) |
 | T06 | Fronteira pura e consumo sem UI | concluída | 114 testes JVM aprovados, classpath puro e core Android compilado; migração/recompilação descritas no contrato |
-| T07 | Valores tipados e escopos de tela/ação | pendente | Isolar dados de tela e resultados concorrentes |
+| T07 | Valores tipados e escopos de tela/ação | pronta | Próxima etapa após autoria/manipulação local; definir stores e integrar com fixtures de isolamento |
 | T08 | Linguagem de expressões limitada | pendente | Especificar gramática/tipos/limites e executar suíte pura |
 | T09 | Propriedades reativas, tokens e validação | pendente | Integrar evaluator com lifecycle e componentes |
 | T10 | Transporte HTTP com ownership e resultado | pendente | Implementar métodos reais e integração HTTP local |
@@ -52,7 +52,7 @@ Estados: **pronta**, **pendente**, **em execução**, **bloqueada**, **concluíd
 | T16 | Preview do catálogo no host Wasm | concluída | Chrome/Wasm observado: edição/binding/update/MISSING_METHOD/recuperação; host sem provider URL; teste JVM de descarte; ver [validação](validation.md) |
 | T17 | Editor local e Inspector | concluída | Implementação 2d9d6eb; 183 testes JVM; importação/ação/downloads observados pelo agente e abertura manual/confirmado relatados pelo usuário em 2026-10-24; ver [validação](validation.md) |
 | T18 | Seleção, bounds e drop geométrico | concluída | 8a12ea0/04df7c0/75f50f6; 202 testes JVM; commit de drag no Chrome e guia confirmada manualmente pelo usuário em 2026-10-24; ver [validação](validation.md) |
-| T19 | Grafo de interações e conectores | em execução | Codex: geometria e relações/undo, Inspector de conexões; 88 testes autorais + 28 sample; faltam canvas e navegação/exportação no host |
+| T19 | Grafo de interações e conectores | concluída | Codex, 2026-10-24: 94 testes autorais + 30 sample; canvas usa bounds reais, cúbicas/setas/hit/zoom/Escape; relações/undo e jornadas exportadas executadas. Chrome observou ida/volta e seleção rosa; pacote com 3 artefatos verificado |
 | T20 | Aplicação de servidor e interfaces | pendente | Criar fronteiras/casos de uso/host local com autorização |
 | T21 | Rascunhos/revisões em PostgreSQL | pendente | Validar persistência/transações em banco real local |
 | T22 | Publicação imutável e capacidades | pendente | Publicar snapshot local compatível sem dados de sessão |
@@ -65,11 +65,13 @@ Os requisitos completos e a ordem das dependências estão no [plano](developmen
 
 ### Trabalho parcial e bloqueios
 
-T19 parcial: ConnectorGeometry em commonMain implementa âncoras, cúbica/tangente, seta em pixels e flatten/hit limitado. Sete testes novos aprovados (84 no módulo autoral, zero falhas/erros/ignorados); metadata/JS/Wasm compilados. Geometria ainda não desenhada no host. LocalWorkspace agora oferece addScreen, connectAction, disconnect, setNavigation e compileJourney explícito. Relações e troca de destino são transacionais; ramos/ordem/duplicatas/ciclos e remoção/undo cobertos. Inspector conecta/desconecta ações existentes pelos eventos/ramos do schema. Host agora executa jornadas com SDNavigation e provider de artefatos em memória, oferece telas/ações/destinos e exemplo de ida/volta. Exportação mantém árvore como contrato único e jornada como pacote versionado completo; teste Compose executou ida/volta no Studio e novamente após decodificar o pacote exportado. Canvas no Studio permanece pendente. Nova execução build/t19/journey-host.log: 91 testes autorais + 29 sample aprovados; metadata/JS e host Wasm compilados. Nova execução: 88 testes autorais + 28 sample, zero falhas/erros/ignorados; metadata/JS e host Wasm compilados, build/t19/inspector-relations.log. Não foram reexecutados os demais módulos nem validado browser neste recorte. Responsável: Codex. Próxima ação na tabela de retomada. Comando/log: build/t19/geometry.log (ignorado). Não houve nova validação browser neste recorte.
+T19 concluída no recorte local. Comandos finais: .\gradlew.bat :humming-studio-model:jvmTest :humming-studio-model:compileCommonMainKotlinMetadata :humming-studio-model:compileKotlinJs :sample:composeApp:jvmTest :sample:composeApp:compileKotlinWasmJs --console=plain (build/t19/final-checks.log). BUILD SUCCESSFUL; 94 testes autorais + 30 sample, zero falhas/erros/ignorados. Captura Compose build/reports/interaction-canvas.png no sample: botão interno → borda da tela e curva rosa; teste cobre zoom e Escape. Projeção de interações limita visitas/arestas, trata compartilhamento/ramos sem seguir ciclos de tela. Política de autoconexão visual explícita e testada; navegação de botão para sua própria tela permanece válida.
+
+No Chrome/Wasm: exemplo abriu segunda tela e voltou; canvas desenhou a conexão, clique na curva selecionou navigation:goTo e pintou rosa. Captura final build/t19/browser-final-connector.png confirma rótulos, árvore sem duplicação e Inspector com destino derivado da relação; download real humming-journey.json contém graph.json e 2 screens/*.json. O teste StudioJourneyTest executou o pacote exportado após decode pelo mesmo host. Na revisão foram corrigidos glifos de direção, duplicação de ação raiz na árvore e edição redundante de destiny quando há relação. O teste antigo de inserção passou após rolagem explícita para acomodar os campos de posição. Verificação adicional após preservar viewport entre revisões: build/t19/viewport-check.log, 30 testes sample e Wasm aprovados. Logs de tentativas e correções em build/t19, ignorados pelo Git. Sem nova prova Android/Apple, roteamento de obstáculos, drag para criar conexões ou servidor.
 
 Após a orientação de carregar o exemplo, o usuário respondeu “agora sim”, confirmando a guia que faltava no aceite de T18. Essa é evidência manual, distinta da observação automatizada do commit no Chrome e da captura de pixels em Compose; detalhes e limites estão em [validação](validation.md). Não repetir a verificação sem motivo novo.
 
-Retomar por T19, cujas dependências T15/T17 estão concluídas. Grafo visual de interações, conectores e servidor ainda não estão implementados.
+Retomar por T07, dependências concluídas. T20–T25 permanecem posteriores; este recorte não criou servidor nem persistência remota.
 
 ### Manutenção documental independente da implementação
 
@@ -81,7 +83,7 @@ Os relatórios e planos antigos estão ausentes. O registro de M01 conserva o re
 
 ## Escopo implementado
 
-HummingUI é uma POC de cliente SDUI. Interpreta nós JSON, mantém estado textual, resolve componentes e ações por namespace e integra bibliotecas no sample. O editor local por árvore/Inspector está integrado no sample, com seleção e drag geométrico em validação T18. Não há grafo visual de interações, backend de contratos, publicação imutável ou colaboração implementados nos módulos incluídos.
+HummingUI é uma POC de cliente SDUI. Interpreta nós JSON, mantém estado textual, resolve componentes e ações por namespace e integra bibliotecas no sample. O editor local integra árvore/Inspector, seleção/drop, canvas de interações e preview/exportação de jornadas. Não há backend de contratos, publicação imutável ou colaboração implementados nos módulos incluídos.
 
 | Módulo | Responsabilidade observada |
 | --- | --- |

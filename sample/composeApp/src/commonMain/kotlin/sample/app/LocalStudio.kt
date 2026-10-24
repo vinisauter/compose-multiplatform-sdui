@@ -40,11 +40,13 @@ fun LocalStudio(files: StudioFiles? = null, workspace: LocalWorkspace = remember
     var replace by remember { mutableStateOf<(() -> Unit)?>(null) }
     var jsonDialog by remember { mutableStateOf(false) }
     var jsonText by remember { mutableStateOf("") }
+    var showInteractions by remember { mutableStateOf(false) }
     var active by remember { mutableStateOf(true) }
     DisposableEffect(Unit) { onDispose { active = false } }
     val compilation = remember(document) { workspace.compilePreview() }
     val treeRows = remember(document) { workspace.tree() }
     val previewControls = remember { PreviewControls() }
+    val interactionViewport = remember { mutableStateOf(CanvasViewport(zoom=.5)) }
     val selected = document.nodes[selectedId]
     fun diagnostics(items: List<NodeDiagnostic>) = items.joinToString("\n") {
         "${it.code} | nó=${it.nodeId ?: "—"} | ${it.path} | ${it.message}"
@@ -96,6 +98,9 @@ fun LocalStudio(files: StudioFiles? = null, workspace: LocalWorkspace = remember
                 OutlinedButton(onClick = { requestReplace {
                     replaced(workspace.openAuthoring(AuthoringDocumentCodec(workspace.catalog).encode(journeyExample()).requireValue()))
                 } }) { Text("Exemplo de navegação") }
+                OutlinedButton(onClick = { showInteractions = !showInteractions }) {
+                    Text(if (showInteractions) "Executar preview" else "Canvas de interações")
+                }
                 OutlinedButton(onClick = {
                     val before = document.nodes.keys
                     changed(workspace.addScreen(CanvasPoint(document.nodes.values.count { it.kind == AuthorNodeKind.SCREEN } * 400.0, 0.0)))
@@ -143,8 +148,22 @@ fun LocalStudio(files: StudioFiles? = null, workspace: LocalWorkspace = remember
                             TextButton(onClick = { changed(workspace.reorder(node.id, 1, selectedEdge)) }) { Text("Descer") }
                             TextButton(enabled = node.id != document.entryNodeId, onClick = { changed(workspace.remove(node.id)) }) { Text("Remover") }
                         }
-                        PropertyInspector(node, workspace.catalog[node.definition]) { name, value ->
+                        val linkedNavigation = document.edges.values.any { it.sourceNodeId == node.id && it.role == EdgeRole.NAVIGATION }
+                        if (linkedNavigation) Text("Destino definido pela conexão de navegação")
+                        PropertyInspector(node, workspace.catalog[node.definition],
+                            hiddenProperties = if (linkedNavigation) setOf("destiny") else emptySet()) { name, value ->
                             changed(workspace.putProperty(node.id, name, value))
+                        }
+                        if (node.kind == AuthorNodeKind.SCREEN) {
+                            var x by remember(node.id,node.canvasPosition) { mutableStateOf((node.canvasPosition?.x ?: 0.0).toString()) }
+                            var y by remember(node.id,node.canvasPosition) { mutableStateOf((node.canvasPosition?.y ?: 0.0).toString()) }
+                            OutlinedTextField(x,{ x=it },label={ Text("Canvas x") })
+                            OutlinedTextField(y,{ y=it },label={ Text("Canvas y") })
+                            OutlinedButton(onClick = {
+                                val px=x.toDoubleOrNull(); val py=y.toDoubleOrNull()
+                                if (px == null || py == null || !px.isFinite() || !py.isFinite()) messages="Posição do canvas exige números finitos"
+                                else changed(workspace.apply(listOf(EditOperation.SetCanvasPosition(node.id,CanvasPoint(px,py)))))
+                            }) { Text("Posicionar tela") }
                         }
                         val definition = workspace.catalog[node.definition]
                         val slots = buildList {
@@ -205,6 +224,9 @@ fun LocalStudio(files: StudioFiles? = null, workspace: LocalWorkspace = remember
                             var destination by remember(node.id, current) { mutableStateOf(current ?: screens.firstOrNull().orEmpty()) }
                             Choice("Tela de destino", destination, screens) { destination = it }
                             OutlinedButton(onClick = { changed(workspace.setNavigation(node.id, destination)) }) { Text("Aplicar destino") }
+                            document.edges.values.filter { it.sourceNodeId == node.id && it.role == EdgeRole.NAVIGATION }.forEach { edge ->
+                                OutlinedButton(onClick = { changed(workspace.disconnect(edge.id)) }) { Text("Remover conexão de navegação") }
+                            }
                         }
                         if (node.id != document.entryNodeId && node.placement is Placement.Child) {
                             var parent by remember(node.id) { mutableStateOf(document.entryNodeId) }
@@ -216,7 +238,7 @@ fun LocalStudio(files: StudioFiles? = null, workspace: LocalWorkspace = remember
                     }
                 }
                 Column(Modifier.weight(.38f).fillMaxHeight()) {
-                    Text("Preview executável", style = MaterialTheme.typography.titleMedium)
+                    Text(if (showInteractions) "Canvas de interações" else "Preview executável", style = MaterialTheme.typography.titleMedium)
                     val emptyScreen = document.nodes[document.entryNodeId]?.definition in setOf("layout:column", "layout:row", "layout:box") &&
                         document.nodes.values.none { it.placement is Placement.Child }
                     if (emptyScreen) {
@@ -232,7 +254,10 @@ fun LocalStudio(files: StudioFiles? = null, workspace: LocalWorkspace = remember
                     } else key(openedVersion, document.documentId, document.revision) {
                         val compiled = compilation.requireValue()
                         Box(Modifier.fillMaxSize().background(Color.White)) {
-                            if (compiled.providerType != null) {
+                            if (showInteractions) {
+                                InteractionCanvas(document,compiled,selectedEdge,select = { id, edge -> selectedId=id; selectedEdge=edge },
+                                    viewportState=interactionViewport)
+                            } else if (compiled.providerType != null) {
                                 CompiledPreview(compiled)
                             } else {
                                 EditablePreview(workspace, document, compiled.sourceNodeIds, selectedId,
@@ -259,8 +284,11 @@ fun LocalStudio(files: StudioFiles? = null, workspace: LocalWorkspace = remember
 }
 
 @Composable
-private fun PropertyInspector(node: AuthorNode, definition: NodeDefinition?, change: (String, JsonElement?) -> Unit) {
-    val properties = definition?.properties.orEmpty().filter { it.editable && it.kind !in setOf(PropertyKind.NODES, PropertyKind.OPAQUE) }
+private fun PropertyInspector(node: AuthorNode, definition: NodeDefinition?, hiddenProperties: Set<String> = emptySet(),
+                              change: (String, JsonElement?) -> Unit) {
+    val properties = definition?.properties.orEmpty().filter {
+        it.name !in hiddenProperties && it.editable && it.kind !in setOf(PropertyKind.NODES, PropertyKind.OPAQUE)
+    }
     if (properties.isNotEmpty()) {
         var name by remember(node.id) { mutableStateOf(
             listOf("text", "state", "paddingAll").firstOrNull { candidate -> properties.any { it.name == candidate } } ?: properties.first().name

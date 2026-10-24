@@ -58,11 +58,15 @@ class LocalWorkspace(
             return rejected("EDITOR_DUPLICATE_EDGE", "Relação já existente", sourceId)
         // Iterative and bounded by the document, including imported drafts with existing cycles.
         val outgoing = document.edges.values.filter { it.role == EdgeRole.ACTION_FLOW }.groupBy { it.sourceNodeId }
+        val navigation = document.edges.values.filter { it.role == EdgeRole.NAVIGATION }.groupBy { it.sourceNodeId }
+        val sources = eventSources(sourceId)
         val pending = ArrayDeque<String>().apply { add(targetId) }
         val visited = mutableSetOf<String>()
         while (pending.isNotEmpty()) {
             val id = pending.removeFirst()
             if (id == sourceId) return rejected("ACTION_CYCLE", "Conexão criaria ciclo de ações", sourceId)
+            if (navigation[id].orEmpty().any { it.targetNodeId in sources })
+                return rejected("EDITOR_SELF_CONNECTION", "Autoconexão visual exige roteamento de loop ainda indisponível", sourceId)
             if (visited.add(id)) outgoing[id].orEmpty().forEach { pending.add(it.targetNodeId) }
         }
         val previous = AuthoringIndices(document).edgesBySourcePort[SourcePort(sourceId, port)]?.lastOrNull()?.id
@@ -79,6 +83,8 @@ class LocalWorkspace(
             return rejected("EDITOR_NAVIGATION", "Origem precisa ser navigation:goTo", actionId)
         if (screen?.kind != AuthorNodeKind.SCREEN || screen.placement !is Placement.Root)
             return rejected("EDITOR_NAVIGATION", "Destino precisa ser uma tela raiz", screenId)
+        if (screenId in eventSources(actionId))
+            return rejected("EDITOR_SELF_CONNECTION", "Autoconexão visual exige roteamento de loop ainda indisponível", actionId)
         val operations = document.edges.values.filter { it.role == EdgeRole.NAVIGATION && it.sourceNodeId == actionId }
             .mapTo(mutableListOf<EditOperation>()) { EditOperation.RemoveEdge(it.id) }
         if ("destiny" in action.properties) operations += EditOperation.RemoveProperty(actionId, "destiny")
@@ -95,6 +101,8 @@ class LocalWorkspace(
             val target = document.nodes[targetScreenId]
             if (target?.kind != AuthorNodeKind.SCREEN || target.placement !is Placement.Root)
                 return rejected("EDITOR_NAVIGATION", "Selecione uma tela raiz de destino", sourceId)
+            if (targetScreenId in eventSources(sourceId))
+                return rejected("EDITOR_SELF_CONNECTION", "Autoconexão visual exige roteamento de loop ainda indisponível", sourceId)
         }
         val indices = AuthoringIndices(document)
         val id = identity()
@@ -212,8 +220,22 @@ class LocalWorkspace(
             }
         }
         indices.roots.filter { indices.incomingEdges[it.id].isNullOrEmpty() }.forEach { visit(it, 0, "raiz") }
-        indices.roots.filter { it.id !in visited }.forEach { visit(it, 0, "raiz") }
+        indices.roots.forEach { if (it.id !in visited) visit(it, 0, "raiz") }
         return rows
+    }
+
+    private fun eventSources(id: String): Set<String> {
+        val incoming = document.edges.values.filter { it.role != EdgeRole.NAVIGATION }.groupBy { it.targetNodeId }
+        val pending = ArrayDeque<String>().apply { add(id) }
+        val seen = mutableSetOf<String>()
+        val sources = mutableSetOf<String>()
+        while (pending.isNotEmpty()) {
+            val next = pending.removeFirst()
+            if (!seen.add(next)) continue
+            if (document.nodes[next]?.kind != AuthorNodeKind.ACTION) sources.add(next)
+            else incoming[next].orEmpty().forEach { pending.add(it.sourceNodeId) }
+        }
+        return sources
     }
 
     private fun rejected(code: String, message: String, id: String) = EditOutcome(null,

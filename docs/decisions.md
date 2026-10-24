@@ -145,3 +145,9 @@ Primeiro host usa LTR, Row/Column sem wrap/reverse, children e Box append. Zoom 
 ## T19 — geometria e autoconexão visual
 
 Rejeitar inicialmente a curva visual quando sourceId == targetId, sem alterar a permissão de ciclos de navegação no compilador. Um loop visual exige roteamento e fixture próprios. Geometria permanece pura em commonMain; seta e seleção usam pixels físicos, incluindo densidade exatamente uma vez. Subdivisão tem orçamento explícito e reporta tolerância não atingida, permitindo ao host diagnosticar a aproximação em vez de assumir precisão. Nenhuma coordenada derivada vira autoridade persistida.
+
+## T19 — host de jornada e canvas macro
+
+Exportar jornadas em um envelope local versionado com todos os artefatos evita perder telas e não depende de múltiplos downloads permitidos pelo navegador. O renderer recebe o wire legado via NodeProvider em memória; o envelope não vira um novo componente executável. Árvores continuam exportadas como contrato único.
+
+Derivar conectores dos eventos que alcançam ações de navegação preserva ramos e compartilhamento sem armazenar uma segunda coleção Interaction. O canvas mostra possibilidades, não avalia condições para fingir um caminho executado. GoBack depende do histórico e não recebe destino fixo inventado. Cartões iniciais são recortados em 280×240 dp; origem e borda do destino vêm de medidas reais. Viewport permanece no host entre revisões, separado das posições autorais das telas. Roteamento complexo, conexões por gesto de arraste e expansão automática de cartões ficam fora deste recorte.
