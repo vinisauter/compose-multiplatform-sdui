@@ -12,6 +12,24 @@ import kotlin.test.*
 class LocalStudioTest {
     @get:Rule val compose = createComposeRule()
 
+    @Test fun disconnectsAndReconnectsExistingActionsThroughInspectorWithUndo() {
+        val workspace = LocalWorkspace()
+        assertTrue(workspace.importContract("""{"component":"layout:button","id":"button","properties":{"onClick":[{"component":"action:update","id":"update","properties":{"state":"status","value":"ok"}}]},"children":[{"component":"layout:text","id":"label","properties":{"text":"Executar"}}]}""").isSuccess)
+        val edge = workspace.document.edges.values.single()
+        compose.setContent { LocalStudio(RecordingFiles(),workspace) }
+        compose.onNodeWithTag("studio-disconnect-${edge.id}").performScrollTo().performClick()
+        compose.runOnIdle { assertTrue(workspace.document.edges.isEmpty()) }
+        compose.onNodeWithText("Desfazer").performClick()
+        compose.runOnIdle { assertEquals(edge,workspace.document.edges[edge.id]) }
+        compose.onNodeWithTag("studio-disconnect-${edge.id}").performScrollTo().performClick()
+        compose.onNodeWithTag("studio-action-target").performScrollTo().performTextReplacement("update")
+        compose.onNodeWithText("Conectar ação").performScrollTo().performClick()
+        compose.runOnIdle {
+            assertEquals("update",workspace.document.edges.values.single().targetNodeId)
+            assertTrue(workspace.compile().isSuccess)
+        }
+    }
+
     @Test fun createsEditsUndoesSavesReopensExportsAndRunsInTheRenderer() {
         val workspace = LocalWorkspace()
         val files = RecordingFiles()

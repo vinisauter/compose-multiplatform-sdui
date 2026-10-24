@@ -154,12 +154,28 @@ fun LocalStudio(files: StudioFiles? = null, workspace: LocalWorkspace = remember
                             } }
                         }
                         val ports = definition?.properties.orEmpty().filter {
-                            it.editable && it.kind == PropertyKind.NODES && it.nodeRole == NodeRole.ACTION && node.kind != AuthorNodeKind.ACTION
+                            it.editable && it.kind == PropertyKind.NODES && it.nodeRole == NodeRole.ACTION
                         }.map { it.name }
                         if (ports.isNotEmpty()) {
                             var port by remember(node.id) { mutableStateOf(ports.first()) }
-                            Choice("Evento", port, ports) { port = it }
-                            OutlinedButton(onClick = { changed(workspace.addUpdate(node.id, port)) }) { Text("+ action:update") }
+                            Choice(if (node.kind == AuthorNodeKind.ACTION) "Ramo" else "Evento", port, ports) { port = it }
+                            if (node.kind != AuthorNodeKind.ACTION) {
+                                OutlinedButton(onClick = { changed(workspace.addUpdate(node.id, port)) }) { Text("+ action:update") }
+                            }
+                            var target by remember(node.id) { mutableStateOf("") }
+                            OutlinedTextField(target, { target = it }, label = { Text("ID da ação existente") },
+                                modifier = Modifier.testTag("studio-action-target"))
+                            OutlinedButton(onClick = { changed(workspace.connectAction(node.id, port, target)) }) {
+                                Text("Conectar ação")
+                            }
+                            document.edges.values.filter {
+                                it.sourceNodeId == node.id && it.sourcePort == port && it.role != EdgeRole.NAVIGATION
+                            }.sortedWith(compareBy({ it.orderKey }, { it.id })).forEach { edge ->
+                                OutlinedButton(onClick = { changed(workspace.disconnect(edge.id)) },
+                                    modifier = Modifier.testTag("studio-disconnect-${edge.id}")) {
+                                    Text("Desconectar ${edge.targetNodeId}")
+                                }
+                            }
                         }
                         if (node.id != document.entryNodeId && node.placement is Placement.Child) {
                             var parent by remember(node.id) { mutableStateOf(document.entryNodeId) }

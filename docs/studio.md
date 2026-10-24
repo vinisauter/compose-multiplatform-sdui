@@ -299,3 +299,11 @@ Uma tela nova começa sem componentes. Seu contorno de seleção pode ser pequen
 `ConnectorGeometry.between(sourceId, sourceBounds, targetId, targetBounds)` deriva `CubicConnector` em world; retorna null para IDs iguais. `point(t)` e `tangent(t)` aceitam t entre 0 e 1. Centros coincidentes de nós diferentes usam saída direita/entrada esquerda. Não há desvio de obstáculos.
 
 `arrow` retorna triângulo em pixels físicos, com dimensões padrão 12×8, após aplicar `CanvasViewport` (zoom, densidade e pan). Tangente final nula retorna null. `flatten` aplica a mesma viewport e subdivide por De Casteljau usando distância ao segmento finito; tolerância padrão 1 pixel, profundidade padrão 12 (máximo permitido 16). `FlattenedConnector.maxErrorPixels` é o maior limite conservador das folhas; `toleranceMet=false` indica orçamento insuficiente. O host deve tratar esse resultado explicitamente. `hit` consulta a aproximação com raio padrão de 8 pixels; não declara interseção exata com a cúbica. Pontos/setas são derivados, não serializados no documento.
+
+### Edição local das relações
+
+`LocalWorkspace.connectAction` deriva EVENT/ACTION_FLOW pelo papel da origem e acrescenta a relação ao final da porta, validada pelo catálogo. Rejeita duplicata e ciclo de ações sem alterar a revisão. `disconnect` remove somente a aresta; a ação desconectada é preservada e pode bloquear compilação até ser reconectada/removida. O Inspector expõe esses comandos em eventos e ramos conhecidos, mantendo a reordenação existente.
+
+`addScreen` cria uma raiz SCREEN com canvasPosition autoral. `setNavigation` exige navigation:goTo → SCREEN raiz, substitui as saídas NAVIGATION e remove destiny legado em uma transação; undo restaura ambos. Enquanto há relação NAVIGATION, putProperty rejeita destiny explícito. Autonavegação de tela e ciclos continuam permitidos semanticamente; a rejeição geométrica de IDs iguais não altera o compilador.
+
+`compile()` preserva o preview de árvore existente. `compileJourney(providerType)` é explícito: o consumidor deve registrar esse provider real e conservar todos os artefatos, incluindo graph.json e screens/*.json. A existência dessa API não instala navegação no host nem exporta automaticamente os arquivos da jornada. Nenhum método customizado é declarado por esse helper.

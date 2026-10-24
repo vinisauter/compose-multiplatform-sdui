@@ -34,6 +34,57 @@ class LocalWorkspace(
     fun undo(): EditOutcome = session.undo(identity(), document.revision)
     fun redo(): EditOutcome = session.redo(identity(), document.revision)
 
+    /** Explicit journey compilation: the caller must install this provider and retain every artifact. */
+    fun compileJourney(providerType: String): AuthoringResult<CompiledContracts> =
+        ContractCompiler(catalog).compileJourney(document,
+            TargetCapabilities(catalog.capabilities.filterKeys {
+                it.startsWith("layout:") || it.startsWith("action:") || it.startsWith("navigation:")
+            }, providers = setOf(providerType)), providerType)
+
+    fun addScreen(position: CanvasPoint): EditOutcome = apply(listOf(EditOperation.InsertNode(
+        AuthorNode(identity(), AuthorNodeKind.SCREEN, "layout:column",
+            JsonObject(mapOf("paddingAll" to JsonPrimitive("24"))), Placement.Root("V"), canvasPosition = position),
+        previousId = AuthoringIndices(document).roots.lastOrNull()?.id)))
+
+    /** Event and branch ports come from the shared schema, never a second port registry. */
+    fun connectAction(sourceId: String, port: String, targetId: String): EditOutcome {
+        val source = document.nodes[sourceId] ?: return rejected("NODE_NOT_FOUND", "Origem inexistente", sourceId)
+        if (document.nodes[targetId]?.kind != AuthorNodeKind.ACTION)
+            return rejected("INVALID_EDGE_ROLE", "Destino precisa ser uma ação", targetId)
+        if (document.edges.values.any { it.sourceNodeId == sourceId && it.sourcePort == port && it.targetNodeId == targetId })
+            return rejected("EDITOR_DUPLICATE_EDGE", "Relação já existente", sourceId)
+        // Iterative and bounded by the document, including imported drafts with existing cycles.
+        val outgoing = document.edges.values.filter { it.role == EdgeRole.ACTION_FLOW }.groupBy { it.sourceNodeId }
+        val pending = ArrayDeque<String>().apply { add(targetId) }
+        val visited = mutableSetOf<String>()
+        while (pending.isNotEmpty()) {
+            val id = pending.removeFirst()
+            if (id == sourceId) return rejected("ACTION_CYCLE", "Conexão criaria ciclo de ações", sourceId)
+            if (visited.add(id)) outgoing[id].orEmpty().forEach { pending.add(it.targetNodeId) }
+        }
+        val previous = AuthoringIndices(document).edgesBySourcePort[SourcePort(sourceId, port)]?.lastOrNull()?.id
+        return apply(listOf(EditOperation.InsertEdge(AuthorEdge(identity(),
+            if (source.kind == AuthorNodeKind.ACTION) EdgeRole.ACTION_FLOW else EdgeRole.EVENT,
+            sourceId, port, targetId, "input", "V"), previousId = previous)))
+    }
+
+    /** Retargeting and legacy destiny removal are a single undoable transaction. */
+    fun setNavigation(actionId: String, screenId: String): EditOutcome {
+        val action = document.nodes[actionId]
+        val screen = document.nodes[screenId]
+        if (action?.definition != "navigation:goTo" || action.kind != AuthorNodeKind.ACTION)
+            return rejected("EDITOR_NAVIGATION", "Origem precisa ser navigation:goTo", actionId)
+        if (screen?.kind != AuthorNodeKind.SCREEN || screen.placement !is Placement.Root)
+            return rejected("EDITOR_NAVIGATION", "Destino precisa ser uma tela raiz", screenId)
+        val operations = document.edges.values.filter { it.role == EdgeRole.NAVIGATION && it.sourceNodeId == actionId }
+            .mapTo(mutableListOf<EditOperation>()) { EditOperation.RemoveEdge(it.id) }
+        if ("destiny" in action.properties) operations += EditOperation.RemoveProperty(actionId, "destiny")
+        operations += EditOperation.InsertEdge(AuthorEdge(identity(), EdgeRole.NAVIGATION, actionId, "navigate", screenId, "entry"))
+        return apply(operations)
+    }
+
+    fun disconnect(edgeId: String): EditOutcome = apply(listOf(EditOperation.RemoveEdge(edgeId)))
+
     fun insertVisual(parentId: String, definition: String, slot: String = "children"): EditOutcome {
         if (definition !in visualDefinitions) return rejected("EDITOR_DEFINITION", "Componente indisponível no editor", parentId)
         val indices = AuthoringIndices(document)
@@ -66,6 +117,9 @@ class LocalWorkspace(
     /** Only known scalar fields are editable here. Relationships use commands, never raw JSON fields. */
     fun putProperty(nodeId: String, name: String, value: JsonElement?): EditOutcome {
         val node = document.nodes[nodeId] ?: return rejected("NODE_NOT_FOUND", "Nó inexistente", nodeId)
+        if (name == "destiny" && value != null && document.edges.values.any {
+            it.role == EdgeRole.NAVIGATION && it.sourceNodeId == nodeId
+        }) return rejected("EDITOR_NAVIGATION", "Destino controlado pela relação de navegação", nodeId)
         val definition = catalog[node.definition] ?: return rejected("EDITOR_READ_ONLY", "Nó sem schema: somente leitura", nodeId)
         val property = definition.properties.find { it.name == name }
         if (property == null || !property.editable || property.kind in setOf(PropertyKind.NODES, PropertyKind.OPAQUE))
