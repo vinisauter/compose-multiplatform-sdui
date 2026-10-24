@@ -2,20 +2,20 @@
 
 Este é o ponto de entrada para **continuar o desenvolvimento**. Reúne o estado observado, o rastreamento das etapas e a próxima ação. O [plano](development-plan.md) define dependências, escopo e critérios de aceite; este documento é a única fonte de status e retomada.
 
-Atualizado no recorte T18: 77 testes de autoria/geometria, 30 contrato, 64 core, 4 ações e 27 sample aprovados em JVM (202 casos, sem falhas/erros/ignorados). Seleção e drag integrados ao renderer real; Chrome confirmou mudança entre containers e ordem na árvore. Guia rosa verificada em Compose. O usuário relatou apenas uma caixinha; inspeção do navegador integrado encontrou documento vazio. Adicionadas orientação de tela vazia e carga direta do exemplo; falta validar a guia com o exemplo carregado. T18 permanece em execução.
+Atualizado após T18: 77 testes de autoria/geometria, 30 contrato, 64 core, 4 ações e 27 sample aprovados em JVM (202 casos, sem falhas/erros/ignorados). Seleção/drop integrados ao renderer real; Chrome confirmou mudança de container e árvore. A guia foi comprovada em Compose e confirmada manualmente pelo usuário após carregar o exemplo. T18 concluída.
 
 ## Ponto de retomada
 
 | Campo | Registro atual |
 | --- | --- |
-| Última atualização | 2026-10-24 — base e05985b (T13), anteriores c6a1e46 e 6441ec0; T14 no commit local bde7c23 e T15 em eb8726e e T16 em b6c1ff3 e implementação T17 em 2d9d6eb, aceite ce2bd7e e geometria T18 em 8a12ea0 e integração em 04df7c0; sem push |
-| Última entrega | Recorte T18: geometria pura, bounds reais e overlay de edição; 202 testes JVM; resta confirmação visual da guia no browser; ver [validação](validation.md) |
-| Tarefa de implementação em execução | T18 — Codex: geometria pura e integração de bounds/gestos |
-| Próxima tarefa | **T18 — fechar a observação da guia no navegador** |
-| Próxima ação concreta | No preview, Carregar exemplo de arraste → verificar textos A/B e containers roxo/verde → Modo edição → arrastar A sobre o verde sem soltar. Confirmar a linha rosa antes de concluir T18; o contorno do documento vazio não é uma guia |
-| Critério para avançar | Testar seleção/alvo/índice e cancelamento/revisões obsoletas; observar guia e commit de drop no navegador, preservando ordem exportada |
-| Bloqueio de implementação conhecido | Nenhum defeito de cálculo reproduzido. Usuário relatou caixinha; estado atual do navegador integrado mostrou documento vazio sem A/B. Ajuda corrigida e testada; a guia ainda exige observação com o exemplo carregado. |
-| Limite do próximo recorte | Geometria e manipulação local em Column/Row sem wrap/reverse; Box limitado; sem servidor ou publicação |
+| Última atualização | 2026-10-24 — base e05985b (T13), anteriores c6a1e46 e 6441ec0; T14 no commit local bde7c23 e T15 em eb8726e e T16 em b6c1ff3 e implementação T17 em 2d9d6eb, aceite ce2bd7e e geometria T18 em 8a12ea0 e integração em 04df7c0 e orientação de tela vazia em 75f50f6; sem push |
+| Última entrega | T18: geometria, bounds, seleção/drop e viewport; 202 testes JVM e aceite visual manual da guia; ver [validação](validation.md) |
+| Tarefa de implementação em execução | Nenhuma; T18 concluída |
+| Próxima tarefa | **T19 — grafo de interações e conectores** |
+| Próxima ação concreta | Ler o recorte T19 e as equações de conectores em Studio; implementar geometria pura de âncoras/cúbicas/hit e edição de portas/ações/navegação compatíveis com o compilador |
+| Critério para avançar | Testar âncoras/tangentes/zoom/hit e edição/undo das relações; executar navegação exportada no sample |
+| Bloqueio de implementação conhecido | Nenhum para T19; limites de plataforma e de automação permanecem registrados em validação. |
+| Limite do próximo recorte | Interações locais e conectores; sem roteador complexo de obstáculos, servidor ou publicação |
 
 ### Protocolo quando o pedido for “continue o desenvolvimento”
 
@@ -51,8 +51,8 @@ Estados: **pronta**, **pendente**, **em execução**, **bloqueada**, **concluíd
 | T15 | Compilador puro do subconjunto legado | concluída | 172 testes JVM aprovados; golden, capacidades, expansão limitada, ciclos e jornada compilada executada pelo renderer real; ver [validação](validation.md) |
 | T16 | Preview do catálogo no host Wasm | concluída | Chrome/Wasm observado: edição/binding/update/MISSING_METHOD/recuperação; host sem provider URL; teste JVM de descarte; ver [validação](validation.md) |
 | T17 | Editor local e Inspector | concluída | Implementação 2d9d6eb; 183 testes JVM; importação/ação/downloads observados pelo agente e abertura manual/confirmado relatados pelo usuário em 2026-10-24; ver [validação](validation.md) |
-| T18 | Seleção, bounds e drop geométrico | em execução | 202 testes JVM; bounds sem wrappers, drag entre containers, zoom/pan, undo/cancel e guia Compose. Chrome confirmou commit; relato de caixinha investigado no documento vazio; ajuda corrigida, falta guia no exemplo carregado |
-| T19 | Grafo de interações e conectores | pendente | Portas/curvas/ações compiláveis e navegação observada |
+| T18 | Seleção, bounds e drop geométrico | concluída | 8a12ea0/04df7c0/75f50f6; 202 testes JVM; commit de drag no Chrome e guia confirmada manualmente pelo usuário em 2026-10-24; ver [validação](validation.md) |
+| T19 | Grafo de interações e conectores | pronta | Portas/curvas/ações compiláveis e navegação observada |
 | T20 | Aplicação de servidor e interfaces | pendente | Criar fronteiras/casos de uso/host local com autorização |
 | T21 | Rascunhos/revisões em PostgreSQL | pendente | Validar persistência/transações em banco real local |
 | T22 | Publicação imutável e capacidades | pendente | Publicar snapshot local compatível sem dados de sessão |
@@ -65,30 +65,9 @@ Os requisitos completos e a ordem das dependências estão no [plano](developmen
 
 ### Trabalho parcial e bloqueios
 
-T17 concluída após o usuário responder “apareceu confirmado” ao procedimento solicitado de abrir o documento salvo e executar Confirmar. O relato manual completa a evidência dos testes e do browser registrada em [validação](validation.md); não equivale a observação automatizada do seletor nem a confirmação manual adicional de todos os controles. O descarte de estado/histórico ao reabrir está coberto pelos testes Compose existentes.
+Nenhum recorte parcial ativo. Após a orientação de carregar o exemplo, o usuário respondeu “agora sim”, confirmando a guia que faltava no aceite de T18. Essa é evidência manual, distinta da observação automatizada do commit no Chrome e da captura de pixels em Compose; detalhes e limites estão em [validação](validation.md). Não repetir a verificação sem motivo novo.
 
-T18 — Codex, 2026-10-24: geometria pura registrada em 8a12ea0. Integração subsequente adiciona observador opcional de bounds aos seis componentes do catálogo, PreviewGeometry derivada, EditablePreview com seleção/clipping/guia e DropGesture com um ponteiro e revisão tripla. Modo de edição bloqueia ações do formulário; execução continua disponível. Zoom e pan sobrevivem a revisões do documento, sem serem persistidos nele.
-
-Verificado: build/t18/final-verified.log passou; 202 testes JVM sem falhas/erros/ignorados, metadata/JS puros e sample Wasm compilados. Sete testes Compose cobrem a orientação de tela vazia e exercitam bounds/padding/clipping/descarte, drag/undo, Escape, zoom/pan, perda de foco e isolamento de modos. A guia foi pintada antes do release e capturada em sample/composeApp/build/reports/drop-guide.png; imagem inspecionada.
-
-Chrome em 127.0.0.1:8080: Exemplo de arraste → Modo edição → A do container roxo para o verde. Observado documento na revisão 1, A na direita, B na esquerda e árvore atualizada. A tentativa de captura concorrente não registrou a guia transitória; não confundir esse commit observado com prova visual da guia no browser. Versão final recarregada com controles de pan legíveis em quatro direções; captura build/t18/browser-current.png mostra esse estado inicial, não o drag anterior.
-
-Relato manual recebido: “só apareceu uma caixinha quadrada bem pequena”. Não é aceite da guia. A inspeção do navegador integrado em 127.0.0.1:8080 encontrou uma raiz Column vazia na revisão 0 e seu contorno de 48×48, sem textos A/B ou containers do exemplo. Isso explica a caixinha no estado inspecionado, mas não comprova a guia em um drag válido.
-
-Correção de orientação: tela vazia agora avisa que não há elementos para arrastar e oferece Carregar exemplo de arraste dentro do preview. Novo teste Compose carrega o exemplo a partir desse estado, preserva modo de edição e verifica os containers/textos reais. sample JVM passou com 27 casos; conjunto acumulado 202 sem falhas/erros/ignorados. Wasm do sample compilou; logs build/t18/empty-preview.log e empty-server.log. Matemática de drop e formatos wire não mudaram.
-
-Próxima ação é validar a guia com A/B e os containers carregados, conforme a tabela. Não repetir a pergunta como se o usuário ainda não tivesse respondido. Registrar guia visível ou investigar um gesto concreto no exemplo; T18 permanece em execução. Não há grafo visual de interações ou servidor implementados. Para registrar o recorte, preencher:
-
-```text
-Etapa / responsável / data / revisão:
-Implementado neste recorte:
-Verificado (comandos, resultado, plataforma, evidência):
-Pendente para cumprir o aceite:
-Bloqueio reproduzido e causa observada:
-Próxima ação executável:
-```
-
-Após concluir, conservar o vínculo da evidência na tabela e retirar daqui o registro transitório. Não duplicar o checklist completo da tarefa.
+Retomar por T19, cujas dependências T15/T17 estão concluídas. Grafo visual de interações, conectores e servidor ainda não estão implementados.
 
 ### Manutenção documental independente da implementação
 
