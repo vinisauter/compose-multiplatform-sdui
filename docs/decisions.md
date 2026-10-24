@@ -167,3 +167,9 @@ Usar ExpressionSpec com language=humming.expression e version=1 evita reinterpre
 Aritmética é Double finito com rejeição de inteiros fora do intervalo seguro antes/depois de operar; isso impede arredondamento silencioso de inteiros grandes preservados em SduiValue. Igualdade de containers é rejeitada, sem travessia recursiva oculta. Resultado numérico é comparado por valor, sem exigir a mesma formatação de Double nos targets. IO, métodos e código externo não são capacidades do evaluator. Callback de cancelamento é do chamador confiável e suas exceções propagam sem conversão em erro de payload.
 
 Parser limita fonte/tokens/profundidade e evaluator limita visitas/profundidade/texto. Acesso de índice em base Missing/Null também faz curto-circuito. O programa não guarda resultados/contexto entre chamadas. Não se conectou essa linguagem ao schema de propriedades nem ao runtime visual: T09 precisa de dependências reativas, opt-in por capacidade e política de apresentação/validação antes dessa integração.
+
+## T09 — dependências conservadoras e assinatura pelo consumidor
+
+Analisar a AST uma vez permite evitar reavaliações por mudanças alheias sem criar jobs globais no ViewModel. Acessos dinâmicos de chave raiz observam todo o escopo; acessos dinâmicos abaixo de uma chave conhecida preservam essa chave. Analisar todos os ramos evita dependências perdidas quando muda a condição. A projeção de snapshots ocorre antes da avaliação e mantém a semântica de revisões confladas existente.
+
+O stream tipado do core exige fallback e entrega diagnóstico junto ao valor; captura somente PayloadException. Valores temporários de ações são incompatíveis com propriedades duradouras e são rejeitados. Essa API prepara a integração visual, mas não torna uma propriedade legada uma expressão nem declara uma capacidade de schema ainda inexistente.

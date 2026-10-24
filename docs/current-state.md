@@ -9,10 +9,10 @@ Atualizado após T08: linguagem pura opt-in implementada sobre os valores/escopo
 | Campo | Registro atual |
 | --- | --- |
 | Última atualização | 2026-10-24 — T19 em f85c566, T07 em 43527b7; T08 com código e evidência abaixo; commits locais sem push |
-| Última entrega | T08: ExpressionSpec/Program, tokenizer/parser, avaliação pura tipada e limitada; 242 testes JVM no conjunto; sem ativação em propriedades |
-| Tarefa de implementação em execução | Nenhuma; T07 e T08 concluídas |
+| Última entrega | Primeiro recorte T09: análise de dependências e expressionValues frio com fallback tipado; testes JVM e compilação JS/Wasm; sem ativação em propriedades visuais |
+| Tarefa de implementação em execução | T09 — Codex; primeiro recorte: dependências e binding tipado com assinatura pertencente ao consumidor |
 | Próxima tarefa | **T09 — propriedades reativas, tokens e validação** |
-| Próxima ação concreta | Ler T09; definir opt-in/versionamento de propriedades e política de apresentação tipada; extrair dependências do evaluator e integrar bindings com lifecycle em componentes do catálogo, preservando #{chave} e fixtures legadas |
+| Próxima ação concreta | Definir opt-in/versionamento de propriedades e política de apresentação tipada; integrar expressionValues ao lifecycle dos componentes do catálogo, preservando #{chave} e fixtures legadas |
 | Critério para avançar | Mudar estado atualiza propriedades dependentes sem collectors duplicados; descarte cancela assinaturas; UI explicita erros de expressão/validação; dado canônico separado da apresentação e tokens/máscaras com capacidades declaradas |
 | Bloqueio de implementação conhecido | Nenhum para T09. Expressões testadas em JVM e compiladas JS/Wasm; execução browser da linguagem e Apple permanecem qualificação própria |
 | Limite do próximo recorte | Integração reativa por capacidade do cliente; sem substituir bindings legados, transporte HTTP, backend ou publicação |
@@ -42,7 +42,7 @@ Estados: **pronta**, **pendente**, **em execução**, **bloqueada**, **concluíd
 | T06 | Fronteira pura e consumo sem UI | concluída | 114 testes JVM aprovados, classpath puro e core Android compilado; migração/recompilação descritas no contrato |
 | T07 | Valores tipados e escopos de tela/ação | concluída | Codex, 2026-10-24: 232 testes JVM no conjunto; 33 contrato/69 core/32 sample incluem tipos, concorrência, owner distinto, duas entradas da mesma rota, retorno, erro e cancelamento no pop. Wasm, JS/metadata e core/navegação Android compilados; Chrome confirmou isolamento/retorno |
 | T08 | Linguagem de expressões limitada | concluída | Codex, 2026-10-24: 10 testes novos da linguagem; 43 contrato/242 JVM no conjunto; grammar/versão, escopos, precedência, curto-circuito, tipos, números/índices inválidos, limites e cancelamento. Metadata/JS/Wasm compilados; sem integração UI |
-| T09 | Propriedades reativas, tokens e validação | pronta | Definir formato/capacidade opt-in e dependências; integrar evaluator com lifecycle, apresentação, tokens/máscaras e validação |
+| T09 | Propriedades reativas, tokens e validação | em execução | Codex: dependências e binding tipado primeiro; formato/capacidade opt-in, apresentação, tokens/máscaras, validação e UI permanecem no escopo da etapa |
 | T10 | Transporte HTTP com ownership e resultado | pendente | Implementar métodos reais e integração HTTP local |
 | T11 | Jornada, navegação e cache versionado | pendente | Isolar entradas, fixar snapshot e definir políticas |
 | T12 | Bridge de capacidades nativas | pendente | Capacidade real no host e não suporte explícito nos demais |
@@ -86,6 +86,12 @@ No Chrome/Wasm: exemplo abriu segunda tela e voltou; canvas desenhou a conexão,
 Após a orientação de carregar o exemplo, o usuário respondeu “agora sim”, confirmando a guia que faltava no aceite de T18. Essa é evidência manual, distinta da observação automatizada do commit no Chrome e da captura de pixels em Compose; detalhes e limites estão em [validação](validation.md). Não repetir a verificação sem motivo novo.
 
 Retomar por T09, dependências T05/T08 concluídas. T20–T25 permanecem posteriores; este recorte não criou servidor, transporte HTTP ou persistência remota.
+
+### T09 — recorte de dependências e streams tipados
+
+Codex, 2026-10-24: ExpressionDependencies no contrato analisa chaves raiz estáticas, acessos aninhados, raízes dinâmicas e todos os ramos da AST. expressionValues no core projeta as dependências antes de avaliar, mantém fallback explícito e diagnóstico localizado, recupera após correção e não cria job no ViewModel. Escopos temporários response/error são rejeitados para propriedades. Não há nova interpretação de strings ou schema visual neste recorte.
+
+Executado: descoberta :humming-contract:tasks/:humming-core:tasks --all; :humming-contract:jvmTest e :humming-core:jvmTest; compilação JS/Wasm do contrato e Wasm do core. Logs build/t09/tasks.log, reactivity.log e reactivity-final.log. Seis testes novos: três de análise e três de coleta, edição/remoção, cancelamento, acesso dinâmico, fallback/recuperação e diagnóstico. Contrato 46 e core 72 testes aprovados; outros módulos mantêm a execução anterior, sem nova execução neste recorte. UI/browser e Apple não foram exercitados. T09 permanece em execução; faltam schema opt-in, integração visual, tokens, apresentação e validação.
 
 ### Manutenção documental independente da implementação
 
@@ -139,9 +145,9 @@ O fluxo básico é host → provider → parsing → resolução de biblioteca/c
 | Registro | Nome inválido e handler/provider ausente possuem diagnóstico com localização | Schemas do subconjunto validam campo/papel; ampliar somente com fixtures |
 | Ações | `executeActions` aguarda ramos e providers; `invokeActions` continua sendo lançamento independente | Handlers customizados devem aguardar a API suspensa |
 | Falha/cancelamento | Cancelamento propaga, contadores finalizam, callbacks preservam causa; ações da UI cancelam ao sair da composição | Novos efeitos devem preservar essas garantias |
-| Estado/bindings | Catálogo usa bindings frios; APIs imperativas oferecem releaseBinding; leitura legada pode inicializar chave vazia | T07/T11: tipos e isolamento por entrada; extensões imperativas precisam descartar seus bindings |
+| Estado/bindings | Estado tipado e isolamento opt-in por entrada; bindings legados frios e expressionValues por dependência; leitura legada pode inicializar chave vazia | Completar T09 visual; extensões imperativas precisam descartar seus bindings |
 | Eventos | Emissão inicial preservada; idempotência e origem causal impedem ciclos no catálogo | Métodos customizados devem usar updateStateFromAction; revisões são confladas |
-| Navegação | Cache em memória por rota; estado compartilhado no ViewModel do grafo; deep link pressupõe nó disponível | Definir carregamento, erros, isolamento por entrada e restauração |
+| Navegação | Cache de definições por rota; modo legado compartilhado ou ISOLATED_ENTRIES opt-in; retorno preserva entrada anterior | Qualificar restauração e carregamento/deep links posteriores |
 | Rede | Esboço cria `HttpClient` por chamada, `post` chama `get` e resposta não integra estado; provider URL do sample também cria cliente por chamada | Introduzir cliente injetado, ownership e resultado explícito |
 | Exemplos | Há `event:loader`, `navigation:goToUrl`, providers `link`/`firestore`, recurso ausente e `action:method` com propriedade `method` | Selecionar/corrigir uma fixture local; não assumir que todos os JSONs são funcionais |
 
@@ -151,7 +157,7 @@ Essas limitações descrevem o código, não comportamentos que devam ser perpet
 
 Os builds principais declaram toolchain JVM **25** e compatibilidade Java Android **17**. O [catálogo](../gradle/libs.versions.toml) declara Kotlin `2.4.21`, Compose `1.8.2`, AGP `8.13.2`, Ktor `3.6.0` e Navigation `2.9.2`; aliases JVM/Spring usam Kotlin `2.2.10`. Esses valores não demonstram resolução dos artefatos ou compatibilidade entre versões.
 
-A suíte atual tem 201 casos aprovados em JVM, distribuídos entre contrato puro, core, ações e sample. As fixtures originais de parsing/limites foram movidas para commonTest do contrato; regressões de runtime e schemas permanecem nos consumidores. O teste headless comprova ausência de classes UI no classpath. A execução detalhada e os resultados históricos estão em [validação](validation.md).
+A referência agregada mais recente é 242 testes JVM após T08; o primeiro recorte T09 acrescenta seis casos, com 46 do contrato e 72 do core aprovados novamente. Ações/autoria/sample mantêm os resultados anteriores. As fixtures de parsing/limites pertencem ao commonTest do contrato; o teste headless comprova ausência de classes UI no classpath. Evidências incrementais estão nos recortes acima; procedimentos em [validação](validation.md).
 
 A dependência Lifecycle do core permanece api porque seu ViewModel aparece na API pública. O host JVM fornece handle de estado em memória por factory explícita; os outros hosts mantêm o caminho padrão. O contrato é exportado pelo core e usa bytecode JVM 17 com toolchain 25.
 
@@ -159,4 +165,4 @@ Gradle 9.5.1 com Java 25.0.3 em Windows 11 x64 executou `projects`, descoberta d
 
 ## Evolução ainda não implementada
 
-Schemas para o restante do catálogo, valores tipados, linguagem de expressões, isolamento por entrada de back stack, transporte completo, políticas de cache, bridge nativa, grafo visual de interações, persistência, publicação e colaboração são entregas futuras. O [plano](development-plan.md) define recortes que podem ser validados separadamente.
+Permanecem pendentes a integração visual completa de expressões/tokens/validação da T09, schemas para o restante do catálogo, transporte remoto, políticas de cache, bridge nativa, persistência remota, publicação e colaboração. Valores tipados, linguagem pura, isolamento opt-in e grafo visual local já possuem evidência nos recortes anteriores. O [plano](development-plan.md) define o escopo restante.

@@ -225,3 +225,11 @@ primary    = JSON_STRING | UNSIGNED_JSON_NUMBER | "true" | "false"
 SCOPE      = "state" | "server" | "nav" | "response" | "error" ;
 IDENT      = (ASCII_LETTER | "_"), { ASCII_LETTER | DIGIT | "_" } ;
 ```
+
+## Dependências e coleta de expressões
+
+`ExpressionProgram.dependencies` descreve leituras conservadoras por escopo. `state.profile.name` observa a chave raiz `profile`; `state.items[state.index]` observa `items` e `index`; `state[nav.key]` e a leitura de `state` inteiro observam todo o estado. Todos os ramos entram na análise, inclusive os que sofreriam curto-circuito. Não há promessa de dependências mínimas por caminho executado. `readsScope`, `readsAll` e `keys` distinguem ausência, escopo inteiro e chaves conhecidas.
+
+No core, `SDUIFormViewModel.expressionValues(spec, node, propertyName, fallback)` é uma API opt-in de código cliente, sem novo wire de propriedades. O stream é frio: cada consumidor possui sua coleta, cancelada pelo próprio consumidor. Projeta o snapshot das chaves relevantes e compara por conteúdo antes de avaliar; mudanças alheias ainda passam pela projeção, mas não executam o evaluator. Revisões são confladas, como os bindings existentes; não é um log de cada mutação intermediária.
+
+`server` e `nav` vêm dos inputs da entrada. `response` e `error` são rejeitados com `EXPRESSION_PROPERTY_SCOPE`, inclusive em ramos não executados, pois não pertencem ao lifecycle da propriedade. Erros de payload produzem `ExpressionValue(fallback, diagnostic)`, com nó, propriedade e offset quando disponível; alterações relevantes posteriores podem recuperar o resultado. Cancelamento e defeitos de programação propagam. O fallback é obrigatório e tipado; nenhum valor é gravado no estado durante avaliação. Strings legadas permanecem inalteradas.

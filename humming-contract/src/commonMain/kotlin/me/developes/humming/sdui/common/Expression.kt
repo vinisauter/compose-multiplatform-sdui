@@ -34,6 +34,9 @@ internal fun expressionFailure(code: String, message: String, offset: Int, opera
     throw PayloadException(NodeDiagnostic(code,message,operation,"$.expression.source[$offset]"))
 
 class ExpressionProgram internal constructor(private val root: ExpressionNode, private val limits: ExpressionLimits) {
+    /** Conservative, immutable description of reads; dynamic root keys observe the whole scope. */
+    val dependencies: ExpressionDependencies = expressionDependencies(root)
+
     /** No IO or reflection; the trusted caller may supply cancellation without a coroutines dependency. */
     fun evaluate(context: ExpressionContext, checkCancellation: () -> Unit = {}): SduiValue {
         var operations=0
