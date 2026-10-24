@@ -43,7 +43,7 @@ class SDCBox(val node: ServerDrivenNode, private val viewModel: SDUIFormViewMode
     @Composable
     override fun Content() {
         Box(
-            modifier = modifier,
+            modifier = modifier.observeNodeBounds(node),
             contentAlignment = contentAlignment,
             propagateMinConstraints = propagateMinConstraints ?: false,
         ) {

@@ -48,10 +48,11 @@ class SDCColumn(val node: ServerDrivenNode, val viewModel: SDUIFormViewModel) : 
     @Composable
     override fun Content() {
         val invoker = rememberActionInvoker(viewModel)
+        val observedModifier = modifier.observeNodeBounds(node)
         Column(
-            modifier = if (actions.isNotEmpty()) modifier.clickable {
+            modifier = if (actions.isNotEmpty()) observedModifier.clickable {
                 invoker.invoke(actions)
-            } else modifier,
+            } else observedModifier,
             verticalArrangement = verticalArrangement,
             horizontalAlignment = horizontalAlignment,
         ) {

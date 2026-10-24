@@ -119,6 +119,16 @@ class DropGeometryTest {
         assertNull(DropGeometry.plan(doc, singular, viewport, "drag", Point2(15.0, 60.0), catalog).value)
     }
 
+    @Test fun anUnrelatedFrontOverlayDoesNotDropIntoAContainerBehindIt() {
+        val doc = codec.importDocument("""{"component":"layout:box","id":"root","children":[{"component":"layout:column","id":"back"},{"component":"layout:text","id":"front","properties":{"text":"Overlay"}},{"component":"layout:text","id":"drag","properties":{"text":"X"}}]}""", "overlay").requireValue()
+        val rect = Rect2(0.0, 0.0, 100.0, 100.0)
+        val l = LayoutSnapshot(doc.documentId, doc.revision, 1, mapOf(
+            "root" to MeasuredNode("root", rect, container = ContainerBounds(FlowAxis.STACK, rect)),
+            "back" to MeasuredNode("back", rect, paintOrder = 1, container = ContainerBounds(FlowAxis.VERTICAL, rect)),
+            "front" to MeasuredNode("front", rect, paintOrder = 2)))
+        assertEquals("root", DropGeometry.plan(doc, l, viewport, "drag", Point2(10.0, 10.0), catalog).requireValue().targetId)
+    }
+
     @Test fun boxAppendsAndUsesItsOwnBottomGuide() {
         val original = document(); val doc = original.copy(nodes = original.nodes + ("root" to original.nodes.getValue("root").copy(definition = "layout:box")))
         val result = plan(doc, layout(doc, FlowAxis.STACK))

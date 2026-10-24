@@ -156,7 +156,7 @@ class SDCTextField(val node: ServerDrivenNode, val viewModel: SDUIFormViewModel)
                     viewModel.updateState(onChangeUpdateState, it)
                 }
             },
-            modifier = modifier,
+            modifier = modifier.observeNodeBounds(node),
             enabled = isEnabled && !invoker.isRunning,
             readOnly = readOnly,
             label = label,

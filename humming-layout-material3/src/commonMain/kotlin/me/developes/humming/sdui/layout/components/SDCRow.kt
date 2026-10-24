@@ -10,7 +10,7 @@ import me.developes.humming.sdui.common.ServerDrivenNode
 import me.developes.humming.sdui.layout.LayoutDefinitions
 import me.developes.humming.sdui.layout.Layout
 
-class SDCRow(node: ServerDrivenNode, viewModel: SDUIFormViewModel) : Layout {
+class SDCRow(private val node: ServerDrivenNode, viewModel: SDUIFormViewModel) : Layout {
     private val properties = LayoutDefinitions.row.parse(node).requireValid()
 
     private val modifier = Modifier.fromNode(node)
@@ -42,7 +42,7 @@ class SDCRow(node: ServerDrivenNode, viewModel: SDUIFormViewModel) : Layout {
     @Composable
     override fun Content() {
         Row(
-            modifier = modifier,
+            modifier = modifier.observeNodeBounds(node),
             horizontalArrangement = horizontalArrangement,
             verticalAlignment = verticalAlignment
         ) {

@@ -15,7 +15,7 @@ import me.developes.humming.sdui.common.toColor
 import me.developes.humming.sdui.layout.LayoutDefinitions
 import me.developes.humming.sdui.layout.Layout
 
-class SDCText(node: ServerDrivenNode, viewModel: SDUIFormViewModel) : Layout {
+class SDCText(private val node: ServerDrivenNode, viewModel: SDUIFormViewModel) : Layout {
     private val properties = LayoutDefinitions.text.parse(node).requireValid()
 
     private val text = viewModel.binding(properties.property("text")!!)
@@ -43,7 +43,7 @@ class SDCText(node: ServerDrivenNode, viewModel: SDUIFormViewModel) : Layout {
     override fun Content() {
         val text by text.collectAsState()
         Text(
-            modifier = modifier,
+            modifier = modifier.observeNodeBounds(node),
             text = text,
             fontWeight = fontWeight,
             textAlign = textAlign,

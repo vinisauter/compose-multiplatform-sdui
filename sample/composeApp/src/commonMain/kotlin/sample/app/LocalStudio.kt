@@ -43,6 +43,7 @@ fun LocalStudio(files: StudioFiles? = null, workspace: LocalWorkspace = remember
     DisposableEffect(Unit) { onDispose { active = false } }
     val compilation = remember(document) { workspace.compile() }
     val treeRows = remember(document) { workspace.tree() }
+    val previewControls = remember { PreviewControls() }
     val selected = document.nodes[selectedId]
     fun diagnostics(items: List<NodeDiagnostic>) = items.joinToString("\n") {
         "${it.code} | nó=${it.nodeId ?: "—"} | ${it.path} | ${it.message}"
@@ -90,6 +91,7 @@ fun LocalStudio(files: StudioFiles? = null, workspace: LocalWorkspace = remember
             }
             FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 OutlinedButton(onClick = { jsonText = ""; jsonDialog = true }) { Text("Importar JSON") }
+                OutlinedButton(onClick = { requestReplace { replaced(workspace.importContract(DROP_EXAMPLE)) } }) { Text("Exemplo de arraste") }
                 OutlinedButton(enabled = files != null && compilation.isSuccess, onClick = {
                     val result = workspace.compile()
                     messages = diagnostics(result.diagnostics)
@@ -176,7 +178,11 @@ fun LocalStudio(files: StudioFiles? = null, workspace: LocalWorkspace = remember
                     } else key(openedVersion, document.documentId, document.revision) {
                         val compiled = compilation.requireValue()
                         val json = compiled.artifacts.getValue(compiled.entryDestination)
-                        Box(Modifier.fillMaxSize().background(Color.White)) { CompiledPreview(json) }
+                        Box(Modifier.fillMaxSize().background(Color.White)) {
+                            EditablePreview(workspace, document, compiled.sourceNodeIds, selectedId,
+                                select = { selectedId = it; selectedEdge = null }, commit = ::changed,
+                                controls = previewControls) { CompiledPreview(json) }
+                        }
                     }
                 }
             }
@@ -242,7 +248,7 @@ private fun Choice(label: String, selected: String, values: List<String>, choose
 }
 
 @Composable
-private fun CompiledPreview(json: String) {
+internal fun CompiledPreview(json: String) {
     val owner = remember { object : ViewModelStoreOwner { override val viewModelStore = ViewModelStore() } }
     DisposableEffect(owner) { onDispose { owner.viewModelStore.clear() } }
     CompositionLocalProvider(LocalViewModelStoreOwner provides owner) {

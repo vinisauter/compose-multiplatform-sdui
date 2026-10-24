@@ -2,19 +2,19 @@
 
 Este é o ponto de entrada para **continuar o desenvolvimento**. Reúne o estado observado, o rastreamento das etapas e a próxima ação. O [plano](development-plan.md) define dependências, escopo e critérios de aceite; este documento é a única fonte de status e retomada.
 
-Atualizado no recorte T17: 65 testes de autoria, 30 contrato, 64 core, 4 ações e 20 sample aprovados em JVM (183 casos, sem falhas/erros/ignorados). Editor por árvore/Inspector integrado ao compilador e preview real; importação JSON, edição e downloads observados no Chrome/Wasm. O usuário confirmou a abertura manual do arquivo e a ação exibindo confirmado; T17 concluída.
+Atualizado no recorte T18: 77 testes de autoria/geometria, 30 contrato, 64 core, 4 ações e 26 sample aprovados em JVM (201 casos, sem falhas/erros/ignorados). Seleção e drag integrados ao renderer real; Chrome confirmou mudança entre containers e ordem na árvore. Guia rosa verificada em captura Compose; confirmação visual da guia durante o gesto no navegador ainda aguardada. T18 permanece em execução.
 
 ## Ponto de retomada
 
 | Campo | Registro atual |
 | --- | --- |
-| Última atualização | 2026-10-24 — base e05985b (T13), anteriores c6a1e46 e 6441ec0; T14 no commit local bde7c23 e T15 em eb8726e e T16 em b6c1ff3 e implementação T17 em 2d9d6eb; sem push |
-| Última entrega | T17: editor local, 183 testes JVM, downloads reais e aceite manual de abertura/ação confirmado pelo usuário; ver [validação](validation.md) |
+| Última atualização | 2026-10-24 — base e05985b (T13), anteriores c6a1e46 e 6441ec0; T14 no commit local bde7c23 e T15 em eb8726e e T16 em b6c1ff3 e implementação T17 em 2d9d6eb, aceite ce2bd7e e geometria T18 em 8a12ea0; sem push |
+| Última entrega | Recorte T18: geometria pura, bounds reais e overlay de edição; 201 testes JVM; resta confirmação visual da guia no browser; ver [validação](validation.md) |
 | Tarefa de implementação em execução | T18 — Codex: geometria pura e integração de bounds/gestos |
-| Próxima tarefa | **T18 — seleção, bounds e drop geométrico** |
-| Próxima ação concreta | Ler a geometria em Studio, integrar bounds derivados do renderer e transformações de viewport; iniciar testes puros de seleção/alvo/índice para Column/Row antes de conectar o gesto aos comandos |
+| Próxima tarefa | **T18 — fechar a observação da guia no navegador** |
+| Próxima ação concreta | Aguardar resposta à pergunta sobre a linha rosa em Exemplo de arraste → Modo edição → arrastar A sobre o container verde sem soltar. Se aparecer, registrar aceite, concluir T18 e retomar o grafo de interações T19; se não, reproduzir e corrigir |
 | Critério para avançar | Testar seleção/alvo/índice e cancelamento/revisões obsoletas; observar guia e commit de drop no navegador, preservando ordem exportada |
-| Bloqueio de implementação conhecido | Nenhum para T18. Seleção automática de arquivos continua limitada pela extensão Chrome; aceite manual de T17 foi informado pelo usuário, sem alterar permissões |
+| Bloqueio de implementação conhecido | Nenhum defeito de código conhecido. A ferramenta Chrome executa o drag até o release antes da captura; linha guia comprovada em Compose, mas falta observação no browser. Pergunta manual enviada; não presumir resposta |
 | Limite do próximo recorte | Geometria e manipulação local em Column/Row sem wrap/reverse; Box limitado; sem servidor ou publicação |
 
 ### Protocolo quando o pedido for “continue o desenvolvimento”
@@ -51,7 +51,7 @@ Estados: **pronta**, **pendente**, **em execução**, **bloqueada**, **concluíd
 | T15 | Compilador puro do subconjunto legado | concluída | 172 testes JVM aprovados; golden, capacidades, expansão limitada, ciclos e jornada compilada executada pelo renderer real; ver [validação](validation.md) |
 | T16 | Preview do catálogo no host Wasm | concluída | Chrome/Wasm observado: edição/binding/update/MISSING_METHOD/recuperação; host sem provider URL; teste JVM de descarte; ver [validação](validation.md) |
 | T17 | Editor local e Inspector | concluída | Implementação 2d9d6eb; 183 testes JVM; importação/ação/downloads observados pelo agente e abertura manual/confirmado relatados pelo usuário em 2026-10-24; ver [validação](validation.md) |
-| T18 | Seleção, bounds e drop geométrico | em execução | Validar Row/Column, transformações e commit por revisão |
+| T18 | Seleção, bounds e drop geométrico | em execução | 201 testes JVM; bounds sem wrappers, drag entre containers, zoom/pan, undo/cancel e guia Compose. Chrome confirmou commit; falta resposta manual sobre guia rosa antes do release |
 | T19 | Grafo de interações e conectores | pendente | Portas/curvas/ações compiláveis e navegação observada |
 | T20 | Aplicação de servidor e interfaces | pendente | Criar fronteiras/casos de uso/host local com autorização |
 | T21 | Rascunhos/revisões em PostgreSQL | pendente | Validar persistência/transações em banco real local |
@@ -67,7 +67,13 @@ Os requisitos completos e a ordem das dependências estão no [plano](developmen
 
 T17 concluída após o usuário responder “apareceu confirmado” ao procedimento solicitado de abrir o documento salvo e executar Confirmar. O relato manual completa a evidência dos testes e do browser registrada em [validação](validation.md); não equivale a observação automatizada do seletor nem a confirmação manual adicional de todos os controles. O descarte de estado/histórico ao reabrir está coberto pelos testes Compose existentes.
 
-T18 em execução sobre ce2bd7e: geometria pura e DropGesture implementados. 11 testes geométricos passaram; modelo soma 76 testes JVM, total acumulado 194. Metadata/JS/Wasm puros compilados; log build/t18/geometry.log. Próximo passo: observar bounds reais sem wrappers de layout, integrar overlay/gestos e validar no renderer e browser. Ainda não há manipulação geométrica entregue na UI. Retomar por T18; não repetir o seletor nem ampliar permissões da extensão para revalidar T17 sem motivo novo. A UI de salvar solicita download e não limpa automaticamente o indicador de alterações locais. Não há canvas geométrico ou servidor implementados. Para registrar o recorte, preencher:
+T18 — Codex, 2026-10-24: geometria pura registrada em 8a12ea0. Integração subsequente adiciona observador opcional de bounds aos seis componentes do catálogo, PreviewGeometry derivada, EditablePreview com seleção/clipping/guia e DropGesture com um ponteiro e revisão tripla. Modo de edição bloqueia ações do formulário; execução continua disponível. Zoom e pan sobrevivem a revisões do documento, sem serem persistidos nele.
+
+Verificado: build/t18/final-verified.log passou; 201 testes JVM sem falhas/erros/ignorados, metadata/JS puros e sample Wasm compilados. Seis testes Compose exercitam bounds/padding/clipping/descarte, drag/undo, Escape, zoom/pan, perda de foco e isolamento de modos. A guia foi pintada antes do release e capturada em sample/composeApp/build/reports/drop-guide.png; imagem inspecionada.
+
+Chrome em 127.0.0.1:8080: Exemplo de arraste → Modo edição → A do container roxo para o verde. Observado documento na revisão 1, A na direita, B na esquerda e árvore atualizada. A tentativa de captura concorrente não registrou a guia transitória; não confundir esse commit observado com prova visual da guia no browser. Versão final recarregada com controles de pan legíveis em quatro direções; captura build/t18/browser-current.png mostra esse estado inicial, não o drag anterior.
+
+Pendente somente para fechar T18: usuário confirmar a linha rosa antes de soltar o mouse. Pergunta assíncrona enviada; aguardar resposta, sem repetir testes já aprovados nem declarar aceite por silêncio. Não houve mudança de permissões da extensão. Não há grafo visual de interações ou servidor implementados. Para registrar o recorte, preencher:
 
 ```text
 Etapa / responsável / data / revisão:
@@ -90,7 +96,7 @@ Os relatórios e planos antigos estão ausentes. O registro de M01 conserva o re
 
 ## Escopo implementado
 
-HummingUI é uma POC de cliente SDUI. Interpreta nós JSON, mantém estado textual, resolve componentes e ações por namespace e integra bibliotecas no sample. O editor local por árvore/Inspector está integrado no sample e em validação T17. Não há canvas geométrico, backend de contratos, publicação imutável ou colaboração implementados nos módulos incluídos.
+HummingUI é uma POC de cliente SDUI. Interpreta nós JSON, mantém estado textual, resolve componentes e ações por namespace e integra bibliotecas no sample. O editor local por árvore/Inspector está integrado no sample, com seleção e drag geométrico em validação T18. Não há grafo visual de interações, backend de contratos, publicação imutável ou colaboração implementados nos módulos incluídos.
 
 | Módulo | Responsabilidade observada |
 | --- | --- |
@@ -144,7 +150,7 @@ Essas limitações descrevem o código, não comportamentos que devam ser perpet
 
 Os builds principais declaram toolchain JVM **25** e compatibilidade Java Android **17**. O [catálogo](../gradle/libs.versions.toml) declara Kotlin `2.4.21`, Compose `1.8.2`, AGP `8.13.2`, Ktor `3.6.0` e Navigation `2.9.2`; aliases JVM/Spring usam Kotlin `2.2.10`. Esses valores não demonstram resolução dos artefatos ou compatibilidade entre versões.
 
-A suíte atual tem 183 casos aprovados em JVM, distribuídos entre contrato puro, core, ações e sample. As fixtures originais de parsing/limites foram movidas para commonTest do contrato; regressões de runtime e schemas permanecem nos consumidores. O teste headless comprova ausência de classes UI no classpath. A execução detalhada e os resultados históricos estão em [validação](validation.md).
+A suíte atual tem 201 casos aprovados em JVM, distribuídos entre contrato puro, core, ações e sample. As fixtures originais de parsing/limites foram movidas para commonTest do contrato; regressões de runtime e schemas permanecem nos consumidores. O teste headless comprova ausência de classes UI no classpath. A execução detalhada e os resultados históricos estão em [validação](validation.md).
 
 A dependência Lifecycle do core permanece api porque seu ViewModel aparece na API pública. O host JVM fornece handle de estado em memória por factory explícita; os outros hosts mantêm o caminho padrão. O contrato é exportado pelo core e usa bytecode JVM 17 com toolchain 25.
 
@@ -152,4 +158,4 @@ Gradle 9.5.1 com Java 25.0.3 em Windows 11 x64 executou `projects`, descoberta d
 
 ## Evolução ainda não implementada
 
-Schemas para o restante do catálogo, valores tipados, linguagem de expressões, isolamento por entrada de back stack, transporte completo, políticas de cache, bridge nativa, canvas geométrico de autoria, persistência, publicação e colaboração são entregas futuras. O [plano](development-plan.md) define recortes que podem ser validados separadamente.
+Schemas para o restante do catálogo, valores tipados, linguagem de expressões, isolamento por entrada de back stack, transporte completo, políticas de cache, bridge nativa, grafo visual de interações, persistência, publicação e colaboração são entregas futuras. O [plano](development-plan.md) define recortes que podem ser validados separadamente.

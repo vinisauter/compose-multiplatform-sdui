@@ -33,7 +33,7 @@ class SDCButton(val node: ServerDrivenNode, val viewModel: SDUIFormViewModel) : 
         val isEnabled by enabled.collectAsState()
 
         Button(
-            modifier = modifier,
+            modifier = modifier.observeNodeBounds(node),
             enabled = isEnabled && !invoker.isRunning,
             onClick = {
                 invoker.invoke(actions)

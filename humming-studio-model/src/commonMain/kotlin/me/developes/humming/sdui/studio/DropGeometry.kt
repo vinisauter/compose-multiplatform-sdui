@@ -89,7 +89,10 @@ object DropGeometry {
         fun exclude(id: String) { childrenByParent[id].orEmpty().forEach { if (excluded.add(it)) exclude(it) } }
         exclude(sourceId)
         val world = viewport.toWorld(screen)
-        val target = ordered(document, layout).firstOrNull { measured ->
+        val front = ordered(document, layout).firstOrNull { it.id !in excluded && it.contains(world) }
+        val ancestors = generateSequence(front?.id) { id -> (document.nodes[id]?.placement as? Placement.Child)?.parentId }
+            .mapNotNull { layout.nodes[it] }
+        val target = ancestors.firstOrNull { measured ->
             val container = measured.container
             val node = document.nodes[measured.id]
             val axisSupported = when (container?.axis) {
@@ -166,7 +169,8 @@ class DropGesture {
         val active = capture ?: return AuthoringResult(null, emptyList())
         if (active.pointer != pointer) return AuthoringResult(null, emptyList())
         if (active.documentId != document.documentId || active.revision != document.revision) {
-            cancel(); return AuthoringResult(null, listOf(NodeDiagnostic("STALE_GESTURE", "Documento mudou durante o gesto", "drop")))
+            cancel(); return AuthoringResult(null, listOf(NodeDiagnostic("STALE_GESTURE", "Documento mudou durante o gesto", "drop",
+                nodeId = active.source, documentId = document.documentId)))
         }
         val result = DropGeometry.plan(document, layout, viewport, active.source, screen, catalog)
         preview = result.value
@@ -181,7 +185,8 @@ class DropGesture {
         if (plan == null) return null
         val doc = session.snapshot()
         if (doc.documentId != plan.documentId || doc.revision != plan.documentRevision || layoutRevision != plan.layoutRevision || viewportRevision != plan.viewportRevision)
-            return EditOutcome(null, listOf(NodeDiagnostic("STALE_DROP", "Documento, layout ou viewport mudou; inicie outro gesto", "drop", nodeId = active.source)))
+            return EditOutcome(null, listOf(NodeDiagnostic("STALE_DROP", "Documento, layout ou viewport mudou; inicie outro gesto", "drop",
+                nodeId = active.source, documentId = doc.documentId)))
         return session.execute(EditCommand(commandId, plan.documentRevision, listOf(EditOperation.MoveNode(active.source,
             NodeContainer.Slot(plan.targetId, plan.slot), plan.previousId, plan.nextId))))
     }

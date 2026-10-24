@@ -133,3 +133,11 @@ A orquestração pura fica em LocalWorkspace no módulo autoral existente; UI e 
 O Inspector valida campos editáveis pelo schema compartilhado e preserva dados desconhecidos. Rascunhos importados podem continuar incompletos; o compilador bloqueia a execução incompatível. Preview recompõe com outro ViewModelStore após edição ou abertura, incluindo abertura do mesmo arquivo/revisão; estado de formulário nunca é serializado no documento.
 
 Arquivos no navegador usam seletor e downloads padrão, sem adicionar dependência ou persistência remota. A UI informa solicitação de download e mantém alterações locais indicadas, pois não controla a confirmação de gravação do navegador. A permissão de arquivos locais da extensão de automação não foi ampliada: aceite manual de abertura é suficiente.
+
+## T18 — observação e manipulação geométrica
+
+Observar bounds nos modificadores existentes em vez de envolver componentes em containers adicionais; wrappers podem alterar medida, alinhamento e escopos de layout. O hook pertence à biblioteca visual e é opcional; o modelo geométrico continua puro. O host copia coordenadas e usa identidade de origem do compilador, sem persistir pixels.
+
+Drop considera a região pintada à frente e seus ancestrais elegíveis, impedindo movimentação para um container encoberto por um overlay de outra cadeia. O slot completo resolve vizinhos; igualdade de centro insere depois. Separar modos edição/execução para que seleção/drag não acionem o formulário. Captura é coordenada pelo stream Compose e pointerId; cancelamento limpa estado transitório em finally. Cancelar também quando o foco é perdido.
+
+Primeiro host usa LTR, Row/Column sem wrap/reverse, children e Box append. Zoom dos botões mantém a origem do conteúdo como âncora; a função pura também oferece zoom em ponto arbitrário. Viewport é estado do host e não reseta a cada edição. O aceite visual da guia no navegador é distinto da prova de pixels nos testes Compose; sua confirmação fica rastreada no estado atual.

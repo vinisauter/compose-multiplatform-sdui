@@ -38,7 +38,7 @@ O modo local carrega uma tela de formulário sem rede. O teste verifica edição
 .\gradlew.bat :sample:composeApp:wasmJsBrowserDevelopmentRun
 ```
 
-Abrir http://127.0.0.1:8080 para o Studio: selecionar pela árvore, editar propriedades por schema, inserir/remover/ordenar, desfazer/refazer, importar JSON, salvar documento e exportar contrato. O preview executa somente capacidades locais. Abrir documento usa o seletor do navegador; downloads exigem preservação pelo usuário. O modo anterior de fixture está em http://127.0.0.1:8080/?preview. Veja o [guia do Studio](docs/studio.md) e a [validação](docs/validation.md) para limites.
+Abrir http://127.0.0.1:8080 para o Studio: selecionar pela árvore, editar propriedades por schema, inserir/remover/ordenar, desfazer/refazer, importar JSON, salvar documento e exportar contrato. O preview executa somente capacidades locais. Exemplo de arraste + Modo edição habilitam seleção e movimentação entre containers; há zoom/pan, guia de inserção e cancelamento por Escape. O aceite visual desse recorte está no estado atual. Abrir documento usa o seletor do navegador; downloads exigem preservação pelo usuário. O modo anterior de fixture está em http://127.0.0.1:8080/?preview. Veja o [guia do Studio](docs/studio.md) e a [validação](docs/validation.md) para limites.
 
 ## Consumir o contrato sem UI
 

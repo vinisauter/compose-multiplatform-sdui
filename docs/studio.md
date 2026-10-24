@@ -1,6 +1,6 @@
 # Studio: modelo autoral e mecânicas
 
-O modelo/codec de T13 e os comandos/histórico de T14 estão implementados no módulo puro humming-studio-model; o editor local está integrado ao sample, com aceite rastreado no estado atual; a geometria das seções posteriores continua planejada e exige os testes do [plano](development-plan.md). O primeiro recorte é autoria local de telas compatíveis com o [contrato legado](contract.md). Não incluir renderização gráfica de baixo nível, roteamento complexo de obstáculos ou colaboração na primeira entrega.
+O modelo/codec de T13 e os comandos/histórico de T14 estão implementados no módulo puro humming-studio-model; o editor local está integrado ao sample, com aceite rastreado no estado atual; a geometria de seleção/drop está implementada e seu aceite está no estado atual; conectores das seções posteriores continuam planejados conforme o [plano](development-plan.md). O primeiro recorte é autoria local de telas compatíveis com o [contrato legado](contract.md). Não incluir renderização gráfica de baixo nível, roteamento complexo de obstáculos ou colaboração na primeira entrega.
 
 ## Documento e índices
 
@@ -143,7 +143,7 @@ Escopo inicial: fluxo linear, sem wrap e sem inversão visual. Column usa eixo y
 ### Escolha do container
 
 1. Converter o ponteiro screen → world.
-2. Buscar candidatos visíveis que aceitem o tipo/slot pelo schema, em ordem de hit definida acima.
+2. Determinar a região visível pintada à frente, em ordem de hit definida acima, e percorrer sua cadeia de ancestrais. Um overlay não elegível impede selecionar um container de outra cadeia que esteja atrás dele.
 3. Excluir o nó arrastado, seus descendentes e destinos proibidos; aplicar clipping e teste local do retângulo.
 4. Escolher o candidato válido à frente e mais específico na cadeia de ancestrais. Em área sem descendente elegível, usar o ancestral elegível sob o ponteiro.
 5. Para cada candidato, usar apenas bounds da revisão de layout corrente. Sem candidato, não mostrar guia de inserção.
@@ -281,3 +281,13 @@ O sample agora depende de humming-studio-model em commonMain. `CompiledPreview` 
 DropGeometry implementa seleção e planejamento de drop a partir de LayoutSnapshot revisionado. MeasuredNode contém retângulo local, transformação afim, clips, ordem de pintura, visibilidade/participação no fluxo e ContainerBounds opcional. Esses dados são derivados do host, nunca persistidos no documento. Rect2/Point2 usam Double; inversa com determinante absoluto abaixo de 1e-12 é tratada como não utilizável. CanvasViewport aplica densidade uma vez: screen=world*zoom*density+panPixels, com zoom ancorado.
 
 A ordem de hit é paintOrder decrescente, profundidade decrescente e ID ordinal. Column/Row usam centros medidos; igualdade passa para depois. Box somente acrescenta ao fim, com guia no fundo do content rect. O gap do comando vem do slot completo, sem o arrastado. Fluxo não monotônico é diagnosticado. DropGesture captura um ponteiro, mantém apenas preview e publica MoveNode no release com revisão de documento/layout/viewport conferida. Cancelamento ou perda de captura chama cancel e não edita o documento.
+
+## Integração geométrica com o renderer
+
+`LocalNodeBoundsObserver`, na biblioteca de layout, é opcional. Os seis componentes do catálogo observam limites OUTER e CONTENT em seus modificadores, sem Box ou outro wrapper de layout. Sem observador o modifier é preservado. A API usa ServerDrivenNode e LayoutCoordinates; não depende de autoria ou regras do sample. Descarte informa removed(nodeId).
+
+`PreviewGeometry` copia medidas do renderer para um snapshot: bounds completos, conteúdo, clip efetivo e ordem da projeção autoral. Não retém LayoutCoordinates após o callback nem recalcula padding/tipografia. Converte pixels de root para mundo do viewport, aplicando densidade uma vez. Cada alteração de medidas/origem/descarte incrementa a revisão de layout. O host inicial força LTR; wrap/reverse e slots de drop além de children não estão habilitados.
+
+No Studio, Exemplo de arraste cria dois containers e os textos A/B. Modo edição mostra seleção e captura o gesto sobre o preview; Modo execução deixa o formulário funcionar. Arrastar além de touchSlop calcula guia sem editar; release aplica MoveNode e atualiza árvore/contrato. Escape, perda de foco do overlay/janela, múltiplos ponteiros ou cancelamento da coroutine descartam a captura. Release rejeita revisões obsoletas. Guia obsoleta não é desenhada.
+
+Os controles Zoom +/− e Esquerda/Direita/Acima/Abaixo alteram só o viewport; Centralizar restaura-o. Modos e viewport sobrevivem ao commit, enquanto o estado do formulário é reiniciado pela nova revisão conforme T17. A seleção respeita clipping e o elemento à frente; o alvo de drop é o ancestral elegível mais próximo dessa região, excluindo o arrastado e seus descendentes. Box oferece somente append; reordenação fina permanece no Inspector.

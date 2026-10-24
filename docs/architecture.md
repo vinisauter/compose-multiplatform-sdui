@@ -51,7 +51,7 @@ Evoluir a navegação existente. Separar definições de tela cacheáveis de dad
 
 ## Studio e compilação
 
-O [modelo autoral](studio.md) está implementado em humming-studio-model: documento normalizado, codec determinístico e ponte legada. Esse módulo depende de humming-contract; o runtime não depende do modelo autoral. Comandos revisionados e undo/redo locais estão implementados em EditSession; ContractCompiler implementa a compilação semântica local, enquanto o canvas pertence às etapas seguintes. O documento possui nós por ID e relações explícitas. Índices e projeção de árvore são derivados; não há duas autoridades mutáveis. Comandos transacionais aplicam edição, geram inversa e incrementam revisão. A árvore de contenção é acíclica; ciclos de navegação são permitidos; ciclos de ações precisam de rejeição ou semântica limitada explícita.
+O [modelo autoral](studio.md) está implementado em humming-studio-model: documento normalizado, codec determinístico e ponte legada. Esse módulo depende de humming-contract; o runtime não depende do modelo autoral. Comandos revisionados e undo/redo locais estão implementados em EditSession; ContractCompiler implementa a compilação semântica local, enquanto seleção/drop são integrados pelo host e o grafo visual pertence às etapas seguintes. O documento possui nós por ID e relações explícitas. Índices e projeção de árvore são derivados; não há duas autoridades mutáveis. Comandos transacionais aplicam edição, geram inversa e incrementam revisão. A árvore de contenção é acíclica; ciclos de navegação são permitidos; ciclos de ações precisam de rejeição ou semântica limitada explícita.
 
 O compilador é puro: documento + schema/catálogo + capacidades de destino → contrato determinístico ou diagnósticos. Ele monta `children` e eventos ordenados, valida referências/portas e limita expansão. Na primeira entrega, produz apenas o subconjunto legado suportado; rede, expressões e bridge não são pré-requisitos para editar uma tela local.
 
@@ -83,4 +83,8 @@ O [plano](development-plan.md) define entregas independentes: runtime verificáv
 
 ## Fronteira do compilador autoral
 
-`humming-studio-model` depende apenas do contrato puro e contém documento, codecs, comandos/histórico e `ContractCompiler`. O compilador recebe capacidades do destino e produz JSON mais mapa de origem, sem Compose, IO ou registro de handlers. O host integra esses artefatos ao NodeProvider existente. Em T15 o sample consumia o módulo autoral somente em jvmTest. O host de edição LocalStudio agora o consome em commonMain; o runtime não depende do modelo autoral. O editor está em validação, conforme o estado atual.
+`humming-studio-model` depende apenas do contrato puro e contém documento, codecs, comandos/histórico e `ContractCompiler`. O compilador recebe capacidades do destino e produz JSON mais mapa de origem, sem Compose, IO ou registro de handlers. O host integra esses artefatos ao NodeProvider existente. Em T15 o sample consumia o módulo autoral somente em jvmTest. O host de edição LocalStudio agora o consome em commonMain; o runtime não depende do modelo autoral. O aceite de cada recorte do editor está no estado atual.
+
+## Bounds e interação do host
+
+A biblioteca de layout expõe LocalNodeBoundsObserver sem dependência do modelo autoral. O sample observa medidas reais por ID, cria LayoutSnapshot puro e consulta DropGeometry/DropGesture. Overlay, foco, viewport e entrada de ponteiro ficam no host; edição usa o mesmo EditSession do Inspector. A medição não acrescenta nós visuais nem transfere componentes Material 3 para o core.
