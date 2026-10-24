@@ -2,20 +2,20 @@
 
 Este é o ponto de entrada para **continuar o desenvolvimento**. Reúne o estado observado, o rastreamento das etapas e a próxima ação. O [plano](development-plan.md) define dependências, escopo e critérios de aceite; este documento é a única fonte de status e retomada.
 
-Atualizado após T07: valores tipados, modo de estado isolado por entrada e resultados por execução integrados. Suíte JVM: 33 contrato + 69 core + 4 ações + 94 autoria + 32 sample = 232 casos, zero falhas/erros/ignorados. Compilação Wasm/JS/metadata e core/navegação Android aprovadas; Chrome confirmou nova visita independente e retorno com edição preservada.
+Atualizado após T08: linguagem pura opt-in implementada sobre os valores/escopos da T07. Suíte JVM: 43 contrato + 69 core + 4 ações + 94 autoria + 32 sample = 242 casos, zero falhas/erros/ignorados. Expressões compiladas para metadata/JS/Wasm; integração reativa nas propriedades ainda pertence à T09. T07 também foi compilada para Android e observada no Chrome.
 
 ## Ponto de retomada
 
 | Campo | Registro atual |
 | --- | --- |
-| Última atualização | 2026-10-24 — base e05985b (T13), anteriores c6a1e46 e 6441ec0; T14 no commit local bde7c23 e T15 em eb8726e e T16 em b6c1ff3 e implementação T17 em 2d9d6eb, aceite ce2bd7e e geometria T18 em 8a12ea0 e integração em 04df7c0 e orientação de tela vazia em 75f50f6; sem push |
-| Última entrega | T07: SduiValue, visão textual, ActionValues, owners por NavBackStackEntry e exemplo no Studio; 232 testes JVM e prova Chrome, sem push |
-| Tarefa de implementação em execução | Nenhuma; T07 concluída |
-| Próxima tarefa | **T08 — linguagem de expressões limitada** |
-| Próxima ação concreta | Especificar gramática/versão opt-in e semântica de tipos/escopos/curto-circuito/limites no contrato; depois tokenizer, AST, parser e evaluator puros sobre SduiValue. Não reinterpretar bindings legados nem integrar propriedades antes dos testes |
-| Critério para avançar | Suíte pura de precedência, escopos, tipos, null/ausente, curto-circuito, divisão inválida e orçamentos; sem reflexão ou execução arbitrária; integração de UI fica em T09 |
-| Bloqueio de implementação conhecido | Nenhum para T08. Android foi compilado, não executado em dispositivo; Apple/process restore continuam fora da evidência |
-| Limite do próximo recorte | Expressões puras e opt-in; sem mudar bindings legados, UI reativa, backend ou publicação |
+| Última atualização | 2026-10-24 — T19 em f85c566, T07 em 43527b7; T08 com código e evidência abaixo; commits locais sem push |
+| Última entrega | T08: ExpressionSpec/Program, tokenizer/parser, avaliação pura tipada e limitada; 242 testes JVM no conjunto; sem ativação em propriedades |
+| Tarefa de implementação em execução | Nenhuma; T07 e T08 concluídas |
+| Próxima tarefa | **T09 — propriedades reativas, tokens e validação** |
+| Próxima ação concreta | Ler T09; definir opt-in/versionamento de propriedades e política de apresentação tipada; extrair dependências do evaluator e integrar bindings com lifecycle em componentes do catálogo, preservando #{chave} e fixtures legadas |
+| Critério para avançar | Mudar estado atualiza propriedades dependentes sem collectors duplicados; descarte cancela assinaturas; UI explicita erros de expressão/validação; dado canônico separado da apresentação e tokens/máscaras com capacidades declaradas |
+| Bloqueio de implementação conhecido | Nenhum para T09. Expressões testadas em JVM e compiladas JS/Wasm; execução browser da linguagem e Apple permanecem qualificação própria |
+| Limite do próximo recorte | Integração reativa por capacidade do cliente; sem substituir bindings legados, transporte HTTP, backend ou publicação |
 
 ### Protocolo quando o pedido for “continue o desenvolvimento”
 
@@ -41,8 +41,8 @@ Estados: **pronta**, **pendente**, **em execução**, **bloqueada**, **concluíd
 | T05 | Definições/schema do catálogo inicial | concluída | 15 definições versão 1, diagnóstico por campo/papel e adapters compatíveis; 110 testes JVM aprovados; ver [validação](validation.md) |
 | T06 | Fronteira pura e consumo sem UI | concluída | 114 testes JVM aprovados, classpath puro e core Android compilado; migração/recompilação descritas no contrato |
 | T07 | Valores tipados e escopos de tela/ação | concluída | Codex, 2026-10-24: 232 testes JVM no conjunto; 33 contrato/69 core/32 sample incluem tipos, concorrência, owner distinto, duas entradas da mesma rota, retorno, erro e cancelamento no pop. Wasm, JS/metadata e core/navegação Android compilados; Chrome confirmou isolamento/retorno |
-| T08 | Linguagem de expressões limitada | pronta | Próxima etapa: contrato opt-in, tokenizer/AST/parser/evaluator limitado, sem alterar #{chave} |
-| T09 | Propriedades reativas, tokens e validação | pendente | Integrar evaluator com lifecycle e componentes |
+| T08 | Linguagem de expressões limitada | concluída | Codex, 2026-10-24: 10 testes novos da linguagem; 43 contrato/242 JVM no conjunto; grammar/versão, escopos, precedência, curto-circuito, tipos, números/índices inválidos, limites e cancelamento. Metadata/JS/Wasm compilados; sem integração UI |
+| T09 | Propriedades reativas, tokens e validação | pronta | Definir formato/capacidade opt-in e dependências; integrar evaluator com lifecycle, apresentação, tokens/máscaras e validação |
 | T10 | Transporte HTTP com ownership e resultado | pendente | Implementar métodos reais e integração HTTP local |
 | T11 | Jornada, navegação e cache versionado | pendente | Isolar entradas, fixar snapshot e definir políticas |
 | T12 | Bridge de capacidades nativas | pendente | Capacidade real no host e não suporte explícito nos demais |
@@ -65,6 +65,12 @@ Os requisitos completos e a ordem das dependências estão no [plano](developmen
 
 ### Trabalho parcial e bloqueios
 
+T08 concluída no recorte puro, responsável Codex; sem trabalho parcial ativo. ExpressionSpec exige marcador/versão, AST é privado e o programa reutilizável não guarda contexto/resultados. Operadores e acesso são fechados e tipados; não existem chamadas/reflexão/atribuição. Parsing limita fonte/tokens/profundidade; avaliação limita visitas/texto e propaga cancelamento do chamador. Inteiros fora do intervalo seguro, resultado não finito, divisão por zero e índices inválidos têm diagnóstico por offset. Missing difere de Null; operadores booleanos/coalesce e acesso sobre ausência têm curto-circuito. Formatação do resultado Double não é promessa de texto canônico entre targets; igualdade numérica/testes são por valor.
+
+Comandos: .\gradlew.bat :humming-contract:jvmTest :humming-contract:compileCommonMainKotlinMetadata :humming-contract:compileKotlinJs :humming-contract:compileKotlinWasmJs --console=plain (build/t08/expressions.log); regressões de contrato/core/ações/autoria/sample e Wasm em build/t08/consumers.log; teste final do contrato em build/t08/final-tests.log. BUILD SUCCESSFUL, 43 contrato + 69 core + 4 ações + 94 autoria + 32 sample = 242, zero falhas/erros/ignorados. Dez casos novos cobrem gramática, escopos/chaves/índices, coerção proibida, curto-circuito, versões/chamadas proibidas, números, budgets, reutilização e CancellationException original. Duas expectativas iniciais de fixture foram corrigidas: (1).field para testar acesso escalar e 1/1e-309 para overflow sem atingir primeiro a guarda de inteiro seguro. Não se alteraram dependências.
+
+A linguagem não foi ligada a propriedades, Inspector ou runtime de UI; nenhum binding #{chave} foi reinterpretado. Não há nova prova de execução JS/Wasm do evaluator (somente compilação). T09 é o próximo recorte para dependências/reatividade, capacidades, formatação e fallback; não declarar expressão de UI pronta por existir parser.
+
 T07 concluída no recorte local, responsável Codex. Nenhum trabalho parcial ativo. O estado agora tem autoridade tipada e projeção textual viva; Missing remove, Null permanece explícito e strings/IDs não passam por inferência. response/error são slots por execução/owner, herdados por sequências aninhadas e limpos em finally. ISOLATED_ENTRIES é opt-in do host, ativado no preview compilado do Studio; LEGACY_SHARED permanece o padrão compatível. server/nav vêm de entryInputs; state pertence ao owner. Retorno na pilha conserva a entrada e pop limpa valores e cancela jobs. Não há restauração automática após processo/página reiniciados.
 
 Execução: .\gradlew.bat :humming-contract:jvmTest :humming-core:jvmTest :humming-actions:jvmTest :humming-studio-model:jvmTest :sample:composeApp:jvmTest :humming-contract:compileCommonMainKotlinMetadata :humming-contract:compileKotlinJs :sample:composeApp:compileKotlinWasmJs --console=plain (build/t07/full-check-retry.log), mais :humming-core:jvmTest após o caso entre owners (build/t07/owner-context.log). Resultado acumulado atual: 232 testes, zero falhas/erros/ignorados. :humming-core:compileDebugKotlinAndroid :humming-navigation:compileDebugKotlinAndroid :humming-core:compileCommonMainKotlinMetadata :humming-navigation:compileCommonMainKotlinMetadata passaram em build/t07/android-metadata.log. Metadata emitiu warnings de unique_name duplicado de SavedState entre dependências; não se alteraram versões. Isso não comprova execução Android nem binário Apple.
@@ -79,7 +85,7 @@ No Chrome/Wasm: exemplo abriu segunda tela e voltou; canvas desenhou a conexão,
 
 Após a orientação de carregar o exemplo, o usuário respondeu “agora sim”, confirmando a guia que faltava no aceite de T18. Essa é evidência manual, distinta da observação automatizada do commit no Chrome e da captura de pixels em Compose; detalhes e limites estão em [validação](validation.md). Não repetir a verificação sem motivo novo.
 
-Retomar por T08, dependência T07 concluída. T20–T25 permanecem posteriores; este recorte não criou servidor, transporte HTTP ou persistência remota.
+Retomar por T09, dependências T05/T08 concluídas. T20–T25 permanecem posteriores; este recorte não criou servidor, transporte HTTP ou persistência remota.
 
 ### Manutenção documental independente da implementação
 

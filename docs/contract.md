@@ -190,3 +190,38 @@ Nenhum nome/propriedade do wire legado foi alterado. Consumidores binários deve
 No modo isolado, navigation:goTo resolve o provider no owner da ação, mantendo falhas na entrada atual. Rota desconhecida gera UNKNOWN_ROUTE; provider ausente conserva MISSING_PROVIDER com origem da rota, sem NullPointerException que sobrescreva o diagnóstico. O grafo plano foi o recorte de integração; deep links e recuperação após processo não são qualificados por esses testes.
 
 Pacotes compilados não serializam screenStateMode nem o estado do formulário. Para reproduzir o isolamento do preview ao consumir uma jornada exportada, o host receptor deve configurar ISOLATED_ENTRIES; um host LEGACY_SHARED conserva a semântica compartilhada anterior. A política pertence à aplicação, não é ativada por texto do payload.
+
+## Expressões opt-in: especificação da linguagem 1
+
+A API pura recebe ExpressionSpec(language="humming.expression", version=1, source=...). O marcador e a versão são obrigatórios; não há detecção por prefixo em strings legadas. Esta especificação não registra uma nova propriedade executável no catálogo. Integração reativa/negociação por componente pertence à T09.
+
+Gramática (da menor para a maior precedência): coalesce `??`, OR `||`, AND `&&`, igualdade `== !=`, comparação `< <= > >=`, adição `+ -`, multiplicação `* / %`, prefixos `! -`, primários e acesso. Operadores binários são associativos à esquerda. Parênteses mudam a precedência. Literais: null, missing, true, false, número JSON não negativo (sinal via prefixo) e string JSON entre aspas duplas. Não há arrays/objetos literais, interpolação, chamada de função, atribuição ou reflexão.
+
+Raízes permitidas: state, server, nav, response e error, fornecidas pelo chamador em ExpressionContext. Acesso usa `.identificadorASCII` ou `[expressão]`; objetos exigem chave Text e arrays índice Number inteiro não negativo seguro. Propriedade/índice ausente resulta Missing; atravessar Missing/Null continua Missing sem avaliar a expressão do índice; atravessar outro escalar gera erro de tipo. Nomes que não são raízes/literais são rejeitados no parser.
+
+`&&`, `||` e `!` exigem booleanos, sem truthiness/coerção. AND/OR avaliam o lado direito somente quando necessário. `??` avalia o lado direito somente para Missing ou Null. `+` soma dois números ou concatena dois textos; demais operações aritméticas/comparações exigem números. Igualdade compara escalares do mesmo tipo; tipos diferentes são desiguais, Missing difere de Null; comparar dois containers não tem igualdade estrutural implícita. Igualdade numérica é por valor no domínio abaixo, não por lexema.
+
+Aritmética usa IEEE-754 Double, com resultado finito; divisão/resto por zero falham. Para não arredondar inteiros silenciosamente, números inteiros fora de ±9007199254740991 são rejeitados em operações/comparações numéricas. O armazenamento SduiValue ainda preserva lexemas maiores; consultá-los não os converte. Não há aritmética decimal financeira nem coerção de IDs Text para Number.
+
+Limites padrão: fonte 4096 caracteres, 1024 tokens, profundidade 64, 10000 visitas no evaluator e 65536 caracteres por texto resultante/lido. Profundidade e tokens são limitados durante parsing; o evaluator também limita profundidade/visitas e aceita um callback checkCancellation chamado em cada visita, propagando a exceção original. O resultado não executa IO nem código do payload. Falhas têm NodeDiagnostic com operação parseExpression/evaluateExpression, código, caminho $.expression.source[offset] e offset da operação; T09 deverá anexar nó/propriedade do consumidor.
+
+ExpressionProgram é imutável e cada evaluate inicia seus próprios contadores; o mesmo programa pode ser reutilizado com contextos distintos sem cache de resultado. O contexto não é um store mutável. Resultados numéricos de operações usam a representação textual de Double do target; sua semântica e testes são por valor, não pela presença de .0 ou notação exponencial. T09 deve definir a apresentação numérica de propriedades, sem converter implicitamente IDs textuais. maxDepth configurável fica entre 1 e 128 para manter a recursão limitada.
+
+Forma equivalente da gramática (espaços ASCII são ignorados fora de strings; não há comentários):
+
+```ebnf
+expr       = coalesce ;
+coalesce   = orExpr, { "??", orExpr } ;
+orExpr     = andExpr, { "||", andExpr } ;
+andExpr    = equality, { "&&", equality } ;
+equality   = comparison, { ("==" | "!="), comparison } ;
+comparison = addition, { ("<" | "<=" | ">" | ">="), addition } ;
+addition   = product, { ("+" | "-"), product } ;
+product    = prefix, { ("*" | "/" | "%"), prefix } ;
+prefix     = ("!" | "-"), prefix | postfix ;
+postfix    = primary, { ".", IDENT | "[", expr, "]" } ;
+primary    = JSON_STRING | UNSIGNED_JSON_NUMBER | "true" | "false"
+           | "null" | "missing" | SCOPE | "(", expr, ")" ;
+SCOPE      = "state" | "server" | "nav" | "response" | "error" ;
+IDENT      = (ASCII_LETTER | "_"), { ASCII_LETTER | DIGIT | "_" } ;
+```

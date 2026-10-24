@@ -37,7 +37,7 @@ Separar `server` (dados resolvidos), `nav` (argumentos de navegação) e `state`
 
 SduiValue distingue ausente, null, string, boolean, número, objeto e array. O adaptador legado preserva o contrato textual. IDs permanecem strings; valores decimais exatos exigem representação e arredondamento explícitos quando o domínio os solicitar.
 
-Expressões são uma linguagem futura, opcional e versionada. Tokenizer, parser com precedência, AST puro e evaluator limitado devem ser testados antes de uso em propriedades. Definir curto-circuito, tipos, acesso ausente, null, coerção, erros e orçamento de operações. Nenhuma reflexão, script ou função arbitrária do payload. Bindings legados `#{chave}` continuam disponíveis pelo caminho legado.
+ExpressionSpec/ExpressionProgram formam uma linguagem pura, opcional e versionada no contrato. Tokenizer, parser com precedência, AST privado e evaluator limitado são independentes do runtime; a integração a propriedades pertence à T09. Definir curto-circuito, tipos, acesso ausente, null, coerção, erros e orçamento de operações. Nenhuma reflexão, script ou função arbitrária do payload. Bindings legados `#{chave}` continuam disponíveis pelo caminho legado.
 
 ### Execução, recursos e efeitos
 
