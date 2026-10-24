@@ -9,10 +9,10 @@ Atualizado após T08: linguagem pura opt-in implementada sobre os valores/escopo
 | Campo | Registro atual |
 | --- | --- |
 | Última atualização | 2026-10-24 — T19 em f85c566, T07 em 43527b7; T08 com código e evidência abaixo; commits locais sem push |
-| Última entrega | T09 parcial: dependências (3e6faad), envelope versionado e layout:reactiveText com texto/visibilidade, autoria e execução Compose JVM |
+| Última entrega | T09 parcial: dependências (3e6faad), texto/visibilidade (d30bd0e), habilitação e validação de formulário; 253 testes JVM no conjunto |
 | Tarefa de implementação em execução | T09 — Codex; primeiro recorte: dependências e binding tipado com assinatura pertencente ao consumidor |
 | Próxima tarefa | **T09 — propriedades reativas, tokens e validação** |
-| Próxima ação concreta | Estender o recorte opt-in para habilitação e validação do formulário; definir tokens e máscaras por capacidade; qualificar no browser |
+| Próxima ação concreta | Definir tokens e máscaras por capacidade, separar apresentação do valor canônico e qualificar o formulário no browser |
 | Critério para avançar | Mudar estado atualiza propriedades dependentes sem collectors duplicados; descarte cancela assinaturas; UI explicita erros de expressão/validação; dado canônico separado da apresentação e tokens/máscaras com capacidades declaradas |
 | Bloqueio de implementação conhecido | Nenhum para T09. Expressões testadas em JVM e compiladas JS/Wasm; execução browser da linguagem e Apple permanecem qualificação própria |
 | Limite do próximo recorte | Integração reativa por capacidade do cliente; sem substituir bindings legados, transporte HTTP, backend ou publicação |
@@ -174,3 +174,11 @@ Codex, 2026-10-24: ReactiveProperty com envelope 1 estrito, fallback Text/Boolea
 Executado no Windows/JVM: 49 testes contrato, 72 core, 94 autoria e 34 sample aprovados (ações não reexecutadas neste recorte). JS/Wasm do contrato e Wasm do sample compilados. Logs build/t09/visual-final.log e visual-image.log. Três novos testes de contrato e dois Compose cobrem envelope/tipos/versão/offset, importação → compilação → edição → ocultar/reexibir, falha/recuperação e assinaturas únicas/zero após descarte. Imagem build/t09/reactive-form-jvm.png renderizada e inspecionada com fundo branco no host de teste. As primeiras tentativas detectaram expectativa antiga do tamanho do catálogo e classificação do envelope legado; ambas corrigidas e reexecutadas. Sem execução browser/Android/Apple neste recorte.
 
 T09 permanece parcial: habilitação reativa, validação de campo, tokens/máscaras por capacidade e qualificação browser ainda precisam ser entregues. Não promover T10.
+
+### T09 — habilitação e validação de campo
+
+Codex, 2026-10-24: reactiveButton e validatedTextField, ambos schema 1, ampliam o catálogo para 18 definições sem alterar os 15 schemas legados. A fixture “Exemplo de expressões” usa campo canônico Text, erro imediato para nome vazio, botão habilitado por regra, ação real action:update e mensagem de confirmação. Campo não inicializa Missing, não converte Number/Null em Text nem grava apresentação derivada; tipo incompatível exibe diagnóstico e edição explícita recupera o formulário.
+
+Executado: :humming-contract:jvmTest, :humming-core:jvmTest, :humming-actions:jvmTest, :humming-studio-model:jvmTest, :sample:composeApp:jvmTest e :sample:composeApp:compileKotlinWasmJs; build/t09/form-final.log, BUILD SUCCESSFUL. 49 + 72 + 4 + 94 + 34 = 253 testes JVM sem falhas. O teste Compose do formulário cobre estado Missing preservado, validação vazia, habilitação, ação de confirmação, ocultar/reexibir e Number inválido preservado até edição corretiva; outros testes verificam recuperação e descarte. A primeira compilação encontrou colisão de nome interno com Layout.key; corrigida para stateKey sem mudar API pública. Sem browser/Android/Apple neste recorte.
+
+Próximo recorte T09: tokens de tema e máscaras declarados como capacidades, testes da apresentação separada do valor canônico e qualificação browser. T09 ainda não concluída.

@@ -11,6 +11,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModelStore
 import me.developes.humming.sdui.common.*
 import me.developes.humming.sdui.layout.SDLayoutMaterial3
+import me.developes.humming.sdui.action.SDActions
 import me.developes.humming.sdui.studio.*
 import org.junit.After
 import org.junit.Rule
@@ -36,18 +37,32 @@ class ReactiveRenderingTest {
         val root = parseNode(result.artifacts.values.single())
         lateinit var vm: SDUIFormViewModel
         compose.runOnIdle {
-            vm = SDUIFormViewModel(SavedStateHandle(), listOf(SDLayoutMaterial3()))
+            vm = SDUIFormViewModel(SavedStateHandle(), listOf(SDLayoutMaterial3(), SDActions()))
             store.put("test", vm)
         }
         compose.setContent { MaterialTheme { Surface(color = Color.White) { if (mounted.value) vm.loadComponent(root)?.Content() } } }
         compose.onNodeWithText("Olá, Visitante").assertExists()
+        compose.onNodeWithText("Preencha o nome").assertExists()
+        compose.onNodeWithText("Confirmar").assertIsNotEnabled()
+        compose.runOnIdle { assertEquals(SduiValue.Missing, vm.stateValue("nome")) }
         compose.onNode(hasSetTextAction()).performTextReplacement("Ana")
         compose.onNodeWithText("Olá, Ana").assertExists()
+        compose.onNodeWithText("Preencha o nome").assertDoesNotExist()
+        compose.onNodeWithText("Confirmar").assertIsEnabled().performClick()
+        compose.onNodeWithText("confirmado").assertExists()
         compose.onNode(hasSetTextAction()).performTextReplacement("ocultar")
         compose.onNodeWithText("Olá, ocultar").assertDoesNotExist()
+        compose.onNodeWithText("Confirmar").assertIsNotEnabled()
         compose.onNode(hasSetTextAction()).performTextReplacement("Voltei")
         compose.onNodeWithText("Olá, Voltei").assertExists()
         compose.runOnIdle { assertEquals(SduiValue.Text("Voltei"), vm.stateValue("nome")) }
+        compose.runOnIdle { vm.updateValue("nome", SduiValue.NumberValue("7")) }
+        compose.onNodeWithText("FIELD_VALUE_TYPE: reactivity-input", substring = true).assertExists()
+        compose.onNodeWithText("Confirmar").assertIsNotEnabled()
+        compose.runOnIdle { assertEquals(SduiValue.NumberValue("7"), vm.stateValue("nome")) }
+        compose.onNode(hasSetTextAction()).performTextReplacement("Corrigido")
+        compose.onNodeWithText("FIELD_VALUE_TYPE", substring = true).assertDoesNotExist()
+        compose.runOnIdle { assertEquals(SduiValue.Text("Corrigido"), vm.stateValue("nome")) }
         val output = File("../../build/t09/reactive-form-jvm.png").also { it.parentFile.mkdirs() }
         org.jetbrains.skia.Image.makeFromBitmap(compose.onRoot().captureToImage().asSkiaBitmap()).use { image ->
             requireNotNull(image.encodeToData(EncodedImageFormat.PNG)).use { output.writeBytes(it.bytes) }

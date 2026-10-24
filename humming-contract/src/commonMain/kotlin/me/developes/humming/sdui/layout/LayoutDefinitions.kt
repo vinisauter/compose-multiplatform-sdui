@@ -88,5 +88,16 @@ object LayoutDefinitions {
         number("fontSize", default = "16", fallback = true), color("color"),
     ))
 
-    val all: List<NodeDefinition> = listOf(text, textField, button, row, column, box, reactiveText)
+    val reactiveButton = component("reactiveButton", listOf(
+        PropertyDefinition("enabled", PropertyKind.EXPRESSION_BOOLEAN, required = true),
+        nodes("onClick", NodeRole.ACTION),
+    ), children = true)
+
+    val validatedTextField = component("validatedTextField", listOf(
+        text("stateKey", required = true), text("label"),
+        PropertyDefinition("valid", PropertyKind.EXPRESSION_BOOLEAN, required = true),
+        PropertyDefinition("enabled", PropertyKind.EXPRESSION_BOOLEAN), text("errorText", required = true),
+    ))
+
+    val all: List<NodeDefinition> = listOf(text, textField, button, row, column, box, reactiveText, reactiveButton, validatedTextField)
 }

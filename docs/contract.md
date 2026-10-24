@@ -98,11 +98,11 @@ Este exemplo ilustra a estrutura. T00 executou um payload local equivalente em f
 
 | Definições | Responsável |
 | --- | --- |
-| `layout:text`, `textField`, `button`, `row`, `column`, `box`, `reactiveText` | [LayoutDefinitions](../humming-contract/src/commonMain/kotlin/me/developes/humming/sdui/layout/LayoutDefinitions.kt) |
+| `layout:text`, `textField`, `button`, `row`, `column`, `box`, `reactiveText`, `reactiveButton`, `validatedTextField` | [LayoutDefinitions](../humming-contract/src/commonMain/kotlin/me/developes/humming/sdui/layout/LayoutDefinitions.kt) |
 | `action:update`, `method`, `ifState`, `then`; componente `action:event` | [ActionDefinitions](../humming-contract/src/commonMain/kotlin/me/developes/humming/sdui/action/ActionDefinitions.kt) |
 | `navigation:graph`, `node`, `goTo`, `goBack` | [NavigationDefinitions](../humming-contract/src/commonMain/kotlin/me/developes/humming/sdui/navigation/NavigationDefinitions.kt) |
 
-São 16 definições, versão 1, incluindo o componente opt-in reactiveText. `parse(node)` produz `ParsedNodeProperties`: strings originais, diagnóstico por campo e `requireValid()` para rejeitar erros. Os adapters modelados usam esse parser; conversões finais para tipos Compose permanecem no catálogo visual. Defaults informam o Inspector, sem serem injetados no payload: ausência, string vazia e valor explícito continuam distintos. FontWeight.Normal, estado TextField_<id>, limites derivados da máscara e scroll por presença possuem descrição explícita em vez de um default wire inventado. O parser é compartilhável por código; não há exportação JSON Schema entregue.
+São 18 definições, versão 1, incluindo os três componentes opt-in reativos. `parse(node)` produz `ParsedNodeProperties`: strings originais, diagnóstico por campo e `requireValid()` para rejeitar erros. Os adapters modelados usam esse parser; conversões finais para tipos Compose permanecem no catálogo visual. Defaults informam o Inspector, sem serem injetados no payload: ausência, string vazia e valor explícito continuam distintos. FontWeight.Normal, estado TextField_<id>, limites derivados da máscara e scroll por presença possuem descrição explícita em vez de um default wire inventado. O parser é compartilhável por código; não há exportação JSON Schema entregue.
 
 ### Validação e compatibilidade
 
@@ -245,3 +245,9 @@ Cada propriedade contém exatamente os três campos abaixo. O fallback tem de se
 ```
 
 O Inspector edita esse envelope como JSON limitado. Importação, histórico e compilação usam os schemas existentes; o payload serializado permanece um objeto JSON no wire legado. A avaliação não escreve no estado e a apresentação não converte strings numéricas em números. A API tipada não fornece formatação monetária/decimal implícita.
+
+`layout:reactiveButton` schema 1 exige enabled como EXPRESSION_BOOLEAN; onClick e children seguem os papéis/ordem existentes. O botão combina o resultado com o estado ocupado do invoker; ações dependentes são aguardadas e canceladas quando ele sai da composição. Falhas exibem diagnóstico e usam o fallback declarado. Use fallback false quando a operação deve permanecer indisponível em falha.
+
+`layout:validatedTextField` schema 1 exige stateKey literal, valid como EXPRESSION_BOOLEAN e errorText literal; label e enabled reativo são opcionais. Ausência do valor canônico apresenta texto vazio sem gravar um default. Edição grava SduiValue.Text; Null ou outro tipo mostra FIELD_VALUE_TYPE sem coerção/escrita corretiva automática. valid false mostra errorText; falha da regra mostra também seu diagnóstico e fallback. A validação é imediata, inclusive antes da primeira edição. Não há bloqueio global de submissão: o autor deve declarar a regra de enabled na ação/botão, e o domínio ainda precisa validar a operação.
+
+A fixture local usa concatenação com texto vazio para exigir Text antes de comparar comprimento implícito não vazio: `(state.nome ?? "") + "" != ""`. Isso rejeita tipos incompatíveis via EXPRESSION_TYPE e fallback false; não remove espaços nem implementa validação de domínio, regex ou rede. Campos e propriedades legados continuam com suas regras anteriores.
