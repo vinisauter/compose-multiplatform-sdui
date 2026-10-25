@@ -2,19 +2,19 @@
 
 Este é o ponto de entrada para **continuar o desenvolvimento**. Reúne o estado observado, o rastreamento das etapas e a próxima ação. O [plano](development-plan.md) define dependências, escopo e critérios de aceite; este documento é a única fonte de status e retomada.
 
-Atualizado após T22: publicação imutável, manifesto por capacidade, seleção/rollback e consumo PostgreSQL/HTTP/Compose real. Evidência: 304 testes JVM regulares em dez módulos + 8 integrações reais, sem falhas/erros/ignorados. Reinício do banco preservou dados. Sem deploy público ou integração remota automática no Studio.
+Atualizado após T23: resolução de dados por fontes registradas, cache isolado e integração PostgreSQL/HTTP/Compose com falha/recuperação de serviço real. Conjunto: 312 casos JVM regulares + 9 integrações reais, sem falhas/erros/ignorados nos relatórios; módulos afetados reexecutados neste recorte. Sem deploy público ou instalação implícita no Studio.
 
 ## Ponto de retomada
 
 | Campo | Registro atual |
 | --- | --- |
-| Última atualização | 2026-10-24 — T20 em 42d6de8; T21 em dc51068; T22 com evidência abaixo; commits locais sem push |
-| Última entrega | T22: snapshots imutáveis, negociação, rollback por seleção e cliente Compose real; 312 casos no conjunto |
+| Última atualização | 2026-10-25 — T20 em 42d6de8; T21 em dc51068; T22 em 4cdf7bc; T23 com evidência abaixo; commits locais sem push |
+| Última entrega | T23: BFF com fontes registradas, isolamento, HTTP real e recuperação em nova entrada; 321 casos no conjunto |
 | Tarefa de implementação em execução | Nenhuma; próxima etapa pronta |
-| Próxima tarefa | **T23 — resolução BFF e isolamento de dados** |
-| Próxima ação concreta | Implementar registry explícito de fontes/mapeamentos, dados separados da publicação fixada, isolamento tenant/sessão, timeout/limites e serviço HTTP local real |
-| Critério para avançar | T23: dado de serviço local real, falha/recuperação, autorização, isolamento tenant/sessão/cache e cancelamento; sem URL arbitrária |
-| Bloqueio de implementação conhecido | Nenhum para T23 local; PostgreSQL real já qualificado, fixtures ficam paradas em Docker e precisam de readiness/porta redescoberta ao iniciar |
+| Próxima tarefa | **T24 — edição remota com revisão e recuperação** |
+| Próxima ação concreta | Implementar outbox persistível de comandos, confirmação ordenada/reenvio idempotente e integração explícita de edição remota ao Studio |
+| Critério para avançar | T24: reabrir rascunho e recuperar pendências após desconexão, sem sobrescrever edição nova com confirmação antiga; conflito e autorização explícitos |
+| Bloqueio de implementação conhecido | Nenhum para T24 local; PostgreSQL real já qualificado, fixtures ficam paradas em Docker e precisam de readiness/porta redescoberta ao iniciar |
 | Limite do próximo recorte | Aplicação/host servidor local; sem deploy, banco remoto, credenciais versionadas ou integração implícita no Studio |
 
 ### Protocolo quando o pedido for “continue o desenvolvimento”
@@ -56,8 +56,8 @@ Estados: **pronta**, **pendente**, **em execução**, **bloqueada**, **concluíd
 | T20 | Aplicação de servidor e interfaces | concluída | Codex: aplicação pura (5 casos), HTTP real (5 casos), classpath headless, smoke runLocal/401 e 296 testes no conjunto; detalhes abaixo |
 | T21 | Rascunhos/revisões em PostgreSQL | concluída | Codex: adapter/migration, CAS e recibos, seis integrações reais incluindo restart/rollback/cancelamento; 304 casos no conjunto; detalhes abaixo |
 | T22 | Publicação imutável e capacidades | concluída | Codex: 304 JVM regulares + 8 integrações PostgreSQL/HTTP/Compose; pin e dados pessoais separados; detalhes abaixo |
-| T23 | Resolução BFF e isolamento de dados | pronta | Resolver fontes registradas com limites e isolamento |
-| T24 | Edição remota com revisão e recuperação | pendente | Salvar/reabrir/reconectar sem perda silenciosa |
+| T23 | Resolução BFF e isolamento de dados | concluída | Codex: 5 testes de política + 3 HTTP reais, 9 integrações PostgreSQL/HTTP/Compose no conjunto; detalhes abaixo |
+| T24 | Edição remota com revisão e recuperação | pronta | Salvar/reabrir/reconectar sem perda silenciosa |
 | T25 | Múltiplos editores e conflitos | pendente | Testar concorrência, replay e undo entre processos |
 | T26 | Qualificação por plataforma e recorte | pendente | Iniciar após T00; anexar evidência de cada recorte anunciado |
 
@@ -308,3 +308,13 @@ Fixtures Docker criadas pelo script foram paradas no finally; containers e volum
 - .\scripts\verify-postgres.ps1 -PublishedClient executou **8 integrações** (PostgreSQL 6, HTTP 1, Compose cliente 1) antes e depois do restart: BUILD SUCCESSFUL em build/t21/integration.log e after-restart.log. build/t21/restart.log: 9 registros antes/depois. Fixture própria humming-t21-73b734ec95bc ficou parada, volume preservado; imagem oficial PostgreSQL 18.6 pelo digest já registrado. Não há segredo nos metadados locais.
 - Provas: duas versões distintas; primeira intacta; repetição determinística; revisão obsoleta rejeitada também dentro do adapter; UPDATE/DELETE rejeitados pelo banco; versão inexistente não troca seleção; rollback e novo adapter preservam rascunho/revisão. HTTP rejeitou envelope extra/tipo inválido e cliente incompatível. Compose JVM real carregou via HTTP, digitou private-session-value, manteve título da primeira versão após ativar segunda e confirmou ausência do valor pessoal no rascunho/snapshots.
 - Limites: integração UI automatizada em JVM, sem nova inspeção visual manual; Wasm compilado, Android/Apple não requalificados neste recorte. PublishedDefinition usa provider legado adaptado e não instala transporte/SDNavigation automaticamente. Hash não é assinatura; host continua loopback, sem TLS/deploy. Studio remoto e BFF ficam nas etapas seguintes. Retomar em T23 conforme tabela superior.
+
+## Fechamento T23 — dados por fonte registrada
+
+- Codex, 2026-10-25. PublicationDataApplication no módulo de aplicação: planos/fontes registrados, seleção tipada limitada de campos, publicação compatível fixada, autorização por fonte e falha parcial. Cache TTL/LRU por tenant/documento/versão/actor/sessão/plano/mapeamento, autorização antes de hit, invalidação com geração, limite global de concorrência e cancelamento do chamador.
+- RegisteredHttpDataSource no host: endpoint e GET fixos, identidade do host em headers próprios sem encaminhar Authorization, redirects recusados, await cancelável, limite durante leitura, JSON/UTF-8 estritos. Rota de dados opt-in separa values/issues de qualquer snapshot; sessão só vem do adapter confiável. runLocal não instala fontes automaticamente.
+- build/t23-policy-http.log e build/t23-regression.log: BUILD SUCCESSFUL. A revisão final foi executada em build/t23-final.log: aplicação 12, host 8 e sample 44 casos regulares, além das 9 integrações reais (PostgreSQL 6, HTTP 1, cliente Compose 2), zero falhas/erros/ignorados. Com os demais relatórios da T22 preservados, conjunto de **312 JVM regulares + 9 integrações = 321 casos distintos**. Não houve nova alteração do runtime comum ou de versões de dependências.
+- 5 testes novos de política cobriram isolamento de tenant/documento/versão/actor/sessão/plano, revogação antes de hit, falha parcial/recuperação sem cachear erro, fonte ausente, JSON/tipo inválido, campos privados excluídos, TTL/invalidação/carga tardia, timeout/cancelamento/semaphore e defeito de programação propagado. 3 testes novos de HTTP real cobriram headers/redirect, streaming limitado/MIME/UTF-8 e timeout/cancelamento.
+- O serviço HTTP independente respondeu 503; endpoint de dados devolveu issue e Compose mostrou Data unavailable. Após recuperação, nova tentativa real criou entrada com ScreenInputs.server e exibiu Real local service. Campo não selecionado ficou fora da resposta, e banco/snapshot permaneceram iguais sem dado resolvido. Primeira execução revelou apenas cleanup de Lifecycle INITIALIZED no novo teste; corrigido para owner criado/resumido e suíte repetida com sucesso.
+- Docker Desktop estava desligado na primeira tentativa desta data; foi iniciado localmente. .\scripts\verify-postgres.ps1 -PublishedClient passou antes/depois de restart: 10 registros preservados, build/t23-integration-run.log e build/t21/{integration,after-restart,restart}.log. Fixture humming-t21-f8966c7f62d5 e volume próprio preservados/parados; revisão final reutilizou somente essa fixture, redescobrindo porta e sem imprimir segredo.
+- Limites: servidor e renderer JVM locais; sem nova QA visual manual ou qualificação Android/browser/Apple. Recuperação usa nova entrada, sem refresh automático de inputs em entrada existente. Cache em memória por processo, sem persistência pessoal/distribuição/coalescência. Templates e scripts não foram adicionados. A integração do Studio com outbox/reconexão permanece T24, próxima etapa.

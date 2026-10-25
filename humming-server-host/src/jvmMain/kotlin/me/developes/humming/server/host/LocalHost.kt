@@ -43,6 +43,8 @@ class DraftHttpHost(
     private val operationTimeoutMillis: Long = 10_000,
     private val editing: DraftEditingApplication? = null,
     private val publications: PublicationApplication? = null,
+    private val data: PublicationDataApplication? = null,
+    private val dataIdentity: (Actor) -> DataIdentity? = { null },
     private val onUnexpectedFailure: (Throwable) -> Unit = { System.err.println("Draft host failed: ${it::class.simpleName}") },
 ) : AutoCloseable {
     private val job = SupervisorJob()
@@ -77,7 +79,7 @@ class DraftHttpHost(
         val actor = authenticator.authenticate(authorization?.singleOrNull())
         if (actor == null) { respond(exchange, 401, error("UNAUTHENTICATED")); return }
         if (exchange.requestURI.rawQuery != null) { respond(exchange, 400, error("INVALID_ROUTE")); return }
-        if (handlePublication(exchange, actor)) return
+        if (handleData(exchange, actor) || handlePublication(exchange, actor)) return
         val route = Regex("/v1/tenants/([A-Za-z0-9][A-Za-z0-9_-]{0,127})/documents/([A-Za-z0-9][A-Za-z0-9_-]{0,127})(/validate|/commands)?")
             .matchEntire(exchange.requestURI.rawPath)
         if (route == null) { respond(exchange, 404, error("ROUTE_NOT_FOUND")); return }
@@ -144,6 +146,32 @@ class DraftHttpHost(
                 else -> kotlin.error("Unknown application result")
             }
         }
+    }
+
+    private suspend fun handleData(exchange: HttpExchange, actor: Actor): Boolean {
+        val route = Regex("/v1/tenants/([A-Za-z0-9][A-Za-z0-9_-]{0,127})/documents/([A-Za-z0-9][A-Za-z0-9_-]{0,127})/publications/([0-9a-f]{64})/data/([a-z][a-z0-9-]{0,63})/([a-zA-Z][a-zA-Z0-9_-]{0,63})")
+            .matchEntire(exchange.requestURI.rawPath) ?: return false
+        if (exchange.requestMethod != "GET") { exchange.responseHeaders.set("Allow", "GET"); respond(exchange, 405, error("METHOD_NOT_ALLOWED")); return true }
+        val key = DocumentKey(route.groupValues[1], route.groupValues[2])
+        if (!application.isAllowed(actor, key, Permission.READ)) { respond(exchange, 403, error("FORBIDDEN")); return true }
+        val resolver = data ?: run { respond(exchange, 501, error("DATA_UNAVAILABLE")); return true }
+        val identity = dataIdentity(actor) ?: run { respond(exchange, 401, error("SESSION_REQUIRED")); return true }
+        check(identity.actor === actor) { "Session adapter returned another principal" }
+        when (val result = resolver.resolve(identity, key, route.groupValues[3], route.groupValues[4], route.groupValues[5])) {
+            is ApplicationResult.Success -> respond(exchange, 200, buildJsonObject {
+                put("version", result.value.version); put("documentId", key.document)
+                put("values", result.value.values.toJsonValue())
+                put("issues", JsonArray(result.value.issues.map { buildJsonObject {
+                    put("mapping", it.mapping); put("code", it.code.name); put("path", it.path); put("operation", it.operation)
+                } }))
+            })
+            is ApplicationResult.Failure -> respond(exchange, when (result.code) {
+                ApplicationError.FORBIDDEN -> 403
+                ApplicationError.NOT_FOUND -> 404
+                else -> 422
+            }, buildJsonObject { put("code", result.code.name); put("diagnostics", JsonArray(result.diagnostics.map(::diagnostic))) })
+        }
+        return true
     }
 
     private suspend fun handlePublication(exchange: HttpExchange, actor: Actor): Boolean {

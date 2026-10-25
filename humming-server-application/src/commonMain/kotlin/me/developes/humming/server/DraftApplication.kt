@@ -28,7 +28,7 @@ interface DraftRepository {
     suspend fun create(draft: StoredDraft): Boolean
     suspend fun find(key: DocumentKey): StoredDraft?
 }
-enum class ApplicationError { FORBIDDEN, NOT_FOUND, ALREADY_EXISTS, INVALID_DOCUMENT, ID_MISMATCH, INITIAL_REVISION, INVALID_COMMAND, REVISION_CONFLICT, COMMAND_REPLAY_CONFLICT, UNKNOWN_PROFILE, INCOMPATIBLE_CLIENT, INVALID_PUBLICATION }
+enum class ApplicationError { FORBIDDEN, NOT_FOUND, ALREADY_EXISTS, INVALID_DOCUMENT, ID_MISMATCH, INITIAL_REVISION, INVALID_COMMAND, REVISION_CONFLICT, COMMAND_REPLAY_CONFLICT, UNKNOWN_PROFILE, INCOMPATIBLE_CLIENT, INVALID_PUBLICATION, INVALID_DATA_PLAN }
 sealed interface ApplicationResult<out T> {
     data class Success<T>(val value: T) : ApplicationResult<T>
     data class Failure(val code: ApplicationError, val diagnostics: List<NodeDiagnostic> = emptyList()) : ApplicationResult<Nothing>
