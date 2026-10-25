@@ -337,3 +337,22 @@ LocalWorkspace.presentationTokens contém o registro instalado para o preview. c
 LocalWorkspace.attachRemote conecta um RemoteEditor já carregado/recuperado pelo host. Comandos do Inspector/drag/relações entram na mesma outbox e atualizam o preview otimista; refreshRemote reconcilia o snapshot visível após transição do protocolo. Abrir/importar/criar outro documento fica bloqueado enquanto esse workspace está conectado. Undo/redo remoto exige política concorrente própria e não usa o histórico local como se fosse autoridade do servidor.
 
 LocalStudio mostra revisão confirmada, quantidade pendente, pausa e recuperação ainda não confirmada pelo storage. Exportar recuperação solicita humming-remote-checkpoint.json, mantendo a distinção entre iniciar download e comprovar gravação. A existência dessa UI/attach não instala transporte, autenticação ou persistência automaticamente: o host deve carregar a definição, salvar checkpoint, enviar/confirmar sequencialmente e notificar a UI. Status e parte restante da integração ficam somente no estado atual.
+
+### Host remoto explícito do Studio
+
+O modo desktop é opt-in: .\gradlew.bat :sample:composeApp:run --args="--remote-studio". A tarefa run/--args deve ser conferida no build atual. Configure no ambiente do processo:
+
+| Variável | Conteúdo |
+| --- | --- |
+| HUMMING_STUDIO_ORIGIN | Origin HTTP loopback do host, sem path/query/credencial, com porta explícita |
+| HUMMING_STUDIO_CONNECTION | Alias estável e exclusivo do servidor lógico, para vincular recuperação; não reutilizar para outro banco/servidor |
+| HUMMING_STUDIO_TENANT | Tenant autorizado |
+| HUMMING_STUDIO_DOCUMENT | ID de rascunho já criado no servidor |
+| HUMMING_STUDIO_TOKEN | Bearer em memória; não colocar em arquivo/URL/checkpoint |
+| HUMMING_STUDIO_CHECKPOINT | Caminho explícito do arquivo local de recuperação, fora de arquivos versionados |
+
+O host servidor local usa sua configuração PostgreSQL/HUMMING_LOCAL_TOKEN descrita no contrato. O principal runLocal inicial só autoriza local/example; criar o rascunho com documentId=example e revisão 0 pela API antes de abrir esse recorte. Consultar a porta realmente impressa. O alias da conexão deve continuar apontando ao mesmo serviço lógico mesmo que a porta local mude; não é autenticação de servidor por si.
+
+LocalStudio recebe RemoteStudioHost e seu workspace explicitamente. Após cada revisão local, tenta salvar recuperação e mostra a confirmação do storage. Sincronizar pendências executa flush ordenado/retry, exibindo revisão confirmada, pendências e pausa. Ao reabrir com outbox existente, ela é restaurada antes de qualquer substituição por leitura remota, para recuperar recibo perdido. Em conflito/rejeição, Arquivar e usar remoto exige confirmação do usuário, grava cópia das pendências e só então adota a definição remota. Falha ao arquivar conserva o preview local. O download de Exportar recuperação continua distinto da gravação efetiva do storage.
+
+O adapter desktop fecha HTTP ao sair. Workspace/preview não instalam métodos de negócio nem rede no renderer; a API de edição pertence ao host. Browser padrão permanece local até receber adapters e qualificação próprios. Undo/redo remoto e sincronização entre editores pertencem à política da etapa seguinte.

@@ -237,3 +237,9 @@ RegisteredHttpDataSource usa HTTP do JDK já presente, await cancelável de send
 A outbox pura pertence ao modelo autoral, sem dependência de IO/coroutines/servidor. Persistir antes de enviar cobre a janela em que o servidor confirma mas o cliente perde a resposta. Manter o mesmo comando permite consultar o recibo transacional existente; não se gera novo ID ao tentar novamente. Ticket por instância impede que resposta antiga avance o head atual. A confirmação promove apenas a base confirmada, preservando todas as edições locais posteriores.
 
 Conflito de revisão/documento fica explícito com as duas fontes conservadas; não foi escolhido rebase automático, undo concorrente ou CRDT. O host continua responsável por atomicidade e erro real do storage, cancelamento e política de reconnect. O alias de conexão deve vincular o checkpoint ao servidor correto; não é autenticação nem descoberta automática de backend.
+
+### Host e confirmação de storage no editor
+
+O controller do sample preserva o modelo puro e usa adapters fornecidos pelo host. Uma chamada explícita flush limita o trabalho e não cria reconnect automático ilimitado. O primeiro adapter completo é desktop JVM, por já permitir a prova de HTTP/arquivo/Compose real; Wasm compila o controller comum, mas o browser não recebe esses adapters JVM nem uma promessa de conexão remota. Entrada --remote-studio e variáveis de processo mantêm autenticação/transporte opt-in, sem defaults de credenciais ou paths de usuário versionados.
+
+Para resolver conflito sem perder trabalho, o controller exige arquivo separado antes de adotar a leitura remota. O checkpoint é escrito por troca atômica e force do arquivo, conservando o contrato save-before-send; iniciar download não equivale a essa confirmação. Permanecem distintos: recuperação de comando, confirmação durável no PostgreSQL, persistência local em filesystem e qualificação da UI em cada plataforma.

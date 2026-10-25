@@ -21,6 +21,7 @@ import androidx.lifecycle.ViewModelStoreOwner
 import androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.coroutines.launch
 import me.developes.humming.sdui.HummingSDUI
 import me.developes.humming.sdui.action.SDActions
 import me.developes.humming.sdui.common.*
@@ -31,7 +32,8 @@ import me.developes.humming.sdui.navigation.SDNavigation
 import me.developes.humming.sdui.studio.*
 
 @Composable
-fun LocalStudio(files: StudioFiles? = null, workspace: LocalWorkspace = remember { LocalWorkspace() }) {
+fun LocalStudio(files: StudioFiles? = null, workspace: LocalWorkspace = remember { LocalWorkspace() }, remoteHost: RemoteStudioHost? = null) {
+    require(remoteHost == null || remoteHost.workspace === workspace)
     var document by remember(workspace) { mutableStateOf(workspace.document) }
     var openedVersion by remember(workspace) { mutableStateOf(0L) }
     var selectedId by remember(workspace) { mutableStateOf(document.entryNodeId) }
@@ -43,12 +45,26 @@ fun LocalStudio(files: StudioFiles? = null, workspace: LocalWorkspace = remember
     var jsonText by remember { mutableStateOf("") }
     var showInteractions by remember { mutableStateOf(false) }
     var active by remember { mutableStateOf(true) }
+    val scope = rememberCoroutineScope()
+    var remoteEpoch by remember { mutableStateOf(0) }
+    var synchronizing by remember { mutableStateOf(false) }
+    var replaceRemote by remember { mutableStateOf(false) }
     DisposableEffect(Unit) { onDispose { active = false } }
     val compilation = remember(document) { workspace.compilePreview() }
     val treeRows = remember(document) { workspace.tree() }
     val previewControls = remember { PreviewControls() }
     val interactionViewport = remember { mutableStateOf(CanvasViewport(zoom=.5)) }
     val selected = document.nodes[selectedId]
+    LaunchedEffect(document.revision, remoteHost) {
+        if (remoteHost != null) {
+            if (!remoteHost.saveRecovery()) messages = "Recuperação não salva; envio remoto bloqueado"
+            remoteEpoch++
+        }
+    }
+    val remoteStatus = remember(document, remoteEpoch) { workspace.remoteEditor?.let { remote ->
+        "Confirmada ${remote.confirmedRevision} • pendentes ${remote.pendingCount} • ${remote.pause}" +
+            if (remote.needsPersistence) " • recuperação ainda não salva" else " • recuperação salva"
+    } }
     fun diagnostics(items: List<NodeDiagnostic>) = items.joinToString("\n") {
         "${it.code} | nó=${it.nodeId ?: "—"} | ${it.path} | ${it.message}"
     }
@@ -72,10 +88,19 @@ fun LocalStudio(files: StudioFiles? = null, workspace: LocalWorkspace = remember
         Column(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background).padding(12.dp)) {
             Text(if (workspace.remoteEditor == null) "HummingUI Studio — autoria local" else "HummingUI Studio — edição remota", style = MaterialTheme.typography.titleLarge)
             Text("Revisão ${document.revision}${if (dirty) " • alterações locais" else ""} • preview sem rede ou métodos do aplicativo")
-            workspace.remoteEditor?.let { remote ->
-                Text("Confirmada ${remote.confirmedRevision} • pendentes ${remote.pendingCount} • ${remote.pause}" +
-                    if (remote.needsPersistence) " • recuperação ainda não salva" else " • recuperação salva",
-                    Modifier.testTag("studio-remote-state"))
+            remoteStatus?.let { Text(it, Modifier.testTag("studio-remote-state")) }
+            if (remoteHost != null) Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Button(enabled = !synchronizing, onClick = {
+                    synchronizing = true
+                    scope.launch {
+                        try {
+                            messages = remoteHost.synchronize(); workspace.refreshRemote()
+                            document = workspace.document; remoteEpoch++
+                        } finally { synchronizing = false }
+                    }
+                }) { Text("Sincronizar pendências") }
+                OutlinedButton(enabled = !synchronizing && remoteHost.editor.pause in setOf(RemotePause.CONFLICT, RemotePause.REJECTED),
+                    onClick = { replaceRemote = true }) { Text("Arquivar e usar remoto") }
             }
             FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 Button(enabled = workspace.remoteEditor == null, onClick = { requestReplace {
@@ -299,6 +324,19 @@ fun LocalStudio(files: StudioFiles? = null, workspace: LocalWorkspace = remember
                 TextButton(onClick = { jsonDialog = false; requestReplace { replaced(workspace.openAuthoring(jsonText)) } }) { Text("Importar documento") }
             } }, dismissButton = { TextButton(onClick = { jsonDialog = false }) { Text("Cancelar") } })
     }
+    if (replaceRemote && remoteHost != null) AlertDialog(onDismissRequest = { replaceRemote = false },
+        title = { Text("Usar a versão do servidor?") },
+        text = { Text("As pendências serão arquivadas no storage de recuperação antes de abrir a versão remota. O preview local será substituído.") },
+        confirmButton = { TextButton(onClick = {
+            replaceRemote = false; synchronizing = true
+            scope.launch {
+                try {
+                    messages = remoteHost.archiveAndUseRemote(); workspace.refreshRemote()
+                    document = workspace.document; selectedId = document.entryNodeId; selectedEdge = null
+                    openedVersion++; remoteEpoch++
+                } finally { synchronizing = false }
+            }
+        }) { Text("Arquivar e substituir") } }, dismissButton = { TextButton(onClick = { replaceRemote = false }) { Text("Cancelar") } })
 }
 
 @Composable

@@ -74,6 +74,82 @@ class PublishedClientIntegrationTest {
         override fun close() { server.stop(0); executor.shutdownNow(); assertTrue(executor.awaitTermination(5, TimeUnit.SECONDS)) }
     }
 
+    @Test fun studioInspectorSavesReopensOfflineWorkAndArchivesAConflictThroughTheRealAdapters() {
+        val url = requireNotNull(System.getenv("HUMMING_TEST_DB_URL"))
+        val uri = URI(url.removePrefix("jdbc:"))
+        require(uri.host in setOf("127.0.0.1", "localhost") && uri.path == "/humming_test")
+        val catalog = initialNodeCatalog()
+        val repo = PostgresDraftRepository(postgresDataSource(url, requireNotNull(System.getenv("HUMMING_TEST_DB_USER")),
+            requireNotNull(System.getenv("HUMMING_TEST_DB_PASSWORD"))), catalog)
+        val document = DocumentKey("studio", "doc-${UUID.randomUUID()}")
+        val actor = Actor("studio-author", Permission.entries.map { DocumentGrant(document, it) }.toSet())
+        val token = UUID.randomUUID().toString()
+        val codec = AuthoringDocumentCodec(catalog)
+        val source = codec.encode(LegacyAuthoringCodec(catalog).importDocument(
+            """{"id":"label","component":"layout:text","properties":{"text":"initial"}}""", document.document).requireValue()).requireValue()
+        val publisher = publicationApplication(repo, repo, catalog)
+        val snapshot = runBlocking {
+            repo.migrate(); assertTrue(repo.create(StoredDraft(document, 0, source)))
+            assertIs<ApplicationResult.Success<StoredPublication>>(publisher.publish(actor, document, 0, "local-tree")).value
+        }
+        fun server() = DraftHttpHost(DraftApplication(repo, ExactGrantAuthorizer, catalog, TargetCapabilities(catalog.capabilities)),
+            BearerAuthenticator(token, actor), editing = DraftEditingApplication(repo, ExactGrantAuthorizer))
+        val identity = RemoteDocument("studio-integration", document.tenant, document.document)
+        val path = Path.of("build", "reports", "studio-remote", "${document.document}.json")
+        val recovery = JvmRemoteStudioRecovery(path)
+        fun origin(host: DraftHttpHost) = "http://127.0.0.1:${host.port}"
+        fun apply(text: String) {
+            compose.onNodeWithTag("studio-property-value").performTextReplacement(text)
+            compose.onNodeWithText("Aplicar propriedade").performClick()
+        }
+        fun awaitStatus(text: String) = compose.waitUntil(15_000) {
+            compose.onAllNodes(hasTestTag("studio-remote-state") and hasText(text, substring = true)).fetchSemanticsNodes().size == 1
+        }
+        val firstServer = server()
+        try { JvmRemoteStudioApi(origin(firstServer), identity, token).use { api ->
+            val first = runBlocking { RemoteStudioHost.open(identity, catalog, api, recovery).requireValue() }
+            val current = mutableStateOf(first)
+            compose.setContent { if (mounted.value) key(current.value) { LocalStudio(workspace = current.value.workspace, remoteHost = current.value) } }
+            apply("UI saved")
+            compose.onNodeWithText("Sincronizar pendências").performClick()
+            awaitStatus("Confirmada 1 • pendentes 0")
+            runBlocking { assertTrue(repo.find(document)!!.source.contains("UI saved")) }
+            firstServer.close()
+            apply("UI offline")
+            compose.onNodeWithText("Sincronizar pendências").performClick()
+            awaitStatus("OFFLINE")
+            assertFalse(Files.readString(path).contains(token))
+            server().use { reopenedServer -> JvmRemoteStudioApi(origin(reopenedServer), identity, token).use { reopenedApi ->
+                val reopened = runBlocking { RemoteStudioHost.open(identity, catalog, reopenedApi, recovery).requireValue() }
+                assertEquals(1, reopened.editor.pendingCount)
+                compose.runOnIdle { current.value = reopened }
+                compose.onNodeWithText("Sincronizar pendências").performClick()
+                awaitStatus("Confirmada 2 • pendentes 0")
+                apply("UI conflict")
+                runBlocking {
+                    val edit = """{"commandId":"other-editor","expectedRevision":2,"operations":[{"operationType":"putProperty","nodeId":"label","name":"text","value":"other editor"}]}"""
+                    assertIs<DraftEditResult.Accepted>(DraftEditingApplication(repo, ExactGrantAuthorizer).edit(actor, document, edit))
+                }
+                compose.onNodeWithText("Sincronizar pendências").performClick(); awaitStatus("CONFLICT")
+                compose.runOnIdle { assertEquals(JsonPrimitive("UI conflict"), reopened.workspace.document.nodes.getValue("label").properties["text"]) }
+                compose.onNodeWithText("Arquivar e usar remoto").performClick()
+                compose.onNodeWithText("Arquivar e substituir").performClick()
+                awaitStatus("Confirmada 3 • pendentes 0")
+                compose.runOnIdle { assertEquals(JsonPrimitive("other editor"), reopened.workspace.document.nodes.getValue("label").properties["text"]) }
+                Files.list(path.parent).use { files ->
+                    val archive = files.filter { it.fileName.toString().startsWith(path.fileName.toString() + ".conflict-") }.findFirst().orElseThrow()
+                    assertTrue(Files.readString(archive).contains("UI conflict")); assertFalse(Files.readString(archive).contains(token))
+                }
+                JvmRemoteStudioApi(origin(reopenedServer), identity, UUID.randomUUID().toString()).use { denied -> runBlocking {
+                    val result = assertIs<RemoteStudioSubmit.Failed>(denied.submit(EditCommand("denied", 3,
+                        listOf(EditOperation.PutProperty("label", "text", JsonPrimitive("never"))))))
+                    assertEquals(RemotePause.UNAUTHORIZED, result.reason)
+                    assertEquals(3, repo.find(document)?.revision); assertEquals(snapshot, repo.publication(document, snapshot.version))
+                } }
+            } }
+        } } finally { firstServer.close() }
+    }
+
     @Test fun durableOutboxReplaysALostHttpReceiptAndPreservesLocalWorkOnARevisionConflict() {
         val url = requireNotNull(System.getenv("HUMMING_TEST_DB_URL"))
         val uri = URI(url.removePrefix("jdbc:"))
