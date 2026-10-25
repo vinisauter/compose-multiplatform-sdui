@@ -247,3 +247,7 @@ Para resolver conflito sem perder trabalho, o controller exige arquivo separado 
 ## Colaboração: autoridade, transporte e compensação
 
 A revisão e o journal pertencem ao PostgreSQL; duas instâncias não dependem de Mutex compartilhado. Feed pull limitado foi escolhido para o host local: permite replay após perda sem broker. Presença usa TTL do banco e não entra na publicação. Undo compara postimagem completa dos itens afetados e falha conservadoramente quando divergente, evitando apagar trabalho alheio sem inventar merge por campo. UI limita undo ao último envio reconhecido na conexão; intenção v2 é durável e v1 é migrado. Protocolo do feed usa codec explícito operationType: Json padrão de plataforma não pode escolher outro discriminador. Limites de qualificação e evidências ficam exclusivamente no estado atual.
+
+## CI do recorte local
+
+Manter um workflow de validação com o wrapper do repositório e JDK 25, sem Gradle 7.2 externo ou módulo androidApp inexistente. Retirar definições antigas de distribuição Firebase: não há fluxo de assinatura/publicação qualificado. O runner verifica JVM e compilação Wasm; PostgreSQL, Android e Apple exigem seus próprios ambientes e provas. Não confundir configuração de CI com execução remota comprovada.

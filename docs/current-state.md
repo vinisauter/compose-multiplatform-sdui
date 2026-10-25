@@ -2,18 +2,18 @@
 
 Este é o ponto de entrada para **continuar o desenvolvimento**. Reúne o estado observado, o rastreamento das etapas e a próxima ação. O [plano](development-plan.md) define dependências, escopo e critérios de aceite; este documento é a única fonte de status e retomada.
 
-Atualizado após T25: colaboração desktop opt-in com journal transacional, replay, presença e undo conservador. Relatórios: 327 JVM regulares + 15 integrações reais, sem falhas/erros/ignorados. Studio browser permanece local; sem deploy público.
+Atualizado após T26 no recorte local: colaboração desktop opt-in com journal transacional, replay, presença e undo conservador. Relatórios: 327 JVM regulares + 15 integrações reais, sem falhas/erros/ignorados. Studio browser permanece local; sem deploy público.
 
 ## Ponto de retomada
 
 | Campo | Registro atual |
 | --- | --- |
-| Última atualização | 2026-10-25; T20–T24 em 42d6de8, dc51068, 4cdf7bc, 2f67dd9, 277ad71 e 681f91e; commits locais sem push |
-| Última entrega | T25: dois controllers e dois hosts HTTP convergem com PostgreSQL; presença e undo recuperável; 342 casos no conjunto |
-| Tarefa de implementação em execução | Nenhuma; fechamento T25 validado |
-| Próxima tarefa | **T26 — qualificação por plataforma e recorte** |
-| Próxima ação concreta | Confrontar workflows com tarefas reais, executar compilação Android afetada e consolidar matriz de qualificação e limites |
-| Critério para avançar | Qualificar somente funcionalidades/targets com evidência; explicitar Apple, browser remoto e inspeções manuais ausentes |
+| Última atualização | 2026-10-25; T25 em 6e3a1ae; T20–T24 em 42d6de8, dc51068, 4cdf7bc, 2f67dd9, 277ad71 e 681f91e; commits locais sem push |
+| Última entrega | T26: matriz local, CI sem distribuição, APK debug e bundle Wasm; 342 casos no conjunto T25 |
+| Tarefa de implementação em execução | Nenhuma; T00–T25 e qualificação T26 do recorte local concluídos |
+| Próxima tarefa | Próximo recorte deve reabrir T26 conforme target/funcionalidade escolhido; sem implementação obrigatória restante no plano local |
+| Próxima ação concreta | Inspecionar manualmente o modo desktop remoto em ambiente configurado; para Apple obter host compatível; CI remota só após autorização de push |
+| Critério para avançar | Novo recorte deve definir aceite e evidência; não anunciar browser remoto/Apple nem distribuição a partir desta conclusão local |
 | Bloqueio de implementação conhecido | Nenhum para qualificação local JVM/Android/Wasm; Apple exige host compatível |
 | Limite do próximo recorte | Validação e CI local; sem deploy, push, distribuição ou credenciais versionadas |
 
@@ -59,7 +59,7 @@ Estados: **pronta**, **pendente**, **em execução**, **bloqueada**, **concluíd
 | T23 | Resolução BFF e isolamento de dados | concluída | Codex: 5 testes de política + 3 HTTP reais, 9 integrações PostgreSQL/HTTP/Compose no conjunto; detalhes abaixo |
 | T24 | Edição remota com revisão e recuperação | concluída | Codex: desktop opt-in, Inspector com HTTP/arquivo/PostgreSQL, replay/perda de ack e conflito arquivado; limites/qualificação abaixo |
 | T25 | Múltiplos editores e conflitos | concluída | Journal/replay, dois hosts/controllers, presença e undo guardado; 342 casos; evidência abaixo |
-| T26 | Qualificação por plataforma e recorte | pronta | Consolidar matriz, corrigir CI e verificar Android afetado |
+| T26 | Qualificação por plataforma e recorte | concluída | Somente recorte local identificado na matriz abaixo; Android/Wasm compilados, CI configurada sem execução remota; demais gates explícitos |
 
 Os requisitos completos e a ordem das dependências estão no [plano](development-plan.md). A numeração identifica tarefas; não significa executar T07–T12 antes de T13–T19. A prioridade inicial é base → schemas/fronteira → autoria local → manipulação visual; capacidades adicionais do cliente podem avançar em paralelo quando elegíveis.
 
@@ -319,7 +319,7 @@ Fixtures Docker criadas pelo script foram paradas no finally; containers e volum
 - Docker Desktop estava desligado na primeira tentativa desta data; foi iniciado localmente. .\scripts\verify-postgres.ps1 -PublishedClient passou antes/depois de restart: 10 registros preservados, build/t23-integration-run.log e build/t21/{integration,after-restart,restart}.log. Fixture humming-t21-f8966c7f62d5 e volume próprio preservados/parados; revisão final reutilizou somente essa fixture, redescobrindo porta e sem imprimir segredo.
 - Limites: servidor e renderer JVM locais; sem nova QA visual manual ou qualificação Android/browser/Apple. Recuperação usa nova entrada, sem refresh automático de inputs em entrada existente. Cache em memória por processo, sem persistência pessoal/distribuição/coalescência. Templates e scripts não foram adicionados. A integração do Studio com outbox/reconexão permanece T24, próxima etapa.
 
-## T24 em execução — primeiro recorte, outbox e recuperação
+## Evidência histórica T24 — primeiro recorte, outbox e recuperação
 
 - Codex, 2026-10-25. RemoteEditor puro, checkpoint fechado por identidade/base/comandos/pausa/fonte em conflito; save-before-send, ticket único, replay estável e confirmações ordenadas. LocalWorkspace roteia comandos do Inspector/drag à outbox quando conectado; LocalStudio mostra confirmado/pendente/pausa e exporta recuperação sem fingir storage confirmado. Importar/abrir/novo/undo local ficam desabilitados nesse modo.
 - build/t24-outbox-final.log: BUILD SUCCESSFUL; 106 testes do modelo (6 novos), 45 sample (1 novo), metadata comum/Wasm do modelo e Wasm do sample. Testes cobrem confirmação antiga versus edição nova, reinício com recibo perdido, duas versões de documento em conflito, autorização, checkpoint inválido/identidade e propriedade de comandos. Nenhum teste novo de UI é apresentado como QA manual.
@@ -342,3 +342,22 @@ Responsável Codex. Journal imutável e compensações persistidos na mesma tran
 Comandos e relatórios: build/t25-complete-regression.log (dez jvmTest, metadata e Wasm do modelo, Wasm do sample), BUILD SUCCESSFUL: contrato 52, core 74, ações 4, autoria 110, rede 7, navegação 10, aplicação servidor 13, host 8, PostgreSQL 1 e sample 48 = 327. build/t25-collaborative-ui-final.log: postgresIntegrationTest 8, postgresHttpIntegrationTest 2, publishedClientIntegrationTest 5 = 15 integrações reais. Todos sem falhas/erros/ignorados. Fixture PostgreSQL 18.6 local, HTTP e arquivos reais; containers de teste parados ao terminar. Restart com 16 registros preservados em build/t25-integration-run.log.
 
 Teste Compose com dois controllers/dois hosts comprovou convergência, presença, undo preservando edição em outro nó, recusa quando o mesmo nó mudou e recuperação após perder ack do undo, sem revisão duplicada. Testes puros incluem feed duplicado/fora de ordem/lacuna e proteção de pendências. Codec compartilhado corrige discriminador polimórfico operationType; rejeita versão ausente/futura. Não são processos JVM separados, teste de carga, CRDT ou entrega exatamente uma vez. Sem inspeção manual nova de janela nativa. Undo da UI abrange o último envio próprio reconhecido nesta conexão; sem redo remoto. Journal anterior à migração exige ressincronização por snapshot. Publicações permanecem imutáveis.
+
+## Qualificação T26 — matriz do recorte local
+
+Recorte: POC local, com runtime/Studio compartilhado e integração remota opt-in exclusivamente JVM loopback. Não é release distribuída nem suporte universal aos targets declarados. Os fechamentos anteriores conservam a prova visual de sua revisão; não são reexecuções nesta data.
+
+| Target / funcionalidade | Evidência atual e alcance | Limite / próximo gate |
+| --- | --- | --- |
+| JVM: contrato/runtime/modelo/servidor/sample | 327 testes regulares; metadata e Wasm compartilhado no log t25-complete-regression | Janela nativa do modo remoto não foi inspecionada manualmente |
+| JVM: PostgreSQL, HTTP, publicação, dados, edição e colaboração | 15 integrações reais; dois controllers e dois hosts; recuperação em arquivo e restart do banco | Instâncias no mesmo JVM; sem carga ou teste de processos cliente independentes |
+| Wasm: Studio local | Fluxos visuais anteriores T16–T19 e compilação atual do Studio comum | HTTP/storage/colaboração remotos não instalados no browser; não qualificados |
+| Android: runtime e bridge nativa | Probe real API35 e recriação registrados em T12; assembleDebug atual gerou APK | Nenhuma execução visual nova do APK; editor remoto tem adapter somente JVM |
+| Apple | Targets declarados nos builds | Não qualificado: Windows não fornece host/toolchain Apple |
+| GitHub CI | YAML e estrutura conferidos; tarefas reproduzidas localmente | Não executado no GitHub; nenhum push feito |
+
+Avisos observados: namespaces Android compartilhados entre bibliotecas e avisos Kotlin preexistentes (Elvis redundante/!!). Não causaram falha no assembleDebug; manutenção de namespaces deve preservar consumidores e manifestos e merece recorte próprio. Nenhuma versão de dependência foi alterada para contornar esses avisos.
+
+Fechamento T26 em 2026-10-25, responsável Codex: .\gradlew.bat :sample:composeApp:tasks --all (build/t26-tasks.log) descobriu as tarefas; .\gradlew.bat :sample:composeApp:assembleDebug :sample:composeApp:wasmJsBrowserDistribution --console=plain (build/t26-platform-build.log) terminou BUILD SUCCESSFUL em 5m34s, 217 tarefas. Artefatos locais: sample/composeApp/build/outputs/apk/debug/composeApp-debug.apk e sample/composeApp/build/dist/wasmJs/productionExecutable/index.html com JS/Wasm. Não instalados/publicados neste recorte. Webpack avisou sobre tamanho do bundle; Gradle reportou deprecações incompatíveis com Gradle 10. Não houve atualização de dependências.
+
+CI consolidada em build-release.yml: Windows/JDK25/wrapper, dez jvmTest e metadata/Wasm; dois workflows obsoletos de distribuição removidos. YAML analisado com PyYAML/BaseLoader, permissões read e estrutura conferidas. Links locais revisados sem alvos ausentes; git diff --check passou. Configuração CI não foi executada remotamente. Não restam tarefas obrigatórias de implementação no plano local atual. Gates fora desse recorte: execução manual do composition root remoto, processos cliente independentes/carga, CI remota, Apple e eventual adapter remoto browser/Android. Abrir um desses escopos exige registrar tarefa/aceite e reabrir a qualificação; não reiniciar T00–T25.
