@@ -232,3 +232,9 @@ Limites: deep link é entrada da API do host, sem integração de URL com SO/bro
 Codex, 2026-10-24: teste JourneySessionTest com HummingSDUI, Compose Navigation e modo ISOLATED_ENTRIES reais. O host desmonta a jornada, destrói/limpa ViewModelStore, invalida sessão a e só então monta sessão b com novo owner/identidade. Campo editado e inputs de a são limpos, tarefa suspensa da entrada é cancelada, Graph descartado recusa deep link, b inicia com campo inicial/input próprio e o cache mantém apenas sua definição. A mesma fonte declarativa é carregada em ambas as partições; nenhum dado de tela é serializado.
 
 Executado: build/t11/session-focused.log, teste novo aprovado. Regressão completa do sample em build/t11/session-final.log: 40 casos JVM, zero falhas/erros/ignorados, BUILD SUCCESSFUL. Outros módulos mantêm a última evidência do recorte anterior. Não há logout automático no core nem obrigação de usar backend; o protocolo de lifecycle pertence ao host e está descrito no contrato. Restauração persistida e exemplo interativo de jornada ainda pendentes; não concluir T11.
+
+### T11 — codec limitado de snapshots de definição
+
+Codex, 2026-10-24: DefinitionSnapshotCodec em commonMain, envelope determinístico com identidade completa/fonte original/idade/formato 1, relógio do host, campos fechados e budgets finitos. Decodificação rejeita outra identidade, expiração e timestamp futuro; admissão permanece validada pelo catálogo do cache. Três testes comuns executados JVM cobrem roundtrip exato e restauração em cache novo, seis partições divergentes, formato/campo extra/idade/clock, limites e fonte inválida não admitida.
+
+Executado: build/t11/snapshot.log — 10 testes navegação, metadata/Wasm/Android navegação, BUILD SUCCESSFUL. Nenhuma escrita em disco/storage remoto ou restauração automática de back stack/formulário. Resta acrescentar exemplo de host e qualificar restauração de definição através do renderer; T11 permanece em execução.
