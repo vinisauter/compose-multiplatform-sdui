@@ -11,7 +11,7 @@ import java.util.HexFormat
 import javax.sql.DataSource
 
 /** No HTTP/auth/UI dependency. The composition root owns the datasource and its credentials. */
-class PostgresDraftRepository(private val dataSource: DataSource, catalog: NodeCatalog) : RevisionedDraftRepository {
+class PostgresDraftRepository(private val dataSource: DataSource, catalog: NodeCatalog) : RevisionedDraftRepository, PublicationRepository {
     private val catalog = catalog
     private val codec = AuthoringDocumentCodec(catalog)
     private val json = Json { encodeDefaults = true; classDiscriminator = "operationType" }
@@ -21,18 +21,53 @@ class PostgresDraftRepository(private val dataSource: DataSource, catalog: NodeC
             statement.execute("SELECT pg_advisory_xact_lock(861739024)")
             statement.execute("CREATE TABLE IF NOT EXISTS public.humming_schema_migrations (version integer PRIMARY KEY, checksum char(64) NOT NULL)")
         }
-        val sql = checkNotNull(javaClass.getResource("/migrations/V1__drafts.sql")).readText().replace("\r\n", "\n")
+        for ((version, resource) in listOf(1 to "/migrations/V1__drafts.sql", 2 to "/migrations/V2__publications.sql")) {
+        val sql = checkNotNull(javaClass.getResource(resource)).readText().replace("\r\n", "\n")
         val checksum = hash(sql)
         val prior = connection.createStatement().use { statement ->
-            statement.executeQuery("SELECT checksum FROM public.humming_schema_migrations WHERE version=1").use { rows -> if (rows.next()) rows.getString(1) else null }
+            statement.executeQuery("SELECT checksum FROM public.humming_schema_migrations WHERE version=$version").use { rows -> if (rows.next()) rows.getString(1) else null }
         }
         if (prior != null) check(prior == checksum) { "Migration checksum differs from the installed schema" }
         else {
             connection.createStatement().use { it.execute(sql) }
-            connection.prepareStatement("INSERT INTO public.humming_schema_migrations(version,checksum) VALUES(1,?)").use {
-                it.setString(1, checksum); it.executeUpdate()
+            connection.prepareStatement("INSERT INTO public.humming_schema_migrations(version,checksum) VALUES(?,?)").use {
+                it.setInt(1, version); it.setString(2, checksum); it.executeUpdate()
             }
         }
+        }
+    }
+
+    override suspend fun publish(snapshot: StoredPublication): ApplicationResult<StoredPublication> = transaction { connection ->
+        val draft = find(connection, snapshot.key, lock = true)
+            ?: return@transaction ApplicationResult.Failure(ApplicationError.NOT_FOUND)
+        if (draft.revision != snapshot.revision) return@transaction ApplicationResult.Failure(ApplicationError.REVISION_CONFLICT)
+        connection.prepareStatement("INSERT INTO public.humming_publications(tenant_id,document_id,version,revision,source) VALUES(?,?,?,?,?) ON CONFLICT DO NOTHING").use {
+            it.setString(1, snapshot.key.tenant); it.setString(2, snapshot.key.document); it.setString(3, snapshot.version)
+            it.setLong(4, snapshot.revision); it.setString(5, snapshot.source); it.executeUpdate()
+        }
+        val stored = checkNotNull(publication(connection, snapshot.key, snapshot.version))
+        check(stored == snapshot) { "Immutable publication identity collision" }
+        ApplicationResult.Success(stored)
+    }
+    override suspend fun publication(key: DocumentKey, version: String): StoredPublication? = transaction { publication(it, key, version) }
+    private fun publication(connection: Connection, key: DocumentKey, version: String): StoredPublication? =
+        connection.prepareStatement("SELECT revision,source FROM public.humming_publications WHERE tenant_id=? AND document_id=? AND version=?").use {
+            it.setString(1, key.tenant); it.setString(2, key.document); it.setString(3, version)
+            it.executeQuery().use { rows -> if (rows.next()) StoredPublication(key, version, rows.getLong(1), rows.getString(2)) else null }
+        }
+    override suspend fun activePublication(key: DocumentKey): StoredPublication? = transaction { connection ->
+        connection.prepareStatement("SELECT p.version,p.revision,p.source FROM public.humming_publication_heads h JOIN public.humming_publications p USING(tenant_id,document_id,version) WHERE h.tenant_id=? AND h.document_id=?").use {
+            it.setString(1, key.tenant); it.setString(2, key.document)
+            it.executeQuery().use { rows -> if (rows.next()) StoredPublication(key, rows.getString(1), rows.getLong(2), rows.getString(3)) else null }
+        }
+    }
+    override suspend fun selectPublication(key: DocumentKey, version: String): Boolean = transaction { connection ->
+        // Serialize pointer changes with publications/edits for this document only.
+        if (find(connection, key, lock = true) == null || publication(connection, key, version) == null) return@transaction false
+        connection.prepareStatement("INSERT INTO public.humming_publication_heads(tenant_id,document_id,version) VALUES(?,?,?) ON CONFLICT(tenant_id,document_id) DO UPDATE SET version=EXCLUDED.version").use {
+            it.setString(1, key.tenant); it.setString(2, key.document); it.setString(3, version); check(it.executeUpdate() == 1)
+        }
+        true
     }
 
     override suspend fun create(draft: StoredDraft): Boolean = transaction { connection ->

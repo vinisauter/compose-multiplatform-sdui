@@ -62,6 +62,9 @@ kotlin {
         }
 
         jvmTest.dependencies {
+            implementation(project(":humming-server-application"))
+            implementation(project(":humming-server-postgres"))
+            implementation(project(":humming-server-host"))
             implementation(kotlin("test-junit"))
             implementation(compose.desktop.uiTestJUnit4)
             implementation(libs.lifecycle.runtime)
@@ -87,6 +90,21 @@ kotlin {
         mingwMain.dependencies {
             implementation(libs.ktor.client.winhttp)
         }
+    }
+}
+
+val regularSampleTests = tasks.named<Test>("jvmTest") { exclude("**/PublishedClientIntegrationTest*") }
+tasks.register<Test>("publishedClientIntegrationTest") {
+    group = "verification"
+    description = "Loads a real PostgreSQL/HTTP publication into the Compose JVM client"
+    dependsOn("jvmTestClasses")
+    testClassesDirs = regularSampleTests.get().testClassesDirs
+    classpath = regularSampleTests.get().classpath
+    include("**/PublishedClientIntegrationTest*")
+    outputs.upToDateWhen { false }
+    doFirst {
+        for (key in listOf("HUMMING_TEST_DB_URL", "HUMMING_TEST_DB_USER", "HUMMING_TEST_DB_PASSWORD"))
+            environment(key, requireNotNull(System.getenv(key)) { "$key is required for published client integration" })
     }
 }
 

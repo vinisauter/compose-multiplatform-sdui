@@ -2,19 +2,19 @@
 
 Este é o ponto de entrada para **continuar o desenvolvimento**. Reúne o estado observado, o rastreamento das etapas e a próxima ação. O [plano](development-plan.md) define dependências, escopo e critérios de aceite; este documento é a única fonte de status e retomada.
 
-Atualizado após T21: aplicação/HTTP local e persistência PostgreSQL revisionada opt-in. Evidência: 298 testes JVM regulares em dez módulos + 6 integrações PostgreSQL/HTTP reais, sem falhas/erros/ignorados. Banco reiniciado preservou registros; host HTTP recriado leu revisão e recibo. Cliente/Studio mantêm as qualificações anteriores; não há deploy público ou integração remota automática.
+Atualizado após T22: publicação imutável, manifesto por capacidade, seleção/rollback e consumo PostgreSQL/HTTP/Compose real. Evidência: 304 testes JVM regulares em dez módulos + 8 integrações reais, sem falhas/erros/ignorados. Reinício do banco preservou dados. Sem deploy público ou integração remota automática no Studio.
 
 ## Ponto de retomada
 
 | Campo | Registro atual |
 | --- | --- |
-| Última atualização | 2026-10-24 — T20 em 42d6de8; T21 com evidência abaixo; commits locais sem push |
-| Última entrega | T21: PostgreSQL/HTTP reais, revisão/recibo transacionais, rollback/cancelamento e persistência após restart; 304 casos no conjunto |
-| Tarefa de implementação em execução | Nenhuma; T21 encerrada no escopo local abaixo |
-| Próxima tarefa | **T22 — publicação imutável e capacidades** |
-| Próxima ação concreta | Implementar snapshot imutável por versão/capacidades, seleção e rollback por referência, com persistência local e carregamento pelo cliente real |
-| Critério para avançar | T22: publicar não altera snapshot anterior; rollback seleciona versão existente; incompatibilidade por capacidade tem diagnóstico; cliente carrega snapshot sem dados personalizados |
-| Bloqueio de implementação conhecido | Nenhum para T22 local; PostgreSQL real já qualificado, fixtures ficam paradas em Docker e precisam de readiness/porta redescoberta ao iniciar |
+| Última atualização | 2026-10-24 — T20 em 42d6de8; T21 em dc51068; T22 com evidência abaixo; commits locais sem push |
+| Última entrega | T22: snapshots imutáveis, negociação, rollback por seleção e cliente Compose real; 312 casos no conjunto |
+| Tarefa de implementação em execução | Nenhuma; próxima etapa pronta |
+| Próxima tarefa | **T23 — resolução BFF e isolamento de dados** |
+| Próxima ação concreta | Implementar registry explícito de fontes/mapeamentos, dados separados da publicação fixada, isolamento tenant/sessão, timeout/limites e serviço HTTP local real |
+| Critério para avançar | T23: dado de serviço local real, falha/recuperação, autorização, isolamento tenant/sessão/cache e cancelamento; sem URL arbitrária |
+| Bloqueio de implementação conhecido | Nenhum para T23 local; PostgreSQL real já qualificado, fixtures ficam paradas em Docker e precisam de readiness/porta redescoberta ao iniciar |
 | Limite do próximo recorte | Aplicação/host servidor local; sem deploy, banco remoto, credenciais versionadas ou integração implícita no Studio |
 
 ### Protocolo quando o pedido for “continue o desenvolvimento”
@@ -55,8 +55,8 @@ Estados: **pronta**, **pendente**, **em execução**, **bloqueada**, **concluíd
 | T19 | Grafo de interações e conectores | concluída | Codex, 2026-10-24: 94 testes autorais + 30 sample; canvas usa bounds reais, cúbicas/setas/hit/zoom/Escape; relações/undo e jornadas exportadas executadas. Chrome observou ida/volta e seleção rosa; pacote com 3 artefatos verificado |
 | T20 | Aplicação de servidor e interfaces | concluída | Codex: aplicação pura (5 casos), HTTP real (5 casos), classpath headless, smoke runLocal/401 e 296 testes no conjunto; detalhes abaixo |
 | T21 | Rascunhos/revisões em PostgreSQL | concluída | Codex: adapter/migration, CAS e recibos, seis integrações reais incluindo restart/rollback/cancelamento; 304 casos no conjunto; detalhes abaixo |
-| T22 | Publicação imutável e capacidades | pronta | Publicar snapshot local compatível sem dados de sessão |
-| T23 | Resolução BFF e isolamento de dados | pendente | Resolver fontes registradas com limites e isolamento |
+| T22 | Publicação imutável e capacidades | concluída | Codex: 304 JVM regulares + 8 integrações PostgreSQL/HTTP/Compose; pin e dados pessoais separados; detalhes abaixo |
+| T23 | Resolução BFF e isolamento de dados | pronta | Resolver fontes registradas com limites e isolamento |
 | T24 | Edição remota com revisão e recuperação | pendente | Salvar/reabrir/reconectar sem perda silenciosa |
 | T25 | Múltiplos editores e conflitos | pendente | Testar concorrência, replay e undo entre processos |
 | T26 | Qualificação por plataforma e recorte | pendente | Iniciar após T00; anexar evidência de cada recorte anunciado |
@@ -299,3 +299,12 @@ Prova real: .\scripts\verify-postgres.ps1 criou banco local humming_test em imag
 Regressão: build/t21-regression.log — dez módulos JVM, 298 casos regulares (52 contrato/74 core/4 ações/95 autoria/7 rede/10 navegação/6 aplicação/5 host/1 adapter/44 sample), sem falhas/erros/ignorados; metadata/Wasm do modelo e Wasm sample compilados. Integrações reais são tarefas dedicadas e adicionais, não casos ignorados: total304 casos distintos. Os testes reais foram repetidos após restart e após os ajustes finais de cancelamento/cleanup. git diff --check aprovado. Não há nova prova UI/Android/Apple neste recorte.
 
 Fixtures Docker criadas pelo script foram paradas no finally; containers e volumes rotulados T21 preservados sem apagar dados. build/t21/environment.json é apenas snapshot sem segredo (último container humming-t21-714dd5db2ec1, volume de mesmo prefixo com sufixo -data); consultar nome/label e redescobrir porta ao reiniciar. Não versionar nem imprimir Config.Env/credenciais. Docker Desktop permaneceu disponível; nada remoto foi provisionado. T21 concluída no escopo local. T22 pronta para snapshot/publicação local de teste; nenhuma autorização de deploy/push está implícita.
+
+## Fechamento T22 — publicação imutável e cliente fixado
+
+- Codex, 2026-10-24. PublishedContracts/Codec, PublicationRequirements e PublishedDefinition no modelo puro; aplicação/perfis/digest injetado no servidor; migration V2 para snapshots/referência ativa e trigger de imutabilidade. Rotas autenticadas locais publicam, negociam e selecionam versão. Rascunho/recibo e V1 preservados.
+- Manifesto mínimo inclui definições com versões exatas, métodos em slots, providers de navegação gerados e tokens. Codec fechado/canônico; fonte/versão verificadas no servidor. Cliente confere manifesto/identidade/capacidades e mantém strings fixadas sem compartilhar nós mutáveis. Dados resolvidos de sessão/formulário não são serializados.
+- BUILD SUCCESSFUL: build/t22-regression.log, dez jvmTest + metadata comum/Wasm do modelo e Wasm do sample; build/t22-application-final.log confirma a última revisão do teste. XML: contrato 52, core 74, ações 4, modelo 100, rede 7, navegação 10, aplicação 7, host 5, PostgreSQL 1, sample 44 = **304 casos regulares**, zero falhas/erros/ignorados.
+- .\scripts\verify-postgres.ps1 -PublishedClient executou **8 integrações** (PostgreSQL 6, HTTP 1, Compose cliente 1) antes e depois do restart: BUILD SUCCESSFUL em build/t21/integration.log e after-restart.log. build/t21/restart.log: 9 registros antes/depois. Fixture própria humming-t21-73b734ec95bc ficou parada, volume preservado; imagem oficial PostgreSQL 18.6 pelo digest já registrado. Não há segredo nos metadados locais.
+- Provas: duas versões distintas; primeira intacta; repetição determinística; revisão obsoleta rejeitada também dentro do adapter; UPDATE/DELETE rejeitados pelo banco; versão inexistente não troca seleção; rollback e novo adapter preservam rascunho/revisão. HTTP rejeitou envelope extra/tipo inválido e cliente incompatível. Compose JVM real carregou via HTTP, digitou private-session-value, manteve título da primeira versão após ativar segunda e confirmou ausência do valor pessoal no rascunho/snapshots.
+- Limites: integração UI automatizada em JVM, sem nova inspeção visual manual; Wasm compilado, Android/Apple não requalificados neste recorte. PublishedDefinition usa provider legado adaptado e não instala transporte/SDNavigation automaticamente. Hash não é assinatura; host continua loopback, sem TLS/deploy. Studio remoto e BFF ficam nas etapas seguintes. Retomar em T23 conforme tabela superior.

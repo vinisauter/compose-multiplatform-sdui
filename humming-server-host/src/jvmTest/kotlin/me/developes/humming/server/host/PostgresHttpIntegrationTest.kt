@@ -27,7 +27,8 @@ class PostgresHttpIntegrationTest {
             val repo = repository()
             runBlocking { repo.migrate() }
             return DraftHttpHost(DraftApplication(repo, ExactGrantAuthorizer, catalog, TargetCapabilities(catalog.capabilities)),
-                BearerAuthenticator(token, actor), editing = DraftEditingApplication(repo, ExactGrantAuthorizer))
+                BearerAuthenticator(token, actor), editing = DraftEditingApplication(repo, ExactGrantAuthorizer),
+                publications = publicationApplication(repo, repo, catalog))
         }
         val path = "/v1/tenants/${key.tenant}/documents/${key.document}"
         val source = AuthoringDocumentCodec(catalog).encode(LegacyAuthoringCodec(catalog).importDocument(
@@ -44,12 +45,25 @@ class PostgresHttpIntegrationTest {
                 val edit = request(it, "POST", "/commands", command)
                 assertEquals(200, edit.statusCode())
                 assertEquals(JsonPrimitive(1), Json.parseToJsonElement(edit.body()).jsonObject["revision"])
+                val published = request(it, "POST", "/publications", """{"expectedRevision":1,"profile":"local-tree"}""")
+                assertEquals(201, published.statusCode())
+                val snapshot = PublishedContractsCodec().decode(published.body()).requireValue()
+                assertEquals(200, request(it, "POST", "/publications/${snapshot.version}/select").statusCode())
+                assertEquals(published.body(), request(it, "GET", "/publications/${snapshot.version}/clients/local-tree").body())
+                assertEquals(422, request(it, "GET", "/publications/active/clients/empty-client").statusCode())
+                for (body in listOf("{}", """{"expectedRevision":[],"profile":"local-tree"}""", """{"expectedRevision":1,"profile":"local-tree","state":{"secret":true}}"""))
+                    assertEquals(422, request(it, "POST", "/publications", body).statusCode())
             }
             host().use {
                 val read = request(it, "GET")
                 assertEquals(200, read.statusCode())
                 assertEquals(JsonPrimitive(1), Json.parseToJsonElement(read.body()).jsonObject["revision"])
                 assertTrue(read.body().contains("after restart"))
+                val active = request(it, "GET", "/publications/active/clients/local-tree")
+                assertEquals(200, active.statusCode())
+                val pinned = PublishedContractsCodec().decode(active.body()).requireValue()
+                assertEquals(1, pinned.contracts.revision)
+                assertEquals(ApplicationError.REVISION_CONFLICT.name, Json.parseToJsonElement(request(it, "POST", "/publications", """{"expectedRevision":0,"profile":"local-tree"}""").body()).jsonObject["code"]?.jsonPrimitive?.content)
                 val replay = Json.parseToJsonElement(request(it, "POST", "/commands", command).body()).jsonObject
                 assertEquals(JsonPrimitive(true), replay["replayed"])
                 assertEquals(JsonPrimitive(1), replay["appliedRevision"])

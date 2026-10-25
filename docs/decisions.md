@@ -217,3 +217,11 @@ PostgresDraftRepository depende da aplicação e JDBC; o host depende do adapter
 A skill de boas práticas PostgreSQL orientou índice composto e transações curtas, sem IO de serviços externos dentro do lock. A escrita devolve definição, portanto exige READ além de EDIT. Cancelamento prevalece sobre erro JDBC decorrente de operação cancelada; rollback mantém documento e recibo atômicos. O writer canônico limitado existente tornou-se público para evitar duplicar serialização em aplicação/compilador.
 
 A versão nova do driver foi conferida no [download oficial pgJDBC](https://jdbc.postgresql.org/download/): 42.7.14. PostgreSQL18.6 consta na [política oficial de versões](https://www.postgresql.org/support/versioning/); a imagem oficial utilizada é fixada pelo digest no script de integração. Não houve atualização de dependências existentes. PostgreSQL real foi escolhido para não confundir banco em memória com garantia de concorrência/durabilidade.
+
+## T22 — identidade imutável, capacidades e referência ativa
+
+Separar publish de select evita ativar conteúdo apenas por criar um snapshot. Rollback é selecionar uma versão anterior existente, sem alterar rascunho ou histórico. SHA-256 cobre a representação canônica sem o próprio campo version, incluindo perfil/revisão/artefatos/manifesto. O hash é fornecido pelo adapter JVM; o código comum não incorpora java.security.
+
+Requisitos são extraídos do contrato compilado, não de todo o catálogo instalado. Isso inclui estruturas de navegação geradas e eventos declarados no schema. A negociação compara versões por identificador e conjuntos de métodos/providers/tokens. O carregador puro também confronta o manifesto com os artefatos, evitando admitir um manifesto subdeclarado. Conservar strings fixadas e fazer novo parse impede compartilhamento de nós mutáveis entre owners. A rota active é usada somente na obtenção inicial; o host mantém a identidade carregada até decidir iniciar outra carga.
+
+A migration V2 adiciona snapshots, referência ativa e proteção de mutação; V1 permanece intacta. Compilar fora da transação reduz a duração do lock; revalidar revision dentro dela fecha a corrida com uma edição posterior à leitura. O exemplo de integração mantém dependências de servidor apenas em jvmTest do sample, sem levar JDBC/HTTP servidor ao cliente comum.

@@ -344,3 +344,22 @@ Na transação READ COMMITTED: bloquear documento por chave composta, conferir r
 Falha de validação não grava documento/recibo. Falha SQL após UPDATE faz rollback de ambos; cancelamento é conferido antes de commit e entre as etapas, fecha recursos e preserva CancellationException mesmo se o driver reportar falha. JDBC bloqueante usa connectTimeout=5s, socketTimeout=15s, statement_timeout=10s e lock_timeout=5s; cancelamento não promete interromper imediatamente uma chamada JDBC nativa. O host aguarda workers por até 20s no encerramento. Se a confirmação de commit se perder, repetir o mesmo comando canônico/commandId recupera seu recibo; não inventar ID novo para essa repetição.
 
 Migration V1 define public.humming_drafts, public.humming_edit_receipts e marcador de versão/checksum. Chaves compostas e FK incluem tenant e documento; índice primário dos recibos também cobre esse prefixo. Migração roda em transação com advisory lock e rejeita checksum divergente (normalizado para LF entre plataformas). Fonte autoral é texto canônico, sem dados personalizados; recibos não são apagados automaticamente. Não existe API de exclusão, publicação ou undo remoto neste recorte.
+
+## Envelope publicado e negociação
+
+PublishedContracts exige formatVersion=1, version com 64 caracteres hexadecimais minúsculos, profile registrado, required:TargetCapabilities e contracts:CompiledContracts. Campos desconhecidos são rejeitados. required declara versões exatas por definição, métodos, providers e tokens realmente usados, inclusive ações em slots e navigation:node gerados. Não existe inferência por schemaVersion global. O cliente incompatível recebe INCOMPATIBLE_CLIENT com caminho da capacidade ausente; não se tenta executar parcialmente o contrato.
+
+A versão é SHA-256 UTF-8 da representação JSON canônica do envelope excluindo apenas version. Maps têm chaves ordenadas; conjuntos de capacidades são ordenados; a ordem de arrays do contrato é preservada. O perfil e a revisão autoral participam da identidade. Artefato individual é limitado a 1.000.000 caracteres; o envelope a 12.000.000, mantendo os limites internos do CompiledBundleCodec. Dados de sessão/formulário/servidor não são campos do envelope; expressões e bindings continuam definições, e seus valores resolvidos permanecem no owner do cliente.
+
+No host local PostgreSQL, base /v1/tenants/{tenant}/documents/{document}:
+
+| Método / sufixo | Entrada / resultado | Permissão |
+| --- | --- | --- |
+| POST /publications | JSON fechado {expectedRevision:Long,profile:String}; 201 com envelope | READ + PUBLISH |
+| GET /publications/{version}/clients/{profile} | Envelope compatível, 200 | READ |
+| GET /publications/active/clients/{profile} | Resolve referência ativa, 200 | READ |
+| POST /publications/{version}/select | Seleciona snapshot existente; 200 {version} | PUBLISH |
+
+Publicar não ativa automaticamente. Repetir a mesma publicação/revisão devolve conteúdo idêntico; revisão divergente retorna 409. Snapshot ausente retorna 404, perfil desconhecido/incompatível ou entrada inválida retorna 422. Seleção de versão inexistente não altera a referência anterior. Modo volátil responde 501 nas rotas de publicação. Perfis iniciais local-tree/local-journey são explícitos; empty-client demonstra rejeição. Nenhum perfil habilita métodos nativos implicitamente.
+
+PublishedDefinition.decode exige versão/documento esperados, catálogo e capacidades disponíveis; confere manifesto contra artefatos, rejeita recurso fora do snapshot e cria nós independentes por acesso. O host conserva o objeto fixado durante a jornada; seguir active novamente é decisão explícita de uma nova carga. Esse pin não restaura pilha/formulário após reiniciar o cliente. O servidor verifica o hash ao ler a publicação; o adapter cliente valida identidade/manifestações, sem oferecer assinatura criptográfica de payload ou confiança de transporte por si só.

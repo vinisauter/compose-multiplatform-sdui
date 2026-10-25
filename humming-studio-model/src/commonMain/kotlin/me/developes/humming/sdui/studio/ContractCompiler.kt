@@ -16,6 +16,7 @@ import me.developes.humming.sdui.common.ValidationMode
 import me.developes.humming.sdui.common.parseNode
 import me.developes.humming.sdui.common.validateBoundedJson
 
+@Serializable
 data class TargetCapabilities(
     val definitions: Map<String, Int>,
     val methods: Set<String> = emptySet(),

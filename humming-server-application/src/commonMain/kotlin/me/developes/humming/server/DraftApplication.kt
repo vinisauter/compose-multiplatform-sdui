@@ -8,7 +8,7 @@ import me.developes.humming.sdui.studio.*
 data class DocumentKey(val tenant: String, val document: String) {
     init { require(listOf(tenant, document).all { Regex("[A-Za-z0-9][A-Za-z0-9_-]{0,127}").matches(it) }) }
 }
-enum class Permission { CREATE, READ, VALIDATE, EDIT }
+enum class Permission { CREATE, READ, VALIDATE, EDIT, PUBLISH }
 data class DocumentGrant(val key: DocumentKey, val permission: Permission)
 class Actor(val id: String, grants: Set<DocumentGrant>) {
     val grants = grants.toSet()
@@ -28,7 +28,7 @@ interface DraftRepository {
     suspend fun create(draft: StoredDraft): Boolean
     suspend fun find(key: DocumentKey): StoredDraft?
 }
-enum class ApplicationError { FORBIDDEN, NOT_FOUND, ALREADY_EXISTS, INVALID_DOCUMENT, ID_MISMATCH, INITIAL_REVISION, INVALID_COMMAND, REVISION_CONFLICT, COMMAND_REPLAY_CONFLICT }
+enum class ApplicationError { FORBIDDEN, NOT_FOUND, ALREADY_EXISTS, INVALID_DOCUMENT, ID_MISMATCH, INITIAL_REVISION, INVALID_COMMAND, REVISION_CONFLICT, COMMAND_REPLAY_CONFLICT, UNKNOWN_PROFILE, INCOMPATIBLE_CLIENT, INVALID_PUBLICATION }
 sealed interface ApplicationResult<out T> {
     data class Success<T>(val value: T) : ApplicationResult<T>
     data class Failure(val code: ApplicationError, val diagnostics: List<NodeDiagnostic> = emptyList()) : ApplicationResult<Nothing>

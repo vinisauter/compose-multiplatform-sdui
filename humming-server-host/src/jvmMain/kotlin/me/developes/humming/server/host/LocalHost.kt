@@ -42,6 +42,7 @@ class DraftHttpHost(
     private val maxBodyBytes: Int = 2_000_000,
     private val operationTimeoutMillis: Long = 10_000,
     private val editing: DraftEditingApplication? = null,
+    private val publications: PublicationApplication? = null,
     private val onUnexpectedFailure: (Throwable) -> Unit = { System.err.println("Draft host failed: ${it::class.simpleName}") },
 ) : AutoCloseable {
     private val job = SupervisorJob()
@@ -76,6 +77,7 @@ class DraftHttpHost(
         val actor = authenticator.authenticate(authorization?.singleOrNull())
         if (actor == null) { respond(exchange, 401, error("UNAUTHENTICATED")); return }
         if (exchange.requestURI.rawQuery != null) { respond(exchange, 400, error("INVALID_ROUTE")); return }
+        if (handlePublication(exchange, actor)) return
         val route = Regex("/v1/tenants/([A-Za-z0-9][A-Za-z0-9_-]{0,127})/documents/([A-Za-z0-9][A-Za-z0-9_-]{0,127})(/validate|/commands)?")
             .matchEntire(exchange.requestURI.rawPath)
         if (route == null) { respond(exchange, 404, error("ROUTE_NOT_FOUND")); return }
@@ -144,6 +146,56 @@ class DraftHttpHost(
         }
     }
 
+    private suspend fun handlePublication(exchange: HttpExchange, actor: Actor): Boolean {
+        val route = Regex("/v1/tenants/([A-Za-z0-9][A-Za-z0-9_-]{0,127})/documents/([A-Za-z0-9][A-Za-z0-9_-]{0,127})/publications(?:/([0-9a-f]{64}|active)/(select|clients/[a-z][a-z0-9-]{0,63}))?")
+            .matchEntire(exchange.requestURI.rawPath) ?: return false
+        val key = DocumentKey(route.groupValues[1], route.groupValues[2])
+        val version = route.groupValues[3]
+        val operation = route.groupValues[4]
+        val read = operation.startsWith("clients/")
+        val method = if (read) "GET" else "POST"
+        if (exchange.requestMethod != method || (version == "active" && !read)) {
+            exchange.responseHeaders.set("Allow", method); respond(exchange, 405, error("METHOD_NOT_ALLOWED")); return true
+        }
+        val permission = if (read) Permission.READ else Permission.PUBLISH
+        if (!application.isAllowed(actor, key, permission) ||
+            (!read && operation != "select" && !application.isAllowed(actor, key, Permission.READ))) {
+            respond(exchange, 403, error("FORBIDDEN")); return true
+        }
+        val publisher = publications ?: run { respond(exchange, 501, error("PUBLICATION_UNAVAILABLE")); return true }
+        val result: ApplicationResult<*> = when {
+            read -> publisher.read(actor, key, version.takeUnless { it == "active" }, operation.removePrefix("clients/"))
+            operation == "select" -> publisher.select(actor, key, version)
+            else -> {
+                val source = jsonBody(exchange) ?: return true
+                val item = try { parseBoundedJson(source).jsonObject } catch (_: PayloadException) { null } catch (_: IllegalArgumentException) { null }
+                val revision = (item?.get("expectedRevision") as? JsonPrimitive)?.takeUnless { it.isString }?.longOrNull
+                val profile = (item?.get("profile") as? JsonPrimitive)?.takeIf { it.isString }?.content
+                if (item?.keys != setOf("expectedRevision", "profile") || revision == null || profile == null) {
+                    respond(exchange, 422, error("INVALID_PUBLICATION")); return true
+                }
+                publisher.publish(actor, key, revision, profile)
+            }
+        }
+        currentCoroutineContext().ensureActive()
+        when (result) {
+            is ApplicationResult.Failure -> respond(exchange, when (result.code) {
+                ApplicationError.FORBIDDEN -> 403
+                ApplicationError.NOT_FOUND -> 404
+                ApplicationError.REVISION_CONFLICT -> 409
+                else -> 422
+            }, buildJsonObject {
+                put("code", result.code.name); put("diagnostics", JsonArray(result.diagnostics.map(::diagnostic)))
+            })
+            is ApplicationResult.Success<*> -> when (val value = result.value) {
+                is StoredPublication -> respond(exchange, if (read) 200 else 201, Json.parseToJsonElement(value.source).jsonObject)
+                is String -> respond(exchange, 200, buildJsonObject { put("version", value) })
+                else -> kotlin.error("Unknown publication result")
+            }
+        }
+        return true
+    }
+
     private fun jsonBody(exchange: HttpExchange): String? {
         val contentType = exchange.requestHeaders.getFirst("Content-Type")?.lowercase()?.replace(" ", "")
         if (contentType !in setOf("application/json", "application/json;charset=utf-8")) {
@@ -193,8 +245,20 @@ fun main() {
     val application = DraftApplication(repository, ExactGrantAuthorizer, catalog,
         TargetCapabilities(catalog.capabilities))
     val editing = (repository as? RevisionedDraftRepository)?.let { DraftEditingApplication(it, ExactGrantAuthorizer) }
-    val host = DraftHttpHost(application, BearerAuthenticator(token, actor), editing = editing)
+    val publications = (repository as? PublicationRepository)?.let { publicationApplication(repository, it, catalog) }
+    val host = DraftHttpHost(application, BearerAuthenticator(token, actor), editing = editing, publications = publications)
     Runtime.getRuntime().addShutdownHook(Thread { host.close() })
     println("Draft host: http://127.0.0.1:${host.port}/v1/tenants/local/documents/example (storage=${if (editing == null) "volatile" else "postgresql"})")
     CountDownLatch(1).await()
+}
+
+/** Explicit profiles for this local composition root. Native methods remain unregistered. */
+fun publicationApplication(drafts: DraftRepository, publications: PublicationRepository, catalog: NodeCatalog): PublicationApplication {
+    val tokens = defaultPresentationTokens()
+    val target = TargetCapabilities(catalog.capabilities, providers = setOf("published"),
+        colorTokens = tokens.colorNames, maskTokens = tokens.maskNames)
+    return PublicationApplication(drafts, publications, ExactGrantAuthorizer, catalog, listOf(
+        PublicationProfile("local-tree", target), PublicationProfile("local-journey", target, "published"),
+        PublicationProfile("empty-client", TargetCapabilities(emptyMap()))),
+        PublicationDigest { source -> java.util.HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(source.toByteArray(Charsets.UTF_8))) })
 }

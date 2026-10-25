@@ -27,6 +27,47 @@ class PostgresIntegrationTest {
         """{"commandId":"$id","expectedRevision":$revision,"operations":[{"operationType":"putProperty","nodeId":"label","name":"text","value":"$text"}]}"""
     private fun actor(key: DocumentKey) = Actor("author", Permission.entries.map { DocumentGrant(key, it) }.toSet())
 
+    @Test fun publicationIsContentAddressedImmutableAndRollbackOnlySelectsExistingContent() = runBlocking {
+        val ds = dataSource(); val repo = PostgresDraftRepository(ds, catalog); repo.migrate(); repo.migrate()
+        val key = key(); val author = actor(key)
+        assertTrue(repo.create(StoredDraft(key, 0, source(key))))
+        val digest = PublicationDigest { text -> java.util.HexFormat.of().formatHex(java.security.MessageDigest.getInstance("SHA-256").digest(text.toByteArray(Charsets.UTF_8))) }
+        fun application(repository: PostgresDraftRepository) = PublicationApplication(repository, repository, ExactGrantAuthorizer, catalog,
+            listOf(PublicationProfile("full", TargetCapabilities(catalog.capabilities)), PublicationProfile("old", TargetCapabilities(emptyMap()))), digest)
+        val app = application(repo)
+        val first = assertIs<ApplicationResult.Success<StoredPublication>>(app.publish(author, key, 0, "full")).value
+        assertEquals(first, assertIs<ApplicationResult.Success<StoredPublication>>(app.publish(author, key, 0, "full")).value)
+        assertNull(repo.activePublication(key)) // Publishing and rollout are separate explicit operations.
+        assertIs<ApplicationResult.Success<String>>(app.select(author, key, first.version))
+        assertEquals(first, assertIs<ApplicationResult.Success<StoredPublication>>(app.read(author, key, null, "full")).value)
+        val incompatible = assertIs<ApplicationResult.Failure>(app.read(author, key, first.version, "old"))
+        assertEquals(ApplicationError.INCOMPATIBLE_CLIENT, incompatible.code)
+        assertTrue(incompatible.diagnostics.single().path.contains("layout:text"))
+        assertEquals(ApplicationError.FORBIDDEN, assertIs<ApplicationResult.Failure>(app.publish(Actor("denied", emptySet()), key, 0, "full")).code)
+        assertEquals(ApplicationError.FORBIDDEN, assertIs<ApplicationResult.Failure>(app.read(author, key.copy(tenant = "other"), first.version, "full")).code)
+        assertIs<DraftEditResult.Accepted>(DraftEditingApplication(repo, ExactGrantAuthorizer).edit(author, key, command("second", 0, "second snapshot")))
+        assertEquals(ApplicationError.REVISION_CONFLICT, assertIs<ApplicationResult.Failure>(app.publish(author, key, 0, "full")).code)
+        // Even a candidate compiled before a concurrent edit is rejected inside the storage transaction.
+        assertEquals(ApplicationError.REVISION_CONFLICT, assertIs<ApplicationResult.Failure>(repo.publish(first)).code)
+        val second = assertIs<ApplicationResult.Success<StoredPublication>>(app.publish(author, key, 1, "full")).value
+        assertNotEquals(first.version, second.version)
+        assertEquals(first, repo.publication(key, first.version))
+        assertIs<ApplicationResult.Success<String>>(app.select(author, key, second.version))
+        assertEquals(second, repo.activePublication(key))
+        assertEquals(ApplicationError.NOT_FOUND, assertIs<ApplicationResult.Failure>(app.select(author, key, "f".repeat(64))).code)
+        assertEquals(second, repo.activePublication(key))
+        val reopened = PostgresDraftRepository(dataSource(), catalog)
+        assertIs<ApplicationResult.Success<String>>(application(reopened).select(author, key, first.version))
+        assertEquals(first, reopened.activePublication(key))
+        assertEquals(1, repo.find(key)?.revision) // Rollback never rewinds the draft.
+        for (sql in listOf("UPDATE public.humming_publications SET source=source WHERE tenant_id=? AND document_id=?", "DELETE FROM public.humming_publications WHERE tenant_id=? AND document_id=?")) {
+            assertFailsWith<SQLException> { ds.connection.use { connection -> connection.prepareStatement(sql).use {
+                it.setString(1, key.tenant); it.setString(2, key.document); it.executeUpdate()
+            } } }
+        }
+        assertEquals(first, reopened.publication(key, first.version))
+    }
+
     @Test fun migrationsAreIdempotentAndNewAdaptersReopenThePersistedRevisionAndReceipt() = runBlocking {
         val repo = PostgresDraftRepository(dataSource(), catalog)
         repo.migrate(); repo.migrate()

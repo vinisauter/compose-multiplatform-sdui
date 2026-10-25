@@ -1,4 +1,5 @@
 # Local integration only. Creates an isolated database, keeps its stopped container/volume as evidence.
+param([switch]$PublishedClient)
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 Push-Location (Split-Path $PSScriptRoot -Parent)
@@ -10,6 +11,8 @@ $taskContainer = "humming-t21-$taskSuffix"
 $taskVolume = "$taskContainer-data"
 $taskCreated = $false
 $taskImage = 'postgres@sha256:edb0c08dc33befd0262ab3b5cf1c4f3f8cfd8b09e88c05b45adee29d6761ddb6'
+$taskGradleTests = @(':humming-server-postgres:postgresIntegrationTest', ':humming-server-host:postgresHttpIntegrationTest')
+if ($PublishedClient) { $taskGradleTests += ':sample:composeApp:publishedClientIntegrationTest' }
 function Invoke-TaskDocker {
     param([string[]]$TaskArguments)
     $taskOutput = & docker @TaskArguments
@@ -53,7 +56,7 @@ try {
     Update-TaskEndpoint
     $env:HUMMING_TEST_DB_USER = 'humming'
     $env:HUMMING_TEST_DB_PASSWORD = $env:POSTGRES_PASSWORD
-    & .\gradlew.bat :humming-server-postgres:postgresIntegrationTest :humming-server-host:postgresHttpIntegrationTest > build/t21/integration.log 2>&1
+    & .\gradlew.bat @taskGradleTests > build/t21/integration.log 2>&1
     if ($LASTEXITCODE -ne 0) { Get-Content build/t21/integration.log -Tail 35; throw 'PostgreSQL integration failed' }
     $taskBefore = (Invoke-TaskDocker @('exec',$taskContainer,'psql','-U','humming','-d','humming_test','-Atc','SELECT count(*) FROM public.humming_drafts')).Trim()
     $null = Invoke-TaskDocker @('restart',$taskContainer)
@@ -62,7 +65,7 @@ try {
     $taskAfter = (Invoke-TaskDocker @('exec',$taskContainer,'psql','-U','humming','-d','humming_test','-Atc','SELECT count(*) FROM public.humming_drafts')).Trim()
     if ($taskBefore -ne $taskAfter -or [int]$taskAfter -le 0) { throw 'Durability check failed across database restart' }
     "database-restart: rows-before=$taskBefore rows-after=$taskAfter PASS" | Set-Content build/t21/restart.log
-    & .\gradlew.bat :humming-server-postgres:postgresIntegrationTest :humming-server-host:postgresHttpIntegrationTest > build/t21/after-restart.log 2>&1
+    & .\gradlew.bat @taskGradleTests > build/t21/after-restart.log 2>&1
     if ($LASTEXITCODE -ne 0) { Get-Content build/t21/after-restart.log -Tail 35; throw 'PostgreSQL verification after restart failed' }
     Get-Content build/t21/restart.log
     Get-Content build/t21/after-restart.log -Tail 12
