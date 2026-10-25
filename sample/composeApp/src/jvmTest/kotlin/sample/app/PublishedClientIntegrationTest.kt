@@ -32,6 +32,9 @@ import java.net.InetSocketAddress
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
+import java.nio.file.Files
+import java.nio.file.Path
+import java.nio.file.StandardCopyOption
 import kotlinx.serialization.json.*
 import kotlin.test.*
 
@@ -69,6 +72,87 @@ class PublishedClientIntegrationTest {
         }
         val endpoint get() = URI("http://127.0.0.1:${server.address.port}/account")
         override fun close() { server.stop(0); executor.shutdownNow(); assertTrue(executor.awaitTermination(5, TimeUnit.SECONDS)) }
+    }
+
+    @Test fun durableOutboxReplaysALostHttpReceiptAndPreservesLocalWorkOnARevisionConflict() {
+        val url = requireNotNull(System.getenv("HUMMING_TEST_DB_URL"))
+        val uri = URI(url.removePrefix("jdbc:"))
+        require(uri.host in setOf("127.0.0.1", "localhost") && uri.path == "/humming_test")
+        val catalog = initialNodeCatalog()
+        val repo = PostgresDraftRepository(postgresDataSource(url, requireNotNull(System.getenv("HUMMING_TEST_DB_USER")),
+            requireNotNull(System.getenv("HUMMING_TEST_DB_PASSWORD"))), catalog)
+        val document = DocumentKey("outbox", "doc-${UUID.randomUUID()}")
+        val actor = Actor("outbox-author", Permission.entries.map { DocumentGrant(document, it) }.toSet())
+        val token = UUID.randomUUID().toString()
+        val codec = AuthoringDocumentCodec(catalog)
+        val source = codec.encode(LegacyAuthoringCodec(catalog).importDocument(
+            """{"id":"label","component":"layout:text","properties":{"text":"initial"}}""", document.document).requireValue()).requireValue()
+        val publisher = publicationApplication(repo, repo, catalog)
+        val snapshot = runBlocking {
+            repo.migrate(); assertTrue(repo.create(StoredDraft(document, 0, source)))
+            assertIs<ApplicationResult.Success<StoredPublication>>(publisher.publish(actor, document, 0, "local-tree")).value
+        }
+        fun host() = DraftHttpHost(DraftApplication(repo, ExactGrantAuthorizer, catalog, TargetCapabilities(catalog.capabilities)),
+            BearerAuthenticator(token, actor), editing = DraftEditingApplication(repo, ExactGrantAuthorizer))
+        val identity = RemoteDocument("integration-server", document.tenant, document.document)
+        val json = Json { encodeDefaults = true; classDiscriminator = "operationType" }
+        fun edit(id: String, revision: Long, text: String) = EditCommand(id, revision, listOf(EditOperation.PutProperty("label", "text", JsonPrimitive(text))))
+        val recovery = Path.of("build", "reports", "remote-outbox", "${document.document}.json")
+        Files.createDirectories(recovery.parent)
+        fun persist(editor: RemoteEditor) {
+            val checkpoint = editor.checkpoint().requireValue()
+            val temporary = Files.createTempFile(recovery.parent, "checkpoint-", ".tmp")
+            Files.writeString(temporary, checkpoint)
+            Files.move(temporary, recovery, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING)
+            assertTrue(editor.persisted(Files.readString(recovery)))
+        }
+        HttpClient.newHttpClient().use { client ->
+            fun request(host: DraftHttpHost, command: EditCommand? = null): HttpResponse<String> = client.send(HttpRequest.newBuilder(
+                URI("http://127.0.0.1:${host.port}/v1/tenants/${document.tenant}/documents/${document.document}" + if (command == null) "" else "/commands"))
+                .timeout(Duration.ofSeconds(10)).header("Authorization", "Bearer $token").header("Content-Type", "application/json")
+                .method(if (command == null) "GET" else "POST", if (command == null) HttpRequest.BodyPublishers.noBody()
+                    else HttpRequest.BodyPublishers.ofString(json.encodeToString(EditCommand.serializer(), command))).build(), HttpResponse.BodyHandlers.ofString())
+            fun acknowledge(editor: RemoteEditor, ticket: RemoteEditor.SendTicket, response: HttpResponse<String>) {
+                assertEquals(200, response.statusCode())
+                val result = Json.parseToJsonElement(response.body()).jsonObject
+                assertTrue(editor.acknowledge(ticket, result.getValue("document").toString(), result.getValue("appliedRevision").jsonPrimitive.long).requireValue())
+            }
+            host().use { server ->
+                val loaded = Json.parseToJsonElement(request(server).body()).jsonObject.getValue("document").toString()
+                val editor = RemoteEditor.open(identity, loaded, catalog).requireValue()
+                editor.enqueue(edit("one", 0, "first")); editor.enqueue(edit("two", 1, "second")); persist(editor)
+                val ticket = assertNotNull(editor.beginSend())
+                assertEquals(200, request(server, ticket.command).statusCode())
+                // Lose the response deliberately: disk still contains both commands, while PostgreSQL committed one.
+            }
+            val recovered = RemoteEditor.restore(identity, Files.readString(recovery), catalog).requireValue()
+            host().use { server ->
+                val retry = assertNotNull(recovered.beginSend())
+                val replay = request(server, retry.command)
+                assertEquals(JsonPrimitive(true), Json.parseToJsonElement(replay.body()).jsonObject["replayed"])
+                acknowledge(recovered, retry, replay); persist(recovered)
+                val second = assertNotNull(recovered.beginSend())
+                recovered.enqueue(edit("three", 2, "local-third")); persist(recovered)
+                acknowledge(recovered, second, request(server, second.command))
+                assertEquals(JsonPrimitive("local-third"), recovered.document.nodes.getValue("label").properties["text"])
+                assertEquals(1, recovered.pendingCount); persist(recovered)
+                assertEquals(200, request(server, edit("another-editor", 2, "other-third")).statusCode())
+                val conflict = assertNotNull(recovered.beginSend())
+                assertEquals(409, request(server, conflict.command).statusCode())
+                assertTrue(recovered.failed(conflict, RemotePause.CONFLICT))
+                val remote = Json.parseToJsonElement(request(server).body()).jsonObject.getValue("document").toString()
+                recovered.observeConflict(remote).requireValue(); persist(recovered)
+                val reopened = RemoteEditor.restore(identity, Files.readString(recovery), catalog).requireValue()
+                assertEquals(RemotePause.CONFLICT, reopened.pause); assertNull(reopened.beginSend())
+                assertEquals(1, reopened.pendingCount)
+                assertEquals(JsonPrimitive("local-third"), reopened.document.nodes.getValue("label").properties["text"])
+                assertEquals(JsonPrimitive("other-third"), codec.decode(reopened.observedRemote!!).requireValue().nodes.getValue("label").properties["text"])
+                runBlocking {
+                    assertEquals(3, repo.find(document)?.revision)
+                    assertEquals(snapshot, repo.publication(document, snapshot.version))
+                }
+            }
+        }
     }
 
     @Test fun fixedPublicationUsesRealServiceDataAndRecoversFromPartialFailureInANewEntry() {

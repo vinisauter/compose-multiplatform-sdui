@@ -12,6 +12,30 @@ import kotlin.test.*
 class LocalStudioTest {
     @get:Rule val compose = createComposeRule()
 
+    @Test fun remoteInspectorQueuesCommandsAndShowsUnsavedRecoveryWithoutPretendingToSave() {
+        val catalog = me.developes.humming.sdui.common.initialNodeCatalog()
+        val source = AuthoringDocumentCodec(catalog).encode(LegacyAuthoringCodec(catalog).importDocument(
+            """{"id":"label","component":"layout:text","properties":{"text":"before"}}""", "document").requireValue()).requireValue()
+        val identity = RemoteDocument("local-server", "tenant", "document")
+        val remote = RemoteEditor.open(identity, source, catalog).requireValue()
+        val workspace = LocalWorkspace(); workspace.attachRemote(remote).requireValue()
+        val files = RecordingFiles()
+        compose.setContent { LocalStudio(files, workspace) }
+        compose.onNodeWithText("Novo").assertIsNotEnabled()
+        compose.onNodeWithText("Abrir documento").assertIsNotEnabled()
+        compose.onNodeWithText("Desfazer").assertIsNotEnabled()
+        compose.onNodeWithTag("studio-property-value").performTextReplacement("after")
+        compose.onNodeWithText("Aplicar propriedade").performClick()
+        compose.onNodeWithTag("studio-remote-state").assertTextContains("pendentes 1", substring = true)
+        compose.runOnIdle { assertEquals(1, remote.pendingCount); assertEquals(0, remote.confirmedRevision); assertNull(remote.beginSend()) }
+        compose.onNodeWithText("Exportar recuperação").performClick()
+        compose.runOnIdle {
+            val recovered = RemoteEditor.restore(identity, files.downloads.getValue("humming-remote-checkpoint.json"), catalog).requireValue()
+            assertEquals(remote.document, recovered.document); assertEquals(1, recovered.pendingCount)
+            assertTrue(remote.needsPersistence) // Download initiation is not a durable-store acknowledgement.
+        }
+    }
+
     @Test fun disconnectsAndReconnectsExistingActionsThroughInspectorWithUndo() {
         val workspace = LocalWorkspace()
         assertTrue(workspace.importContract("""{"component":"layout:button","id":"button","properties":{"onClick":[{"component":"action:update","id":"update","properties":{"state":"status","value":"ok"}}]},"children":[{"component":"layout:text","id":"label","properties":{"text":"Executar"}}]}""").isSuccess)

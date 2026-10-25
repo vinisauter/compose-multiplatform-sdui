@@ -70,16 +70,21 @@ fun LocalStudio(files: StudioFiles? = null, workspace: LocalWorkspace = remember
     fun requestReplace(action: () -> Unit) { if (dirty) replace = action else action() }
     MaterialTheme {
         Column(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background).padding(12.dp)) {
-            Text("HummingUI Studio — autoria local", style = MaterialTheme.typography.titleLarge)
+            Text(if (workspace.remoteEditor == null) "HummingUI Studio — autoria local" else "HummingUI Studio — edição remota", style = MaterialTheme.typography.titleLarge)
             Text("Revisão ${document.revision}${if (dirty) " • alterações locais" else ""} • preview sem rede ou métodos do aplicativo")
+            workspace.remoteEditor?.let { remote ->
+                Text("Confirmada ${remote.confirmedRevision} • pendentes ${remote.pendingCount} • ${remote.pause}" +
+                    if (remote.needsPersistence) " • recuperação ainda não salva" else " • recuperação salva",
+                    Modifier.testTag("studio-remote-state"))
+            }
             FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Button(onClick = { requestReplace {
+                Button(enabled = workspace.remoteEditor == null, onClick = { requestReplace {
                     workspace.newDocument(); openedVersion++; document = workspace.document; selectedId = document.entryNodeId
                     selectedEdge = null; dirty = false; messages = "Documento novo"
                 } }) { Text("Novo") }
-                Button(enabled = workspace.session.canUndo, onClick = { changed(workspace.undo()) }) { Text("Desfazer") }
-                Button(enabled = workspace.session.canRedo, onClick = { changed(workspace.redo()) }) { Text("Refazer") }
-                Button(enabled = files != null, onClick = {
+                Button(enabled = workspace.remoteEditor == null && workspace.session.canUndo, onClick = { changed(workspace.undo()) }) { Text("Desfazer") }
+                Button(enabled = workspace.remoteEditor == null && workspace.session.canRedo, onClick = { changed(workspace.redo()) }) { Text("Refazer") }
+                Button(enabled = files != null && workspace.remoteEditor == null, onClick = {
                     files?.open { result -> if (active) {
                         when {
                             result.error != null -> messages = result.error
@@ -92,17 +97,23 @@ fun LocalStudio(files: StudioFiles? = null, workspace: LocalWorkspace = remember
                     messages = diagnostics(result.diagnostics)
                     result.value?.let { files?.download("humming-document.json", it); messages = "Download do documento solicitado" }
                 }) { Text("Salvar documento") }
+                if (workspace.remoteEditor != null) OutlinedButton(enabled = files != null, onClick = {
+                    val result = workspace.remoteEditor!!.checkpoint()
+                    messages = diagnostics(result.diagnostics)
+                    result.value?.let { files?.download("humming-remote-checkpoint.json", it)
+                        messages = "Exportação da recuperação solicitada; isso não confirma gravação remota" }
+                }) { Text("Exportar recuperação") }
             }
             FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                OutlinedButton(onClick = { jsonText = ""; jsonDialog = true }) { Text("Importar JSON") }
-                OutlinedButton(onClick = { requestReplace { replaced(workspace.importContract(DROP_EXAMPLE)) } }) { Text("Exemplo de arraste") }
-                OutlinedButton(onClick = { requestReplace {
+                OutlinedButton(enabled = workspace.remoteEditor == null, onClick = { jsonText = ""; jsonDialog = true }) { Text("Importar JSON") }
+                OutlinedButton(enabled = workspace.remoteEditor == null, onClick = { requestReplace { replaced(workspace.importContract(DROP_EXAMPLE)) } }) { Text("Exemplo de arraste") }
+                OutlinedButton(enabled = workspace.remoteEditor == null, onClick = { requestReplace {
                     replaced(workspace.openAuthoring(AuthoringDocumentCodec(workspace.catalog).encode(journeyExample()).requireValue()))
                 } }) { Text("Exemplo de navegação") }
-                OutlinedButton(onClick = { requestReplace {
+                OutlinedButton(enabled = workspace.remoteEditor == null, onClick = { requestReplace {
                     replaced(workspace.openAuthoring(AuthoringDocumentCodec(workspace.catalog).encode(isolationExample()).requireValue()))
                 } }) { Text("Exemplo de estado isolado") }
-                OutlinedButton(onClick = { requestReplace { replaced(workspace.importContract(REACTIVITY_EXAMPLE)) } }) {
+                OutlinedButton(enabled = workspace.remoteEditor == null, onClick = { requestReplace { replaced(workspace.importContract(REACTIVITY_EXAMPLE)) } }) {
                     Text("Exemplo de expressões")
                 }
                 OutlinedButton(onClick = { showInteractions = !showInteractions }) {

@@ -10,9 +10,9 @@ Atualizado após T23: resolução de dados por fontes registradas, cache isolado
 | --- | --- |
 | Última atualização | 2026-10-25 — T20 em 42d6de8; T21 em dc51068; T22 em 4cdf7bc; T23 com evidência abaixo; commits locais sem push |
 | Última entrega | T23: BFF com fontes registradas, isolamento, HTTP real e recuperação em nova entrada; 321 casos no conjunto |
-| Tarefa de implementação em execução | Nenhuma; próxima etapa pronta |
+| Tarefa de implementação em execução | T24 — Codex, 2026-10-25; outbox pura/Inspector/recuperação HTTP validados; falta controller de transporte/storage e conexão explícita do host |
 | Próxima tarefa | **T24 — edição remota com revisão e recuperação** |
-| Próxima ação concreta | Implementar outbox persistível de comandos, confirmação ordenada/reenvio idempotente e integração explícita de edição remota ao Studio |
+| Próxima ação concreta | Conectar controller de transporte/storage ao LocalStudio: save-before-send, flush/retry, recuperação inicial, cancelamento e confirmação visível; preservar protocolo já testado |
 | Critério para avançar | T24: reabrir rascunho e recuperar pendências após desconexão, sem sobrescrever edição nova com confirmação antiga; conflito e autorização explícitos |
 | Bloqueio de implementação conhecido | Nenhum para T24 local; PostgreSQL real já qualificado, fixtures ficam paradas em Docker e precisam de readiness/porta redescoberta ao iniciar |
 | Limite do próximo recorte | Aplicação/host servidor local; sem deploy, banco remoto, credenciais versionadas ou integração implícita no Studio |
@@ -57,7 +57,7 @@ Estados: **pronta**, **pendente**, **em execução**, **bloqueada**, **concluíd
 | T21 | Rascunhos/revisões em PostgreSQL | concluída | Codex: adapter/migration, CAS e recibos, seis integrações reais incluindo restart/rollback/cancelamento; 304 casos no conjunto; detalhes abaixo |
 | T22 | Publicação imutável e capacidades | concluída | Codex: 304 JVM regulares + 8 integrações PostgreSQL/HTTP/Compose; pin e dados pessoais separados; detalhes abaixo |
 | T23 | Resolução BFF e isolamento de dados | concluída | Codex: 5 testes de política + 3 HTTP reais, 9 integrações PostgreSQL/HTTP/Compose no conjunto; detalhes abaixo |
-| T24 | Edição remota com revisão e recuperação | pronta | Salvar/reabrir/reconectar sem perda silenciosa |
+| T24 | Edição remota com revisão e recuperação | em execução | Outbox/Inspector e recuperação HTTP/arquivo validados; falta controller e conexão explícita do host; recorte abaixo |
 | T25 | Múltiplos editores e conflitos | pendente | Testar concorrência, replay e undo entre processos |
 | T26 | Qualificação por plataforma e recorte | pendente | Iniciar após T00; anexar evidência de cada recorte anunciado |
 
@@ -318,3 +318,10 @@ Fixtures Docker criadas pelo script foram paradas no finally; containers e volum
 - O serviço HTTP independente respondeu 503; endpoint de dados devolveu issue e Compose mostrou Data unavailable. Após recuperação, nova tentativa real criou entrada com ScreenInputs.server e exibiu Real local service. Campo não selecionado ficou fora da resposta, e banco/snapshot permaneceram iguais sem dado resolvido. Primeira execução revelou apenas cleanup de Lifecycle INITIALIZED no novo teste; corrigido para owner criado/resumido e suíte repetida com sucesso.
 - Docker Desktop estava desligado na primeira tentativa desta data; foi iniciado localmente. .\scripts\verify-postgres.ps1 -PublishedClient passou antes/depois de restart: 10 registros preservados, build/t23-integration-run.log e build/t21/{integration,after-restart,restart}.log. Fixture humming-t21-f8966c7f62d5 e volume próprio preservados/parados; revisão final reutilizou somente essa fixture, redescobrindo porta e sem imprimir segredo.
 - Limites: servidor e renderer JVM locais; sem nova QA visual manual ou qualificação Android/browser/Apple. Recuperação usa nova entrada, sem refresh automático de inputs em entrada existente. Cache em memória por processo, sem persistência pessoal/distribuição/coalescência. Templates e scripts não foram adicionados. A integração do Studio com outbox/reconexão permanece T24, próxima etapa.
+
+## T24 em execução — primeiro recorte, outbox e recuperação
+
+- Codex, 2026-10-25. RemoteEditor puro, checkpoint fechado por identidade/base/comandos/pausa/fonte em conflito; save-before-send, ticket único, replay estável e confirmações ordenadas. LocalWorkspace roteia comandos do Inspector/drag à outbox quando conectado; LocalStudio mostra confirmado/pendente/pausa e exporta recuperação sem fingir storage confirmado. Importar/abrir/novo/undo local ficam desabilitados nesse modo.
+- build/t24-outbox-final.log: BUILD SUCCESSFUL; 106 testes do modelo (6 novos), 45 sample (1 novo), metadata comum/Wasm do modelo e Wasm do sample. Testes cobrem confirmação antiga versus edição nova, reinício com recibo perdido, duas versões de documento em conflito, autorização, checkpoint inválido/identidade e propriedade de comandos. Nenhum teste novo de UI é apresentado como QA manual.
+- .\scripts\verify-postgres.ps1 -PublishedClient: BUILD SUCCESSFUL antes/depois de restart, 11 registros preservados; build/t24-integration-run.log e build/t21/{integration,after-restart,restart}.log. 10 integrações reais no conjunto: PostgreSQL 6, HTTP 1, sample 3. O terceiro caso usa arquivo real com move atômico, novo host HTTP, reenvio idempotente e disputa com outro editor. Primeira confirmação perdida não duplicou revisão; 409 manteve edição local/pendência e cópia remota. Publicação anterior intacta. Fixture humming-t21-36a704e4951a e volume ficaram preservados/parados.
+- Recorte parcial: protocolo/attach do workspace estão disponíveis, mas o host/browser padrão ainda não conecta API/storage nem oferece flush/retry de rede. Não concluir T24/T25 nem chamar o Studio padrão de editor remoto completo. Próximo passo é controller de transporte/storage e entrada de conexão explícita, com integração de UI real. Restore após troca de objetos não é prova de queda de energia ou processo independente.

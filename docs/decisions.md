@@ -231,3 +231,9 @@ A migration V2 adiciona snapshots, referência ativa e proteção de mutação; 
 O plano do host fixa fontes e seleção tipada de campos, evitando transformar o servidor em proxy ou avaliador arbitrário. Resultados se vinculam à versão já negociada e são enviados fora do envelope publicado. O cache usa identidade completa, revalida autorização em hit e nunca guarda falhas; TTL/LRU e geração de invalidação limitam retenção e respostas tardias. Não foi implementado cache distribuído nem coalescência de requests.
 
 RegisteredHttpDataSource usa HTTP do JDK já presente, await cancelável de sendAsync e BodySubscriber limitado; não recebe URL/headers do payload nem segue redirects. O endpoint pode ser configurado pelo host sem acoplar a um backend comercial. Timeout de fonte é distinto do deadline do host. Fonte suspensa defeituosa não é convertida em erro de payload; erros esperados são resultados fechados. A recuperação de UI demonstra uma nova entrada com ScreenInputs.server, respeitando a imutabilidade desses inputs por entrada existente.
+
+## T24 — protocolo de recuperação antes do transporte do editor
+
+A outbox pura pertence ao modelo autoral, sem dependência de IO/coroutines/servidor. Persistir antes de enviar cobre a janela em que o servidor confirma mas o cliente perde a resposta. Manter o mesmo comando permite consultar o recibo transacional existente; não se gera novo ID ao tentar novamente. Ticket por instância impede que resposta antiga avance o head atual. A confirmação promove apenas a base confirmada, preservando todas as edições locais posteriores.
+
+Conflito de revisão/documento fica explícito com as duas fontes conservadas; não foi escolhido rebase automático, undo concorrente ou CRDT. O host continua responsável por atomicidade e erro real do storage, cancelamento e política de reconnect. O alias de conexão deve vincular o checkpoint ao servidor correto; não é autenticação nem descoberta automática de backend.

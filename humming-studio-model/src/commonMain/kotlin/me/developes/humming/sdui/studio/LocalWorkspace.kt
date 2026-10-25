@@ -18,16 +18,20 @@ class LocalWorkspace(
     var session: EditSession = EditSession(initialDocument, catalog)
         private set
     val document: AuthoringDocument get() = session.snapshot()
+    var remoteEditor: RemoteEditor? = null
+        private set
     private val codec = AuthoringDocumentCodec(catalog)
 
     fun openAuthoring(source: String): AuthoringResult<AuthoringDocument> = open(codec.decode(source))
     fun importContract(source: String): AuthoringResult<AuthoringDocument> =
         open(LegacyAuthoringCodec(catalog).importDocument(source, identity()))
     private fun open(result: AuthoringResult<AuthoringDocument>): AuthoringResult<AuthoringDocument> {
+        if (remoteEditor != null) return AuthoringResult(null, listOf(NodeDiagnostic("REMOTE_CONNECTED",
+            "Export/recover the remote outbox before replacing its document", "remoteEditor", documentId = document.documentId)))
         result.value?.let { session = EditSession(it, catalog) }
         return result
     }
-    fun newDocument() { session = EditSession(blankDocument(), catalog) }
+    fun newDocument() { check(remoteEditor == null) { "Cannot replace a connected remote document" }; session = EditSession(blankDocument(), catalog) }
     fun save(): AuthoringResult<String> = codec.encode(document)
     fun compile(): AuthoringResult<CompiledContracts> = ContractCompiler(catalog).compileTree(document,
         TargetCapabilities(catalog.capabilities.filterKeys { it.startsWith("layout:") || it.startsWith("action:") },
@@ -35,9 +39,25 @@ class LocalWorkspace(
     fun compilePreview(): AuthoringResult<CompiledContracts> = if (document.nodes.values.count { it.kind == AuthorNodeKind.SCREEN } > 1 ||
         document.nodes.values.any { it.definition.startsWith("navigation:") } || document.edges.values.any { it.role == EdgeRole.NAVIGATION })
         compileJourney("compiled-preview") else compile()
-    fun apply(operations: List<EditOperation>): EditOutcome = session.execute(EditCommand(identity(), document.revision, operations))
-    fun undo(): EditOutcome = session.undo(identity(), document.revision)
-    fun redo(): EditOutcome = session.redo(identity(), document.revision)
+    fun apply(operations: List<EditOperation>): EditOutcome {
+        val command = EditCommand(identity(), document.revision, operations)
+        val outcome = remoteEditor?.enqueue(command) ?: session.execute(command)
+        if (outcome.isSuccess && remoteEditor != null) refreshRemote()
+        return outcome
+    }
+    fun undo(): EditOutcome = if (remoteEditor == null) session.undo(identity(), document.revision)
+        else rejected("REMOTE_UNDO_UNAVAILABLE", "Remote undo requires a concurrency policy", document.entryNodeId)
+    fun redo(): EditOutcome = if (remoteEditor == null) session.redo(identity(), document.revision)
+        else rejected("REMOTE_UNDO_UNAVAILABLE", "Remote redo requires a concurrency policy", document.entryNodeId)
+
+    fun attachRemote(editor: RemoteEditor): AuthoringResult<AuthoringDocument> {
+        if (remoteEditor != null) return AuthoringResult(null, listOf(NodeDiagnostic("REMOTE_CONNECTED", "Already connected", "remoteEditor")))
+        val decoded = codec.decode(codec.encode(editor.document).requireValue())
+        if (!decoded.isSuccess) return decoded
+        remoteEditor = editor; refreshRemote()
+        return AuthoringResult(document, emptyList())
+    }
+    fun refreshRemote() { remoteEditor?.let { session = EditSession(it.document, catalog) } }
 
     /** Explicit journey compilation: the caller must install this provider and retain every artifact. */
     fun compileJourney(providerType: String): AuthoringResult<CompiledContracts> =
