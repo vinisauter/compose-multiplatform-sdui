@@ -2,7 +2,7 @@
 
 Este é o ponto de entrada para **continuar o desenvolvimento**. Reúne o estado observado, o rastreamento das etapas e a próxima ação. O [plano](development-plan.md) define dependências, escopo e critérios de aceite; este documento é a única fonte de status e retomada.
 
-Atualizado após T10: formulário reativo opt-in e transporte HTTP com ownership do host. Suíte JVM: 52 contrato + 72 core + 4 ações + 95 autoria + 7 rede + 6 navegação + 35 sample = 271 casos, zero falhas/erros/ignorados. Transporte compilado para metadata/JS/Wasm/Android e executado em HTTP loopback JVM. Formulário observado no Chrome/Wasm. Compilação não comprova rede em browser/Android; Apple permanece sem execução.
+Atualizado durante T11: cache versionado integrado opt-in, carga fria e recuperação. Suíte JVM: 52 contrato + 72 core + 4 ações + 95 autoria + 7 rede + 7 navegação + 39 sample = 276 casos, zero falhas/erros/ignorados. Transporte compilado para metadata/JS/Wasm/Android e executado em HTTP loopback JVM. Formulário observado no Chrome/Wasm. Compilação não comprova rede em browser/Android; Apple permanece sem execução.
 
 ## Ponto de retomada
 
@@ -12,7 +12,7 @@ Atualizado após T10: formulário reativo opt-in e transporte HTTP com ownership
 | Última entrega | T11: cache em 4333931; integração opt-in Graph com JourneyDefinitions e teste Compose de hit/TTL, descrita abaixo |
 | Tarefa de implementação em execução | T11 — Codex; integração opt-in do cache no Graph, carga de rota e testes Compose |
 | Próxima tarefa | **T11 — jornada, navegação e cache versionado** |
-| Próxima ação concreta | Qualificar deep link real sem preload, erro/retry/reload e troca de sessão com Compose; definir restauração sem atribuir persistência ao DTO DefinitionSnapshot |
+| Próxima ação concreta | Qualificar troca de sessão com descarte dos owners e cancelamento, definir/restaurar snapshot versionado sem dados personalizados e acrescentar fluxo demonstrável no sample |
 | Critério para avançar | Definição e dado personalizado separados; cache particionado por sessão/versão; recuperação e invalidação demonstradas sem refazer o isolamento já entregue |
 | Bloqueio de implementação conhecido | Nenhum para iniciar T11 local; fixtures e servidor loopback não dependem de backend remoto |
 | Limite do próximo recorte | Navegação/cache do cliente; sem backend remoto, publicação, credenciais no payload ou mudanças de infraestrutura |
@@ -44,7 +44,7 @@ Estados: **pronta**, **pendente**, **em execução**, **bloqueada**, **concluíd
 | T08 | Linguagem de expressões limitada | concluída | Codex, 2026-10-24: 10 testes novos da linguagem; 43 contrato/242 JVM no conjunto; grammar/versão, escopos, precedência, curto-circuito, tipos, números/índices inválidos, limites e cancelamento. Metadata/JS/Wasm compilados; sem integração UI |
 | T09 | Propriedades reativas, tokens e validação | concluída | Codex: três componentes opt-in, envelopes 1, schema 2 para tokens/máscara, 258 testes JVM, metadata/JS/Wasm e Android visual compilados; texto/habilitação/visibilidade/ação observados Chrome; evidência e limites nos recortes T09 abaixo |
 | T10 | Transporte HTTP com ownership e resultado | concluída | Codex: 7 testes de rede JVM com MockEngine/HTTP loopback e ramos reais; matriz total 265 casos; metadata/JS/Wasm/Android compilados; ownership e exportação de supertipos públicos corrigidos; limites abaixo |
-| T11 | Jornada, navegação e cache versionado | em execução | Codex: cache integrado opt-in ao Graph; 7 testes navegação e 36 sample JVM; deep links reais, recuperação/reload/logout e restauração ainda exigem qualificação |
+| T11 | Jornada, navegação e cache versionado | em execução | Codex: cache integrado opt-in ao Graph; 7 testes navegação e 36 sample JVM; deep link real/recuperação/reload/cancelamento qualificados em JVM; logout e restauração ainda exigem implementação/qualificação |
 | T12 | Bridge de capacidades nativas | pendente | Capacidade real no host e não suporte explícito nos demais |
 | T13 | Documento autoral e importação/exportação | concluída | 21 testes autorais; 135 JVM no conjunto; metadata/JS/Wasm compilados; modelo, índices, codec canônico e ponte legada com diagnósticos |
 | T14 | Comandos, chaves de ordem e undo local | concluída | 158 testes JVM no conjunto, metadata/JS/Wasm compilados; midpoint, transações por CAS, inversas e undo/redo com limites e concorrência |
@@ -218,3 +218,11 @@ Codex, 2026-10-24: JourneyDefinitions fixa jornada/versão/sessão e recebe cach
 Executado: build/t11/graph-integration.log — navegação/sample JVM, metadata/Wasm navegação; build/t11/graph-compose.log — 7 testes navegação e 36 sample, Android navegação e Wasm sample, BUILD SUCCESSFUL. O teste Compose usa HummingSDUI/Navigation reais sem provider de rotas instalado: primeira visita carrega, segunda consulta hit, terceira após TTL carrega novamente; ordenação suspensa legada e retorno continuam aprovados. O teste comum verifica identidade completa, partições e invalidação do adaptador. Outros módulos não foram reexecutados neste recorte (último agregado era 271; dois casos adicionados). git diff --check sem erros.
 
 Limites: nenhuma observação nova no browser. A carga fria agora tem implementação, mas deep link real, falha/retry/reload no fluxo Compose e descarte/troca de sessão ainda precisam de testes próprios. Nenhum cache de formulário, restauração persistida, logout automático, transporte implícito ou política EAGER/PREFETCH foi instalado. T11 permanece em execução; não promover T12.
+
+### T11 — deep link frio, recuperação e cancelamento de entrada
+
+Codex, 2026-10-24: Graph recebe diretamente JourneyDefinitions por overload para hosts com ComponentHandler próprio e expõe openDeepLink(String) usando NavController.handleDeepLink real. Três testes novos Compose/HummingSDUI qualificam: startup com falha preserva causa/diagnóstico de rota e admite retry sem recriar host; deep link sem cache/preload carrega a rota e reload inválido mantém o conteúdo anterior antes da recuperação; sair da rota cancela o waiter enquanto a carga compartilhada termina no host e atende a visita seguinte via cache. URI sem padrão correspondente retorna false.
+
+Executado: build/t11/cold-focused.log, três testes aprovados. build/t11/cold-final.log, sete módulos JVM e Wasm sample, BUILD SUCCESSFUL; total 276 casos (52/72/4/95/7/7/39), zero falhas/erros/ignorados. Metadata/Wasm/Android navegação compilaram em build/t11/cold-load.log, cuja primeira execução de testes falhou apenas por assertSame ignorar o wrapper de recuperação de stacktrace das coroutines; teste corrigido para verificar a exceção original na cadeia de causas. Nenhuma atualização de dependências. git diff --check aprovado.
+
+Limites: deep link é entrada da API do host, sem integração de URL com SO/browser; teste usa Compose JVM, sem nova observação Chrome. Retry/reload são decisões do host, sem ação nova de payload, botão automático ou persistência. Falta demonstrar troca de sessão descartando owners e definir restauração compatível; T11 continua em execução.

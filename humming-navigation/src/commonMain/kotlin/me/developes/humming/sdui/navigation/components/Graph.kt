@@ -11,6 +11,8 @@ import me.developes.humming.sdui.common.ErrorData
 import me.developes.humming.sdui.navigation.JourneyDefinitions
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
+import androidx.navigation.NavDeepLinkRequest
+import androidx.navigation.NavUri
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -31,6 +33,15 @@ class Graph(
     private val viewModel: SDUIFormViewModel,
     private val preLoadContent: (@Composable () -> Unit)? = null
 ) : ComposableContent {
+    constructor(
+        graphNode: ServerDrivenNode,
+        viewModel: SDUIFormViewModel,
+        definitions: JourneyDefinitions,
+        preLoadContent: (@Composable () -> Unit)? = null,
+    ) : this(graphNode, viewModel, preLoadContent) {
+        useDefinitions(definitions)
+    }
+
     private var navController: NavHostController? = null
     private val graphProperties = NavigationDefinitions.graph.parse(graphNode).requireValid()
     private val startRouteDestination = graphProperties.property("startDestination")!!
@@ -141,6 +152,12 @@ class Graph(
 
     fun navigateBack() {
         navController?.popBackStack()
+    }
+
+    /** Host entry point; call on the UI thread. Only deep links registered in this graph can match. */
+    fun openDeepLink(uri: String): Boolean {
+        require(uri.isNotBlank() && uri.length <= 4096) { "Deep link must contain 1..4096 characters" }
+        return navController?.handleDeepLink(NavDeepLinkRequest.Builder.fromUri(NavUri(uri)).build()) ?: false
     }
 
     fun navigateTo(
