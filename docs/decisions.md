@@ -187,3 +187,9 @@ Substituir o módulo excluído por um adaptador sem engine mantém a decisão de
 Falhas esperadas com ramo onFailure são tratadas como dados temporários; sem ramo tornam-se erro localizado do executor e seguem sua política. Ramos são aguardados e compartilham somente o contexto do mesmo owner. Cancelamento não vira erro de rede; falhas de programação propagam até a fronteira existente do executor.
 
 A falha de metadata foi investigada nos artefatos já resolvidos: o commonMain JetBrains de ViewModel contém apenas EmptyFile.kt, enquanto a classe pública vem de AndroidX 2.9.4 por uma dependência interna de Navigation. Exportar explicitamente ViewModel e SavedStateHandle pelo core corrigiu o consumidor sem atualizar versões resolvidas. A tentativa de declarar somente o wrapper no adaptador foi removida. App não instala provider URL por padrão; hosts que precisam dele injetam NodeProvider e assumem seu cliente/lifecycle.
+
+## T11 — cache separado e carregamento com dono
+
+Manter o cache de definições separado do formulário evita promover snapshots personalizados a estado compartilhado. Chaves incluem versão e sessão; fontes são imutáveis e consumidores recebem parses independentes. IDs explícitos e schemas conhecidos são requisitos para snapshots versionados, sem inventar novas identidades a cada hit. O cache usa TTL/LRU e limites de fonte/carga, sem stale fallback implícito.
+
+Coalescer cargas no escopo supervisionado do dono permite que o cancelamento de um waiter não mate outro. Invalidação remove flights antes de cancelar e o commit confere sua identidade; respostas antigas não repovoam o cache. Scope do host não é fechado pelo cache. Métricas contam a carga realmente iniciada e não registram conteúdo. Graph conserva a implementação anterior até sua integração explícita, para não alegar session/version/deep links resolvidos por existir essa estrutura.

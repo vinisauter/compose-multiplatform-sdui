@@ -2,17 +2,17 @@
 
 Este é o ponto de entrada para **continuar o desenvolvimento**. Reúne o estado observado, o rastreamento das etapas e a próxima ação. O [plano](development-plan.md) define dependências, escopo e critérios de aceite; este documento é a única fonte de status e retomada.
 
-Atualizado após T10: formulário reativo opt-in e transporte HTTP com ownership do host. Suíte JVM: 52 contrato + 72 core + 4 ações + 95 autoria + 7 rede + 35 sample = 265 casos, zero falhas/erros/ignorados. Transporte compilado para metadata/JS/Wasm/Android e executado em HTTP loopback JVM. Formulário observado no Chrome/Wasm. Compilação não comprova rede em browser/Android; Apple permanece sem execução.
+Atualizado após T10: formulário reativo opt-in e transporte HTTP com ownership do host. Suíte JVM: 52 contrato + 72 core + 4 ações + 95 autoria + 7 rede + 6 navegação + 35 sample = 271 casos, zero falhas/erros/ignorados. Transporte compilado para metadata/JS/Wasm/Android e executado em HTTP loopback JVM. Formulário observado no Chrome/Wasm. Compilação não comprova rede em browser/Android; Apple permanece sem execução.
 
 ## Ponto de retomada
 
 | Campo | Registro atual |
 | --- | --- |
 | Última atualização | 2026-10-24 — T09 em b388bc1 e commits anteriores; T10 com código/evidência abaixo; commits locais sem push |
-| Última entrega | T10: módulo incluído, HttpClient injetado, endpoints registrados, ramos aguardados, resultados tipados e HTTP loopback real; 265 testes JVM |
-| Tarefa de implementação em execução | Nenhuma; T10 concluída no escopo abaixo |
+| Última entrega | T10 em 36fd121; primeiro recorte T11: cache isolado com TTL/LRU/concorrência/invalidação; conjunto 271 testes JVM |
+| Tarefa de implementação em execução | T11 — Codex; primeiro recorte: cache de definições por sessão/versão com ownership e limites |
 | Próxima tarefa | **T11 — jornada, navegação e cache versionado** |
-| Próxima ação concreta | Inspecionar Graph/providers; preservar ISOLATED_ENTRIES da T07 e acrescentar contrato de versão/sessão e política de carga/expiração, com testes de retorno, rota repetida, deep link sem cache e falhas |
+| Próxima ação concreta | Integrar JourneyDefinitionCache ao Graph em modo opt-in com contexto fixo de jornada/sessão; remover a suposição componentNodes[routeName]!! para deep link frio e testar carregamento cancelável/erro/retry, reload e troca de sessão com Compose real |
 | Critério para avançar | Definição e dado personalizado separados; cache particionado por sessão/versão; recuperação e invalidação demonstradas sem refazer o isolamento já entregue |
 | Bloqueio de implementação conhecido | Nenhum para iniciar T11 local; fixtures e servidor loopback não dependem de backend remoto |
 | Limite do próximo recorte | Navegação/cache do cliente; sem backend remoto, publicação, credenciais no payload ou mudanças de infraestrutura |
@@ -44,7 +44,7 @@ Estados: **pronta**, **pendente**, **em execução**, **bloqueada**, **concluíd
 | T08 | Linguagem de expressões limitada | concluída | Codex, 2026-10-24: 10 testes novos da linguagem; 43 contrato/242 JVM no conjunto; grammar/versão, escopos, precedência, curto-circuito, tipos, números/índices inválidos, limites e cancelamento. Metadata/JS/Wasm compilados; sem integração UI |
 | T09 | Propriedades reativas, tokens e validação | concluída | Codex: três componentes opt-in, envelopes 1, schema 2 para tokens/máscara, 258 testes JVM, metadata/JS/Wasm e Android visual compilados; texto/habilitação/visibilidade/ação observados Chrome; evidência e limites nos recortes T09 abaixo |
 | T10 | Transporte HTTP com ownership e resultado | concluída | Codex: 7 testes de rede JVM com MockEngine/HTTP loopback e ramos reais; matriz total 265 casos; metadata/JS/Wasm/Android compilados; ownership e exportação de supertipos públicos corrigidos; limites abaixo |
-| T11 | Jornada, navegação e cache versionado | pronta | Completar versão/sessão, cache e recuperação; preservar isolamento e retorno da T07 sem reiniciar funcionalidades já verificadas |
+| T11 | Jornada, navegação e cache versionado | em execução | Codex: cache isolado de definições primeiro; integração Graph, deep links frios, reload/logout e restauração permanecem no escopo |
 | T12 | Bridge de capacidades nativas | pendente | Capacidade real no host e não suporte explícito nos demais |
 | T13 | Documento autoral e importação/exportação | concluída | 21 testes autorais; 135 JVM no conjunto; metadata/JS/Wasm compilados; modelo, índices, codec canônico e ponte legada com diagnósticos |
 | T14 | Comandos, chaves de ordem e undo local | concluída | 158 testes JVM no conjunto, metadata/JS/Wasm compilados; midpoint, transações por CAS, inversas e undo/redo com limites e concorrência |
@@ -157,7 +157,7 @@ Essas limitações descrevem o código, não comportamentos que devam ser perpet
 
 Os builds principais declaram toolchain JVM **25** e compatibilidade Java Android **17**. O [catálogo](../gradle/libs.versions.toml) declara Kotlin `2.4.21`, Compose `1.8.2`, AGP `8.13.2`, Ktor `3.6.0` e Navigation `2.9.2`; aliases JVM/Spring usam Kotlin `2.2.10`. Esses valores não demonstram resolução dos artefatos ou compatibilidade entre versões.
 
-A referência agregada mais recente é 265 testes JVM após T10, sem falhas/erros/ignorados. As fixtures de parsing/limites pertencem ao commonTest do contrato; o teste headless comprova ausência de classes UI no classpath. Evidências incrementais estão nos recortes T09; procedimentos em [validação](validation.md).
+A referência agregada mais recente é 271 testes JVM após o recorte de cache da T11, sem falhas/erros/ignorados. As fixtures de parsing/limites pertencem ao commonTest do contrato; o teste headless comprova ausência de classes UI no classpath. Evidências incrementais estão nos recortes T09; procedimentos em [validação](validation.md).
 
 A dependência Lifecycle do core permanece api porque seu ViewModel aparece na API pública. O host JVM fornece handle de estado em memória por factory explícita; os outros hosts mantêm o caminho padrão. O contrato é exportado pelo core e usa bytecode JVM 17 com toolchain 25.
 
@@ -202,3 +202,11 @@ Executado: :humming-network:tasks --all; testes de todos os seis módulos JVM; m
 Metadata inicialmente falhou por supertipo público Lifecycle ausente no consumidor. Investigação dos sources já resolvidos mostrou EmptyFile.kt no commonMain do wrapper JetBrains 2.9.6 e ViewModel real em AndroidX 2.9.4, já dependência interna da navegação. Exportar api de ViewModel/SavedStateHandle no core com a mesma versão resolveu metadata sem atualizar versões resolvidas; a dependência direta experimental no adaptador foi removida. Primeiros testes JUnit retornavam valor em vez de Unit e foram corrigidos antes da execução final. Ktor 3.6 usa readBuffer e kotlinx.io.IOException; não foram mantidos novos usos deprecated.
 
 Limites: HTTP foi executado em JVM com OkHttp e MockEngine, não no browser/Android/Apple. JS/Wasm/Android foram compilados; metadata não qualifica Apple. Studio local não instala rede e nenhum backend remoto, credencial, distribuição ou push foi usado. O provider URL antigo exige injeção explícita do host. Não há GET/POST implícito por renderização, retry instalado, cache, autenticação automática ou persistência de resposta; cache/versão e jornada são T11. T10 concluída nesse escopo; T11 pronta.
+
+### T11 — recorte de cache de definições, ainda sem ativação em Graph
+
+Codex, 2026-10-24: JourneyDefinitionCache, DefinitionKey/Snapshot/Policy/Metrics em commonMain da navegação. Partição por jornada/versão/sessão/rota/provider/recurso; source imutável com cópia por parse no hit; snapshot formato 1, schemas conhecidos e IDs explícitos/únicos; TTL/LRU e limites de caracteres/concorrência; cargas coalescidas em SupervisorJob do host; invalidação/close com cleanup não cancelável e proteção contra resultado antigo. coroutines-test saiu de commonMain para commonTest; tipos públicos core/coroutines passaram a api no módulo navigation.
+
+Executado: descoberta :humming-navigation:tasks --all; seis testes novos em commonTest executados JVM, cobrindo cópias e partições, TTL/LRU/latência, duas esperas com cancelamento de uma, invalidação durante provider não cooperativo sem ressurreição, falha/versão/formato/ID e recuperação, fechamento em finally cancelado e limites de tamanho/concorrência. build/t11/cache-final.log: sete módulos de testes JVM, metadata/Wasm/Android navegação e Wasm sample, BUILD SUCCESSFUL. Total 271 testes: 52 contrato + 72 core + 4 ações + 95 autoria + 7 rede + 6 navegação + 35 sample; zero failures/errors/skipped. Ajuste final de providerLoads no início real do loader passou novamente em JVM/metadata/Wasm: build/t11/cache-metrics.log.
+
+Este recorte NÃO conectou o cache ao Graph e NÃO concluiu T11. Graph ainda mantém componentNodes por rota e usa componentNodes[routeName]!! na composição; deep link frio e restauração precisam de carga explícita/estado de falha. Próximo trabalho: fixar contexto de jornada/sessão no host, integrar cache opt-in preservando a API legada, substituir a suposição de preload por carregamento cancelável ao entrar na rota, e verificar reload/troca de sessão/retorno/deep link/provider com Compose real. Também falta codec/validação de restauração persistida; DefinitionSnapshot atual é apenas DTO. Não promover T12. Nenhum novo fluxo UI/browser foi qualificado pela existência do cache.

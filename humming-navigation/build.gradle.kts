@@ -24,19 +24,23 @@ kotlin {
 
     sourceSets {
         commonMain.dependencies {
-            implementation(project(":humming-core"))
+            api(project(":humming-core"))
             implementation(compose.runtime)
             implementation(compose.ui)
             implementation(compose.foundation)
 
             implementation(libs.navigation.compose)
             implementation(libs.lifecycle.viewmodel.compose)
-            implementation(libs.kotlinx.coroutines.core)
-            implementation(libs.kotlinx.coroutines.test)
+            api(libs.kotlinx.coroutines.core)
             implementation(libs.kotlinx.serialization.json)
             implementation(libs.kotlinx.datetime)
             implementation(libs.kermit)
             implementation(libs.multiplatformSettings)
+        }
+
+        commonTest.dependencies {
+            implementation(kotlin("test"))
+            implementation(libs.kotlinx.coroutines.test)
         }
 
         androidMain.dependencies {
