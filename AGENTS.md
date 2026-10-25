@@ -33,6 +33,6 @@
 
 ## Pontos de atenção existentes
 
-- `humming-network` está no disco, mas não está incluído em `settings.gradle.kts`; é um esboço.
+- `humming-network` está incluído: transporte opt-in com HttpClient e endpoints registrados pelo host. O host fecha cliente/engine; não instalar rede implicitamente no Studio. Consultar contrato e evidência por plataforma no estado atual.
 - Há exemplos com nomes/providers não registrados. A T00 deve selecionar um fluxo local compatível antes de afirmar que o sample funciona.
 - Workflows ainda precisam ser confrontados com os módulos e tarefas reais. Metadados de publicação e targets declarados não comprovam releases ou suporte funcional.

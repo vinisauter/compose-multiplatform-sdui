@@ -23,13 +23,11 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.SavedStateHandle
 import br.com.developes.sdui.resources.Res
 import br.com.developes.sdui.resources.ic_eye
-import io.ktor.client.HttpClient
-import io.ktor.client.request.get
-import io.ktor.client.statement.bodyAsText
 import kotlinx.coroutines.delay
 import me.developes.humming.sdui.HummingSDUI
 import me.developes.humming.sdui.action.SDActions
 import me.developes.humming.sdui.common.SDUIFormViewModel
+import me.developes.humming.sdui.common.NodeProvider
 import me.developes.humming.sdui.common.ShimmerEffect
 import me.developes.humming.sdui.common.parseNode
 import me.developes.humming.sdui.getPlatform
@@ -42,6 +40,7 @@ import org.jetbrains.compose.resources.painterResource
 fun App(
     initialResource: String = "files/navigation/app-navigation.json",
     savedStateHandleFactory: (() -> SavedStateHandle)? = null,
+    urlProvider: NodeProvider? = null,
 ) {
     Box(
         modifier = Modifier.fillMaxSize().background(Color.White),
@@ -83,14 +82,8 @@ fun App(
                 },
             ) {
                 // You can add custom components here
-                // Example of a custom node provider that fetches JSON from a URL
-                addNodeProvider("url") { res ->
-                    delay(2000)
-                    val client = HttpClient()
-                    val response = client.get(res)
-                    val json = response.bodyAsText()
-                    return@addNodeProvider parseNode(json, documentId = res)
-                }
+                // Remote providers are explicit host capabilities; they own their reusable client.
+                urlProvider?.let { addNodeProvider("url", it) }
                 addNodeProvider("file") { res ->
                     delay(1000)
                     val bytes = Res.readBytes(res)

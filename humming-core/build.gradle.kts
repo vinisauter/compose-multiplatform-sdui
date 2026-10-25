@@ -45,6 +45,8 @@ kotlin {
 
             implementation(libs.navigation.compose)
             api(libs.lifecycle.viewmodel.compose)
+            api(libs.lifecycle.viewmodel.api)
+            api(libs.lifecycle.viewmodel.savedstate.api)
             implementation(libs.kotlinx.coroutines.core)
             implementation(libs.kotlinx.serialization.json)
             implementation(libs.kotlinx.datetime)

@@ -261,3 +261,30 @@ reactiveText schema 2 acrescenta colorToken; a cor registrada tem precedência s
 AsciiDigitMask é uma capacidade deliberadamente restrita a dígitos ASCII; # representa um dígito e os demais caracteres são literais. Pattern: 1–256 unidades UTF-16 e pelo menos um #. Input: até 4096 dígitos. Nenhuma conversão numérica, arredondamento, validação monetária ou remoção de zeros ocorre. Digitar além dos slots mantém os dígitos restantes no final; não há truncamento. Literais só são inseridos antes de um próximo dígito, sem sufixo decorativo antecipado. Input inválido mostra MASK_INPUT, mantém o valor canônico e apresenta o texto original editável; correção recupera a máscara.
 
 Para cada dígito de índice i, o algoritmo emite os literais pendentes (cada offset transformado aponta para i), emite o dígito (offset seguinte aponta para i+1) e registra forward[i+1] como o tamanho de saída. forward[0]=reverse[0]=0. As tabelas de cursor são monótonas; reverse[forward[i]]=i. Offsets fora do intervalo são limitados aos extremos. Custo O(n+p), memória O(n+p), com n<=4096 e p<=256; nenhuma assinatura ou escrita de estado é criada pela formatação. A máscara é apresentação, não uma regra de validade: o autor deve declarar valid conforme o domínio.
+
+## Transporte HTTP opt-in
+
+humming-network instala somente a ação network:request (schema 1) por SDNetwork(transport). Não é dependência do contrato nem do modelo autoral e não é instalado pelo Studio local. Depende do core e de Ktor Core; engine é fornecida pelo host. O módulo não cria/fecha HttpClient por chamada, não publica artefatos e não fornece backend.
+
+SduiHttpTransport recebe HttpClient, Map<String,HttpEndpoint> e HttpPolicy. Cada endpoint fixa URL, métodos GET/POST permitidos e headers do host. O payload escolhe somente o nome; não define URL, headers, credenciais, redirects, timeout ou limite. URLs aceitam HTTP/HTTPS, sem userinfo/fragmento. Headers registrados não aceitam CR/LF. O transporte exige cliente sem HttpRedirect (followRedirects=false) e define expectSuccess=false por requisição para classificar status. Configuração e engines pertencem ao host; ver APIs oficiais de [configuração Ktor](https://api.ktor.io/ktor-client-core/io.ktor.client/-http-client-config/index.html) e [validação de respostas](https://ktor.io/docs/client-response-validation.html).
+
+```kotlin
+// Source set JVM/Android do host, com engine OkHttp instalada pelo host.
+val client = HttpClient(OkHttp) { followRedirects = false }
+val transport = SduiHttpTransport(client, mapOf(
+    "saveProfile" to HttpEndpoint("$trustedBaseUrl/profile", setOf("POST")),
+))
+val library = SDNetwork(transport) // registrar por addLibrary no host
+// Ao terminar o lifecycle do host: client.close().
+// Se uma engine foi fornecida como instância compartilhada, seu dono também a fecha.
+```
+
+Propriedades: endpoint obrigatório; method GET por ausência, ou POST; bodyState referencia uma chave canônica do owner; bodyJson contém texto JSON serializado literal. bodyState e bodyJson são mutuamente exclusivos. Nenhum deles interpola #{chave} ou executa expressões. bodyState Missing produz NETWORK_BODY_MISSING; Null é corpo JSON null. GET rejeita qualquer corpo. POST envia bytes JSON reais com Content-Type application/json. Para texto escalar literal, bodyJson deve conter a representação JSON completa, incluindo aspas; bodyState evita ambiguidade com strings legadas.
+
+onSuccess/onFailure são sequências de ações registradas e aguardadas no mesmo owner/frame. Sucesso preenche response={status:Number,body:SduiValue} e limpa error. Falha preenche error={code:Text,nodeId:Text,path:Text,operation:"request",status?:Number} e limpa response. Há limpeza antes de cada requisição e no finally da execução raiz, inclusive cancelamento. Nada é copiado automaticamente para estado de tela/global. Um método registrado no ramo pode ler actionValues() e aplicar explicitamente o dado via updateValueFromAction.
+
+Se onFailure foi fornecido (mesmo vazio), a falha esperada é dado tratado pelo ramo; não é erro do executor por si. Sem onFailure, a ação lança PayloadException localizado, participa de ActionExecutionResult/errors e respeita a política CONTINUE/STOP_ON_ERROR existente. Falhas de programação não são convertidas em NETWORK_IO; cancelamento do chamador propaga. Timeout pertencente à requisição produz NETWORK_TIMEOUT; IO produz código genérico, sem URL, corpo, headers ou mensagem bruta da exceção.
+
+HttpPolicy padrão: 10s para IO/leitura, request 65536 bytes, response 1048576 bytes. Valores aceitos: timeout 1..120000ms, cada orçamento 1..8388608 bytes. Validação prévia limita corpo canônico a profundidade 64, 10000 nós e orçamento mínimo de caracteres; serialização verifica também bytes UTF-8/escapes reais. A leitura streaming pede no máximo maxResponseBytes+1 e encerra o statement em todos os caminhos. Status não 2xx produz NETWORK_HTTP_STATUS sem expor body; 204 retorna Null. Outros sucessos exigem application/json ou application/*+json, UTF-8 válido e JSON tipado limitado. Não há retries instalados pelo módulo. Plugins adicionais, autenticação e logging do cliente são responsabilidade explícita do host; não registrar corpos/credenciais.
+
+O esboço anterior estava fora do build e não constituía API funcional: SDNetwork() sem transporte, network:get/post e componente request vazio são substituídos pela ação explícita. App do sample recebe urlProvider opcional; não instala mais provider remoto nem cria cliente por chamada por padrão. A integração de navegação/cache/versão pertence à T11. A compilação autoral só pode incluir rede quando o host fornecer o schema, os handlers e as capacidades de destino; o catálogo local inicial não habilita rede.

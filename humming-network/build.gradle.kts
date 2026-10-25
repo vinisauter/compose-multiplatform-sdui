@@ -1,132 +1,36 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+
 plugins {
     alias(libs.plugins.multiplatform)
     alias(libs.plugins.android.library)
-    alias(libs.plugins.maven.publish)
-    alias(libs.plugins.compose)
-    alias(libs.plugins.compose.compiler)
-    alias(libs.plugins.kotlinx.serialization)
 }
-
 kotlin {
-//    jvmToolchain(11)
-
-    androidTarget { publishLibraryVariants("release") }
+    jvmToolchain(25)
     jvm()
+    androidTarget { compilerOptions { jvmTarget.set(JvmTarget.JVM_17) } }
     js { browser() }
     wasmJs { browser() }
-    iosX64()
-    iosArm64()
-    iosSimulatorArm64()
-    macosX64()
-    macosArm64()
-//    linuxX64()
-//    mingwX64()
-
+    iosX64(); iosArm64(); iosSimulatorArm64(); macosX64(); macosArm64()
     sourceSets {
         commonMain.dependencies {
-            implementation(project(":humming-core"))
-            implementation(compose.runtime)
-            implementation(compose.ui)
-            implementation(compose.foundation)
-
-            implementation(libs.navigation.compose)
-            implementation(libs.lifecycle.viewmodel.compose)
+            api(project(":humming-core"))
+            api(libs.ktor.client.core)
             implementation(libs.kotlinx.coroutines.core)
+        }
+        commonTest.dependencies {
+            implementation(kotlin("test"))
             implementation(libs.kotlinx.coroutines.test)
-            implementation(libs.kotlinx.serialization.json)
-            implementation(libs.kotlinx.datetime)
-            implementation(libs.kermit)
-            implementation(libs.multiplatformSettings)
-
-            implementation(libs.ktor.client.core)
-            implementation(libs.ktor.client.content.negotiation)
-            implementation(libs.ktor.client.serialization)
-            implementation(libs.ktor.serialization.json)
-            implementation(libs.ktor.client.logging)
+            implementation(libs.ktor.client.mock)
         }
-
-        androidMain.dependencies {
-            implementation(libs.androidx.activityCompose)
-            implementation(libs.kotlinx.coroutines.android)
-            implementation(libs.ktor.client.okhttp)
-        }
-
-        jvmMain.dependencies {
-            implementation(compose.desktop.currentOs)
-            implementation(libs.kotlinx.coroutines.swing)
-            implementation(libs.ktor.client.okhttp)
-        }
-
-        jsMain.dependencies {
-            implementation(libs.ktor.client.js)
-        }
-
-        iosMain.dependencies {
-            implementation(libs.ktor.client.darwin)
-        }
-
-        macosMain.dependencies {
-            implementation(libs.ktor.client.darwin)
-        }
-
-        linuxMain.dependencies {
-            implementation(libs.ktor.client.curl)
-        }
-
-        mingwMain.dependencies {
-            implementation(libs.ktor.client.winhttp)
-        }
+        jvmTest.dependencies { implementation(libs.ktor.client.okhttp) }
     }
-
-    //https://kotlinlang.org/docs/native-objc-interop.html#export-of-kdoc-comments-to-generated-objective-c-headers
-    targets.withType<org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget> {
-        compilations["main"].compileTaskProvider.configure {
-            compilerOptions {
-                freeCompilerArgs.add("-Xexport-kdoc")
-            }
-        }
-    }
-
 }
-
 android {
-    namespace = "me.developes.humming.sdui"
-    compileSdk = 36
-
-    defaultConfig {
-        minSdk = 21
+    namespace = "me.developes.humming.sdui.network"
+    compileSdk = libs.versions.androidSdk.get().toInt()
+    defaultConfig { minSdk = libs.versions.androidMinSdk.get().toInt() }
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
-}
-
-//Publishing your Kotlin Multiplatform library to Maven Central
-//https://www.jetbrains.com/help/kotlin-multiplatform-dev/multiplatform-publish-libraries.html
-mavenPublishing {
-    publishToMavenCentral()
-    coordinates("me.developes.humming.sdui", "humming-core", "1.0.0")
-
-    pom {
-        name = "HummingUI"
-        description = "Kotlin Multiplatform library"
-        url = "github url" //todo
-
-        licenses {
-            license {
-                name = "MIT"
-                url = "https://opensource.org/licenses/MIT"
-            }
-        }
-
-        developers {
-            developer {
-                id = "" //todo
-                name = "" //todo
-                email = "" //todo
-            }
-        }
-
-        scm {
-            url = "github url" //todo
-        }
-    }
-    if (project.hasProperty("signing.keyId")) signAllPublications()
 }

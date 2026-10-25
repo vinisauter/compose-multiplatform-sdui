@@ -94,3 +94,9 @@ A biblioteca de layout expõe LocalNodeBoundsObserver sem dependência do modelo
 humming-contract contém SduiValue e os inputs tipados sem dependência UI. humming-core mantém o mapa de estado e sua visão textual no mesmo owner, além de ActionValues no contexto da execução. O contexto distingue owners para que uma chamada a outro ViewModel não herde os resultados/política da tela anterior.
 
 No modo ISOLATED_ENTRIES, Graph pede um owner ao ViewModelStore de cada NavBackStackEntry. Bibliotecas/providers registrados são capacidades compartilhadas; o formulário não é compartilhado. Entradas fora de foco retidas na pilha preservam estado; o descarte pelo Navigation cancela o owner e limpa dados. LocalScreenFeedbackHandler encaminha UI de erro/loading do host ao owner correto, sem dependência de Material no core. A seleção LEGACY_SHARED preserva o caminho anterior; cache de nós continua sendo definição, não store de dados personalizados ou snapshot persistido.
+
+## Transporte e tipos públicos do runtime
+
+humming-network é um adaptador opcional do core para Ktor, sem engine, UI ou backend próprio. HttpClient e registro fixo de endpoints pertencem ao host; SDNetwork fornece ação estruturada com ramos aguardados e resultados em ActionValues. Definições/schema ficam no contrato puro sem instalar o handler no catálogo inicial. Studio permanece local e não recebe capacidades de rede implicitamente.
+
+O core exporta explicitamente os artefatos AndroidX Lifecycle que definem ViewModel e SavedStateHandle na sua API pública. Eles já eram resolvidos por Navigation 2.9.2 como Lifecycle 2.9.4; a declaração API corrige sua ausência no metadata dos consumidores. O wrapper JetBrains 2.9.6 resolvido pelo projeto contém EmptyFile.kt no commonMain e, isoladamente, não exporta esses tipos. Não se elevou a versão resolvida para contornar o erro. Warnings de KLIB duplicado existentes devem ser tratados em uma revisão própria de dependências.

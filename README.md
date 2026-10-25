@@ -2,7 +2,7 @@
 
 POC de um cliente de Server-Driven UI em Kotlin Multiplatform e Compose Multiplatform. O cliente interpreta uma árvore JSON e resolve componentes e ações registrados por namespace.
 
-O repositório contém o contrato puro humming-contract, modelo autoral/comandos/compilador humming-studio-model, runtime, bibliotecas e sample. Um editor local por árvore/Inspector está integrado ao sample Wasm; seu alcance e aceite pendente constam no estado atual. Canvas geométrico, servidor, publicação e colaboração permanecem planejados.
+O repositório contém contrato puro, modelo autoral/compilador, runtime, bibliotecas, transporte HTTP opt-in e sample. O Studio local integra árvore/Inspector, arraste, canvas de interações e formulário reativo. Consulte o estado atual para evidências e limites por plataforma. Servidor remoto, publicação e colaboração permanecem no plano.
 
 ## Comece aqui
 

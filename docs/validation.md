@@ -367,3 +367,11 @@ Após reconstruir e recarregar o host, o navegador integrado exibiu a mensagem T
 ## T18 — confirmação manual após carregar o exemplo (2026-10-24)
 
 Após a orientação corrigida de carregar o exemplo com A/B e os containers, o usuário respondeu “agora sim”. No contexto da verificação solicitada, esse relato confirma a guia visual e completa o aceite pendente. Não é captura automatizada adicional nem nova execução dos testes. Preservam-se os resultados anteriores de 202 testes JVM e as limitações de plataforma. O estado atual registra a conclusão de T18 e a retomada em T19. Nesta atualização somente documental foram revisados conteúdo, links e diff; não foi necessário novo build.
+
+Para verificar o transporte opcional sem backend externo:
+
+```powershell
+.\gradlew.bat :humming-network:jvmTest
+```
+
+Os testes usam MockEngine e um HttpServer JVM em 127.0.0.1 com porta efêmera, encerrado em finally. Executam GET/POST reais, JSON tipado, falhas, limites, timeout, cancelamento, concorrência e ramos da ação. O host dos testes fecha cliente e engine/executor quando é seu dono. Isso não comprova execução HTTP em browser, Android ou Apple; ver a evidência específica no estado atual.

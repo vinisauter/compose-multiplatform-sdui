@@ -2,20 +2,20 @@
 
 Este é o ponto de entrada para **continuar o desenvolvimento**. Reúne o estado observado, o rastreamento das etapas e a próxima ação. O [plano](development-plan.md) define dependências, escopo e critérios de aceite; este documento é a única fonte de status e retomada.
 
-Atualizado após T09: propriedades opt-in com texto/visibilidade/habilitação reativos, validação de campo, tokens de tema e máscaras declaradas. Suíte JVM: 52 contrato + 72 core + 4 ações + 95 autoria + 35 sample = 258 casos, zero falhas/erros/ignorados. Metadata/JS/Wasm afetados compilados; biblioteca visual compilada para Android, sem execução em dispositivo. Formulário executado e observado no Chrome/Wasm; máscaras e falhas recuperáveis verificadas em JVM. Apple permanece sem execução.
+Atualizado após T10: formulário reativo opt-in e transporte HTTP com ownership do host. Suíte JVM: 52 contrato + 72 core + 4 ações + 95 autoria + 7 rede + 35 sample = 265 casos, zero falhas/erros/ignorados. Transporte compilado para metadata/JS/Wasm/Android e executado em HTTP loopback JVM. Formulário observado no Chrome/Wasm. Compilação não comprova rede em browser/Android; Apple permanece sem execução.
 
 ## Ponto de retomada
 
 | Campo | Registro atual |
 | --- | --- |
-| Última atualização | 2026-10-24 — T08 fe918d4; T09 3e6faad, d30bd0e, d23267e e recorte de tokens/máscaras descrito abaixo; commits locais sem push |
-| Última entrega | T09: formulário reativo opt-in, apresentação separada do canônico e capacidades de tokens/máscaras; 258 testes JVM e fluxo real Chrome |
-| Tarefa de implementação em execução | Nenhuma; T09 concluída no escopo abaixo |
-| Próxima tarefa | **T10 — transporte HTTP com ownership e resultado** |
-| Próxima ação concreta | Inspecionar humming-network experimental e provider URL, definir API tipada e política de segurança/limites; injetar HttpClient do host e preparar testes com engine controlada e servidor HTTP loopback real |
-| Critério para avançar | Métodos/body reais, resultado em response/error da execução, GET/POST/erros/timeout/cancelamento/concorrrência comprovados; cliente reutilizado e fechado pelo host |
-| Bloqueio de implementação conhecido | Nenhum para iniciar T10 local. Não há backend ou credenciais necessários para o endpoint de teste loopback |
-| Limite do próximo recorte | Transporte cliente e testes locais; sem backend remoto, publicação, credenciais no payload ou mudanças de infraestrutura |
+| Última atualização | 2026-10-24 — T09 em b388bc1 e commits anteriores; T10 com código/evidência abaixo; commits locais sem push |
+| Última entrega | T10: módulo incluído, HttpClient injetado, endpoints registrados, ramos aguardados, resultados tipados e HTTP loopback real; 265 testes JVM |
+| Tarefa de implementação em execução | Nenhuma; T10 concluída no escopo abaixo |
+| Próxima tarefa | **T11 — jornada, navegação e cache versionado** |
+| Próxima ação concreta | Inspecionar Graph/providers; preservar ISOLATED_ENTRIES da T07 e acrescentar contrato de versão/sessão e política de carga/expiração, com testes de retorno, rota repetida, deep link sem cache e falhas |
+| Critério para avançar | Definição e dado personalizado separados; cache particionado por sessão/versão; recuperação e invalidação demonstradas sem refazer o isolamento já entregue |
+| Bloqueio de implementação conhecido | Nenhum para iniciar T11 local; fixtures e servidor loopback não dependem de backend remoto |
+| Limite do próximo recorte | Navegação/cache do cliente; sem backend remoto, publicação, credenciais no payload ou mudanças de infraestrutura |
 
 ### Protocolo quando o pedido for “continue o desenvolvimento”
 
@@ -43,8 +43,8 @@ Estados: **pronta**, **pendente**, **em execução**, **bloqueada**, **concluíd
 | T07 | Valores tipados e escopos de tela/ação | concluída | Codex, 2026-10-24: 232 testes JVM no conjunto; 33 contrato/69 core/32 sample incluem tipos, concorrência, owner distinto, duas entradas da mesma rota, retorno, erro e cancelamento no pop. Wasm, JS/metadata e core/navegação Android compilados; Chrome confirmou isolamento/retorno |
 | T08 | Linguagem de expressões limitada | concluída | Codex, 2026-10-24: 10 testes novos da linguagem; 43 contrato/242 JVM no conjunto; grammar/versão, escopos, precedência, curto-circuito, tipos, números/índices inválidos, limites e cancelamento. Metadata/JS/Wasm compilados; sem integração UI |
 | T09 | Propriedades reativas, tokens e validação | concluída | Codex: três componentes opt-in, envelopes 1, schema 2 para tokens/máscara, 258 testes JVM, metadata/JS/Wasm e Android visual compilados; texto/habilitação/visibilidade/ação observados Chrome; evidência e limites nos recortes T09 abaixo |
-| T10 | Transporte HTTP com ownership e resultado | pronta | Implementar métodos reais e integração HTTP loopback; seguir API/ownership/limites do plano |
-| T11 | Jornada, navegação e cache versionado | pendente | Isolar entradas, fixar snapshot e definir políticas |
+| T10 | Transporte HTTP com ownership e resultado | concluída | Codex: 7 testes de rede JVM com MockEngine/HTTP loopback e ramos reais; matriz total 265 casos; metadata/JS/Wasm/Android compilados; ownership e exportação de supertipos públicos corrigidos; limites abaixo |
+| T11 | Jornada, navegação e cache versionado | pronta | Completar versão/sessão, cache e recuperação; preservar isolamento e retorno da T07 sem reiniciar funcionalidades já verificadas |
 | T12 | Bridge de capacidades nativas | pendente | Capacidade real no host e não suporte explícito nos demais |
 | T13 | Documento autoral e importação/exportação | concluída | 21 testes autorais; 135 JVM no conjunto; metadata/JS/Wasm compilados; modelo, índices, codec canônico e ponte legada com diagnósticos |
 | T14 | Comandos, chaves de ordem e undo local | concluída | 158 testes JVM no conjunto, metadata/JS/Wasm compilados; midpoint, transações por CAS, inversas e undo/redo com limites e concorrência |
@@ -115,7 +115,7 @@ HummingUI é uma POC de cliente SDUI. Interpreta nós JSON, mantém estado textu
 | `humming-layout-material3` | Catálogo de componentes Compose Material 3 e leitura de propriedades |
 | `sample:composeApp` | Host, providers e exemplos compartilhados com targets de aplicação |
 | `sample:iosApp` | Projeto incluído para integração Apple; execução depende de ambiente compatível |
-| `humming-network` | Esboço no disco, **fora** dos includes de Gradle |
+| `humming-network` | Incluído: adaptador HTTP opt-in, sem engine ou cliente criado pelo módulo |
 
 Os includes reais estão em [settings.gradle.kts](../settings.gradle.kts). Não há motivo para renomear os módulos existentes apenas para reproduzir uma arquitetura futura.
 
@@ -130,7 +130,7 @@ Os includes reais estão em [settings.gradle.kts](../settings.gradle.kts). Não 
 | Execução/estado | [SDUIFormViewModel.kt](../humming-core/src/commonMain/kotlin/me/developes/humming/sdui/common/SDUIFormViewModel.kt) e [SDAction.kt](../humming-actions/src/commonMain/kotlin/me/developes/humming/sdui/action/SDAction.kt) |
 | Navegação | [SDNavigation.kt](../humming-navigation/src/commonMain/kotlin/me/developes/humming/sdui/navigation/SDNavigation.kt) e [Graph.kt](../humming-navigation/src/commonMain/kotlin/me/developes/humming/sdui/navigation/components/Graph.kt) |
 | Componentes | [SDLayoutMaterial3.kt](../humming-layout-material3/src/commonMain/kotlin/me/developes/humming/sdui/layout/SDLayoutMaterial3.kt) e os arquivos `SDC*` de seu catálogo |
-| Rede experimental | [SDNetwork.kt](../humming-network/src/commonMain/kotlin/me/developes/humming/sdui/action/SDNetwork.kt) |
+| Transporte HTTP opt-in | [SDNetwork.kt](../humming-network/src/commonMain/kotlin/me/developes/humming/sdui/action/SDNetwork.kt) e [SduiHttpTransport.kt](../humming-network/src/commonMain/kotlin/me/developes/humming/sdui/network/SduiHttpTransport.kt) |
 | Payloads do sample | [app-navigation.json](../sample/composeApp/src/commonMain/composeResources/files/navigation/app-navigation.json) e [login.json](../sample/composeApp/src/commonMain/composeResources/files/layout/login.json) |
 
 O fluxo básico é host → provider → parsing → resolução de biblioteca/componente → composição → evento → despacho de ações → atualização de estado ou navegação. O core continua visual e exporta humming-contract, que contém modelo/JSON/schemas sem UI. Color permanece no core; consumidores headless dependem diretamente de humming-contract.
@@ -148,7 +148,7 @@ O fluxo básico é host → provider → parsing → resolução de biblioteca/c
 | Estado/bindings | Estado tipado e isolamento opt-in por entrada; bindings legados frios e expressionValues por dependência; leitura legada pode inicializar chave vazia | Completar T09 visual; extensões imperativas precisam descartar seus bindings |
 | Eventos | Emissão inicial preservada; idempotência e origem causal impedem ciclos no catálogo | Métodos customizados devem usar updateStateFromAction; revisões são confladas |
 | Navegação | Cache de definições por rota; modo legado compartilhado ou ISOLATED_ENTRIES opt-in; retorno preserva entrada anterior | Qualificar restauração e carregamento/deep links posteriores |
-| Rede | Esboço cria `HttpClient` por chamada, `post` chama `get` e resposta não integra estado; provider URL do sample também cria cliente por chamada | Introduzir cliente injetado, ownership e resultado explícito |
+| Rede | HttpClient/endpoints do host; GET/POST reais, limites e resultados por execução; App recebe urlProvider opcional | Qualificar execução nas plataformas restantes e integrar navegação/cache na T11 |
 | Exemplos | Há `event:loader`, `navigation:goToUrl`, providers `link`/`firestore`, recurso ausente e `action:method` com propriedade `method` | Selecionar/corrigir uma fixture local; não assumir que todos os JSONs são funcionais |
 
 Essas limitações descrevem o código, não comportamentos que devam ser perpetuados. O [contrato](contract.md) distingue compatibilidade de defeitos a corrigir.
@@ -157,7 +157,7 @@ Essas limitações descrevem o código, não comportamentos que devam ser perpet
 
 Os builds principais declaram toolchain JVM **25** e compatibilidade Java Android **17**. O [catálogo](../gradle/libs.versions.toml) declara Kotlin `2.4.21`, Compose `1.8.2`, AGP `8.13.2`, Ktor `3.6.0` e Navigation `2.9.2`; aliases JVM/Spring usam Kotlin `2.2.10`. Esses valores não demonstram resolução dos artefatos ou compatibilidade entre versões.
 
-A referência agregada mais recente é 258 testes JVM após T09, sem falhas/erros/ignorados. As fixtures de parsing/limites pertencem ao commonTest do contrato; o teste headless comprova ausência de classes UI no classpath. Evidências incrementais estão nos recortes T09; procedimentos em [validação](validation.md).
+A referência agregada mais recente é 265 testes JVM após T10, sem falhas/erros/ignorados. As fixtures de parsing/limites pertencem ao commonTest do contrato; o teste headless comprova ausência de classes UI no classpath. Evidências incrementais estão nos recortes T09; procedimentos em [validação](validation.md).
 
 A dependência Lifecycle do core permanece api porque seu ViewModel aparece na API pública. O host JVM fornece handle de estado em memória por factory explícita; os outros hosts mantêm o caminho padrão. O contrato é exportado pelo core e usa bytecode JVM 17 com toolchain 25.
 
@@ -165,7 +165,7 @@ Gradle 9.5.1 com Java 25.0.3 em Windows 11 x64 executou `projects`, descoberta d
 
 ## Evolução ainda não implementada
 
-Permanecem pendentes schemas para o restante do catálogo, transporte HTTP T10, políticas de cache, bridge nativa, persistência remota, publicação e colaboração. Valores tipados, linguagem pura, formulário reativo opt-in, isolamento por entrada e grafo visual local possuem evidência nos recortes anteriores. Máscaras de domínio adicionais e aritmética decimal exata não são capacidades instaladas; nenhuma propriedade monetária foi declarada. O [plano](development-plan.md) define o escopo restante.
+Permanecem pendentes schemas para o restante do catálogo, políticas de cache, bridge nativa, persistência remota, publicação e colaboração. Valores tipados, linguagem pura, formulário reativo opt-in, isolamento por entrada e grafo visual local possuem evidência nos recortes anteriores. Máscaras de domínio adicionais e aritmética decimal exata não são capacidades instaladas; nenhuma propriedade monetária foi declarada. O [plano](development-plan.md) define o escopo restante.
 
 ### T09 — envelope e texto/visibilidade no catálogo
 
@@ -192,3 +192,13 @@ Evidência JVM: 52 contrato + 72 core + 4 ações + 95 autoria + 35 sample = 258
 Chrome/Wasm, servidor de desenvolvimento somente em 127.0.0.1:8080: carregado “Exemplo de expressões”; vazio exibiu “Preencha o nome” e botão desabilitado; entrada Ana atualizou “Olá, Ana” e habilitou Confirmar; clique executou action:update e mostrou “confirmado” com token positive; valor ocultar removeu a mensagem e desabilitou o botão; alteração posterior reexibiu a mensagem com o valor corrente. Capturas build/t09/browser-initial.png, browser-confirmed.png, browser-hidden.png e browser-restored.png. A tentativa de substituir o último texto anexou Pronto ao valor anterior; a captura comprova o valor real ocultarPronto e sua mensagem correspondente, sem alegar substituição exata. Substituição exata também passou nos testes Compose JVM. Na primeira observação Chrome houve timeout de leitura de frame durante carga; a captura posterior e o fluxo real concluíram normalmente.
 
 Limites: execução de máscaras/erros de tipo e descarte comprovada em Compose JVM; o fluxo browser comprovou texto, visibilidade, habilitação, validação, ação e cor, sem qualificar toda a matriz de máscaras no browser. Compilação Android não é execução; Apple não executado. Não há aritmética monetária, rede, backend ou publicação nesta entrega. O restante da POC segue o plano: T09 concluída, T10 pronta e próxima ação na tabela inicial.
+
+### T10 — conclusão: transporte injetado e HTTP real
+
+Codex, 2026-10-24: humming-network incluído com build mínimo (sem Compose/engine/publicação no módulo), SduiHttpTransport, HttpEndpoint/Policy/Outcome e SDNetwork(transport). Endpoint/métodos/headers são capacidades fixadas pelo host; request não aceita URL/credenciais do payload. Corpo via bodyState tipado ou bodyJson serializado, POST real, ramos aguardados no mesmo owner e limpeza dos resultados antes/depois da execução. Falha sem onFailure participa do executor; com ramo é dado tratado. App recebe urlProvider opcional em vez de instalar provider remoto que criava HttpClient a cada chamada.
+
+Executado: :humming-network:tasks --all; testes de todos os seis módulos JVM; metadata/JS/Wasm/Android do transporte e Wasm do sample. build/t10/final-contract.log: BUILD SUCCESSFUL, 128 tarefas; XMLs: 52 contrato + 72 core + 4 ações + 95 autoria + 7 rede + 35 sample = 265 casos, zero failures/errors/skipped. Testes de rede com MockEngine e HttpServer real em 127.0.0.1/porta efêmera cobrem GET/POST, corpo canônico e literal, 503/302, JSON/UTF-8 inválidos, tipo de conteúdo, limites antes/depois de serializar, timeout próprio, cancelamento externo em voo, IO seguro, defeito de programação, oito POSTs concorrentes, reuso após falha/timeout, ramo aguardado, ausência de resultado antigo e cleanup dos slots. Servidor, cliente, engine compartilhada e executor fechados pelos respectivos donos em finally. Logs intermediários http-tests-final.log, transport-check.log e exported-owner.log também registram os recortes.
+
+Metadata inicialmente falhou por supertipo público Lifecycle ausente no consumidor. Investigação dos sources já resolvidos mostrou EmptyFile.kt no commonMain do wrapper JetBrains 2.9.6 e ViewModel real em AndroidX 2.9.4, já dependência interna da navegação. Exportar api de ViewModel/SavedStateHandle no core com a mesma versão resolveu metadata sem atualizar versões resolvidas; a dependência direta experimental no adaptador foi removida. Primeiros testes JUnit retornavam valor em vez de Unit e foram corrigidos antes da execução final. Ktor 3.6 usa readBuffer e kotlinx.io.IOException; não foram mantidos novos usos deprecated.
+
+Limites: HTTP foi executado em JVM com OkHttp e MockEngine, não no browser/Android/Apple. JS/Wasm/Android foram compilados; metadata não qualifica Apple. Studio local não instala rede e nenhum backend remoto, credencial, distribuição ou push foi usado. O provider URL antigo exige injeção explícita do host. Não há GET/POST implícito por renderização, retry instalado, cache, autenticação automática ou persistência de resposta; cache/versão e jornada são T11. T10 concluída nesse escopo; T11 pronta.

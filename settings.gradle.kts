@@ -21,6 +21,7 @@ include(":humming-studio-model")
 include(":humming-actions")
 include(":humming-navigation")
 include(":humming-layout-material3")
+include(":humming-network")
 
 include(":sample:composeApp")
 include(":sample:iosApp")
