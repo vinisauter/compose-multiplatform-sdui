@@ -4,6 +4,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.mutableStateMapOf
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
+import me.developes.humming.sdui.common.ErrorData
+import me.developes.humming.sdui.navigation.JourneyDefinitions
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -41,16 +46,27 @@ class Graph(
                 }
             }
         }
-    private val componentNodes: HashMap<String, ServerDrivenNode> = HashMap()
-    private suspend fun loadComponentNode(routeName: String, owner: SDUIFormViewModel = viewModel): ServerDrivenNode {
-        return componentNodes[routeName] ?: let {
+    private val componentNodes = mutableStateMapOf<String, ServerDrivenNode>()
+    private var definitions: JourneyDefinitions? = null
+
+    internal fun useDefinitions(definitions: JourneyDefinitions?) {
+        check(navController == null && componentNodes.isEmpty()) { "Journey identity must be set before mounting Graph" }
+        this.definitions = definitions
+    }
+
+    private suspend fun loadComponentNode(routeName: String, owner: SDUIFormViewModel = viewModel, reload: Boolean = false): ServerDrivenNode {
+        if (definitions == null && !reload) componentNodes[routeName]?.let { return it }
+        return let {
             val graphRouteNode = graphRoutes[routeName] ?: throw PayloadException(
                 graphNode.diagnostic("UNKNOWN_ROUTE", "Navigation route is not registered: $routeName", "navigate"))
             val nodeType = graphRouteNode.property("type")!!
             val destiny = graphRouteNode.property("destiny")!!
-            val provider = owner.loadNodeTypeProvider(nodeType) ?: throw PayloadException(
-                graphRouteNode.diagnostic("MISSING_PROVIDER", "Provider is not registered: $nodeType", "navigate"))
-            val componentNode = provider(destiny)
+            val componentNode = definitions?.load(routeName, nodeType, destiny) ?: run {
+                val provider = owner.loadNodeTypeProvider(nodeType) ?: throw PayloadException(
+                    graphRouteNode.diagnostic("MISSING_PROVIDER", "Provider is not registered: $nodeType", "navigate"))
+                provider(destiny)
+            }
+            currentCoroutineContext().ensureActive()
             componentNodes[routeName] = componentNode
             componentNode
         }
@@ -65,13 +81,14 @@ class Graph(
             composable("PreLoadContent") {
                 preLoadContent?.invoke()
                 LaunchedEffect(Unit) {
-                    loadComponentNode(startRouteDestination)
-                    navController.navigate(startRouteDestination) {
-                        popUpTo(0) {
-                            inclusive = true
+                    val task = viewModel.runTask(block = {
+                        loadComponentNode(startRouteDestination)
+                        navController.navigate(startRouteDestination) {
+                            popUpTo(0) { inclusive = true }
+                            launchSingleTop = true
                         }
-                        launchSingleTop = true
-                    }
+                    }, onError = { loadError(startRouteDestination, it) })
+                    try { task.join() } finally { task.cancel() }
                 }
             }
             graphRoutes.forEach { (routeName, routeNode) ->
@@ -87,13 +104,39 @@ class Graph(
                             viewModel.createScreenEntry(entry.id, viewModel.entryInputs(entry.id,routeName))
                         }
                     } else viewModel
-                    val node = componentNodes[routeName]!!
-                    val content = remember(owner,node) { owner.loadComponent(node) }
                     if (owner !== viewModel) LocalScreenFeedbackHandler.current(owner)
-                    content?.Content()
+                    val node = componentNodes[routeName]
+                    if (node == null) {
+                        preLoadContent?.invoke()
+                        LaunchedEffect(owner, routeName) {
+                            val task = owner.runTask(block = { loadComponentNode(routeName, owner) },
+                                onError = { loadError(routeName, it) })
+                            try { task.join() } finally { task.cancel() }
+                        }
+                    } else {
+                        val content = remember(owner, node) { owner.loadComponent(node) }
+                        content?.Content()
+                    }
                 }
             }
         }
+    }
+
+    private fun loadError(route: String, error: Throwable): ErrorData =
+        if (error is PayloadException) ErrorData.payload(error) else {
+            val node = graphRoutes[route] ?: graphNode
+            ErrorData.providerError(node.property("type") ?: "navigation").copy(
+                diagnostic = node.diagnostic("PROVIDER_ERROR", "Route definition could not be loaded: $route", "loadRoute"),
+                cause = error,
+            )
+        }
+
+    /** Host-triggered reload. Keeps the currently displayed definition until a validated replacement is ready. */
+    suspend fun reloadRoute(routeName: String, owner: SDUIFormViewModel = viewModel) {
+        val route = graphRoutes[routeName] ?: throw PayloadException(
+            graphNode.diagnostic("UNKNOWN_ROUTE", "Navigation route is not registered: $routeName", "reloadRoute"))
+        definitions?.invalidate(routeName, route.property("type")!!, route.property("destiny")!!)
+        loadComponentNode(routeName, owner, reload = true)
     }
 
     fun navigateBack() {

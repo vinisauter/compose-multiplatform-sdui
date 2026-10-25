@@ -7,10 +7,16 @@ import me.developes.humming.sdui.navigation.components.Graph
 class SDNavigation(
     private val preLoadView: (@Composable () -> Unit)? = null
 ) : SDLibrary("navigation") {
+    private var journeyDefinitions: JourneyDefinitions? = null
+
+    constructor(definitions: JourneyDefinitions, preLoadView: (@Composable () -> Unit)? = null) : this(preLoadView) {
+        this.journeyDefinitions = definitions
+    }
+
     init {
         NavigationDefinitions.all.forEach { addDefinition(it) }
         addComponent("graph") { graphNode, viewModel ->
-            val graph = Graph(graphNode, viewModel, preLoadView)
+            val graph = Graph(graphNode, viewModel, preLoadView).also { it.useDefinitions(journeyDefinitions) }
             addAction("goBack") { _, _ ->
                 graph.navigateBack()
             }
