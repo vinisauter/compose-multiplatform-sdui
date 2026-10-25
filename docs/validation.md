@@ -375,3 +375,11 @@ Para verificar o transporte opcional sem backend externo:
 ```
 
 Os testes usam MockEngine e um HttpServer JVM em 127.0.0.1 com porta efêmera, encerrado em finally. Executam GET/POST reais, JSON tipado, falhas, limites, timeout, cancelamento, concorrência e ramos da ação. O host dos testes fecha cliente e engine/executor quando é seu dono. Isso não comprova execução HTTP em browser, Android ou Apple; ver a evidência específica no estado atual.
+
+## Probe da bridge em Android
+
+O sample fornece um runner de instrumentação próprio, sem substituir execução em dispositivo por teste JVM. Descobrir assembleDebug/assembleDebugAndroidTest no módulo sample:composeApp antes de gerar APKs locais. Instalar app e APK de teste somente no emulador/dispositivo selecionado explicitamente; não usar serial implícito quando houver várias instâncias.
+
+Executar `adb -s SERIAL shell am instrument -w sample.app.androidApp.test/sample.app.NativeBridgeInstrumentation`. Aceite do probe: native.result=PASS, native.cases com real-uptime/argument-rejection/unavailable/version-rejection e INSTRUMENTATION_CODE=-1, além de native.hostRecreation=PASS. O runner compara o valor do adapter com chamadas reais de SystemClock.elapsedRealtime antes/depois; não usa JUnit e não deve ser contado como casos JVM. Falhas retornam native.result=FAIL e stacktrace.
+
+A entrada opt-in de UI Android é a Activity sample.app.AppActivity do pacote sample.app.androidApp com extra booleano nativeExample=true; ela usa o adapter real e lê uptime pelo evento onCreate registrado, além do botão de leitura. A entrada padrão permanece o sample existente. Conferir resultado/tela e recriação do formulário; chamadas e evidência por plataforma devem ser registradas somente no estado atual. Browser em ?native recebe um registro vazio explícito, sem acesso ao adapter Android. Testes Compose JVM de handlers de fixture validam UI/lifecycle, sem comprovar APIs nativas.

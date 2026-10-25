@@ -102,6 +102,7 @@ android {
         targetSdk = libs.versions.androidSdk.get().toInt()
         versionCode = 1
         versionName = "1.0.0"
+        testInstrumentationRunner = "sample.app.NativeBridgeInstrumentation"
     }
 
     compileOptions {

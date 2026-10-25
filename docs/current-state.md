@@ -2,20 +2,20 @@
 
 Este é o ponto de entrada para **continuar o desenvolvimento**. Reúne o estado observado, o rastreamento das etapas e a próxima ação. O [plano](development-plan.md) define dependências, escopo e critérios de aceite; este documento é a única fonte de status e retomada.
 
-Atualizado durante T11: cache versionado integrado opt-in, carga fria e recuperação. Suíte JVM: 52 contrato + 72 core + 4 ações + 95 autoria + 7 rede + 10 navegação + 41 sample = 281 casos, zero falhas/erros/ignorados. Transporte compilado para metadata/JS/Wasm/Android e executado em HTTP loopback JVM. Formulário observado no Chrome/Wasm. Compilação não comprova rede em browser/Android; Apple permanece sem execução.
+Atualizado após T12: jornada/cache opt-in e bridge nativa com prova Android. Suíte JVM: 52 contrato + 74 core + 4 ações + 95 autoria + 7 rede + 10 navegação + 44 sample = 286 casos, zero falhas/erros/ignorados. Transporte compilado para metadata/JS/Wasm/Android e executado em HTTP loopback JVM. Formulário observado no Chrome/Wasm. Compilação não comprova rede em browser/Android; Apple permanece sem execução.
 
 ## Ponto de retomada
 
 | Campo | Registro atual |
 | --- | --- |
-| Última atualização | 2026-10-24 — T09 em b388bc1 e commits anteriores; T10 com código/evidência abaixo; commits locais sem push |
-| Última entrega | T11: cache em 4333931; integração opt-in Graph com JourneyDefinitions e teste Compose de hit/TTL, descrita abaixo |
-| Tarefa de implementação em execução | T12 — Codex; protocolo/registro opt-in e capacidade local de uptime Android |
-| Próxima tarefa | **T12 — bridge de capacidades nativas** |
-| Próxima ação concreta | Inspecionar hosts Android/browser e ambiente de execução; implementar bridge opt-in registrada com resultado tipado, disponibilidade, cancelamento e capacidade local neutra |
-| Critério para avançar | Definição e dado personalizado separados; cache particionado por sessão/versão; recuperação e invalidação demonstradas sem refazer o isolamento já entregue |
-| Bloqueio de implementação conhecido | Nenhum para iniciar protocolo T12; execução Android deve ser verificada antes de prometer validação nativa |
-| Limite do próximo recorte | Navegação/cache do cliente; sem backend remoto, publicação, credenciais no payload ou mudanças de infraestrutura |
+| Última atualização | 2026-10-24 — T11 em cinco commits até 6fb9e0d; protocolo T12 em 8b74700 e integração abaixo; commits locais sem push |
+| Última entrega | T12: adapter Android real, fallback browser, lifecycle/recriação e probe no Small_API_35; 286 testes JVM |
+| Tarefa de implementação em execução | Nenhuma; T12 encerrada no escopo local qualificado abaixo |
+| Próxima tarefa | **T20 — aplicação de servidor e interfaces** |
+| Próxima ação concreta | Criar fronteira de aplicação sem Compose/driver para rascunho, validação e leitura; DTOs/política por tenant/documento e host HTTP local com framework escolhido por prova de build |
+| Critério para avançar | T20: casos de uso/autorização/entrada inválida/diagnósticos testados; interfaces sem Compose/driver e host local executado, sem declarar persistência durável |
+| Bloqueio de implementação conhecido | Nenhum para T20 local; banco real pertence à T21 e serviços/infraestrutura externos não estão autorizados implicitamente |
+| Limite do próximo recorte | Aplicação/host servidor local; sem deploy, banco remoto, credenciais versionadas ou integração implícita no Studio |
 
 ### Protocolo quando o pedido for “continue o desenvolvimento”
 
@@ -45,7 +45,7 @@ Estados: **pronta**, **pendente**, **em execução**, **bloqueada**, **concluíd
 | T09 | Propriedades reativas, tokens e validação | concluída | Codex: três componentes opt-in, envelopes 1, schema 2 para tokens/máscara, 258 testes JVM, metadata/JS/Wasm e Android visual compilados; texto/habilitação/visibilidade/ação observados Chrome; evidência e limites nos recortes T09 abaixo |
 | T10 | Transporte HTTP com ownership e resultado | concluída | Codex: 7 testes de rede JVM com MockEngine/HTTP loopback e ramos reais; matriz total 265 casos; metadata/JS/Wasm/Android compilados; ownership e exportação de supertipos públicos corrigidos; limites abaixo |
 | T11 | Jornada, navegação e cache versionado | concluída | Codex: cache opt-in, deep link frio, reload/retry, cancelamento, sessão e codec de definição; 281 testes JVM e exemplo Chrome/Wasm; políticas/limites no fechamento T11 abaixo |
-| T12 | Bridge de capacidades nativas | em execução | Codex: registro suspenso/resultado tipado, indisponibilidade e capacidade uptime; emulador configurado informado pelo usuário, execução ainda não comprovada |
+| T12 | Bridge de capacidades nativas | concluída | Codex: registro opt-in, uptime Android real/API35, rejeição/indisponibilidade, cancelamento e recriação; 286 testes JVM, probe com hostRecreation=PASS e tela observada; detalhes abaixo |
 | T13 | Documento autoral e importação/exportação | concluída | 21 testes autorais; 135 JVM no conjunto; metadata/JS/Wasm compilados; modelo, índices, codec canônico e ponte legada com diagnósticos |
 | T14 | Comandos, chaves de ordem e undo local | concluída | 158 testes JVM no conjunto, metadata/JS/Wasm compilados; midpoint, transações por CAS, inversas e undo/redo com limites e concorrência |
 | T15 | Compilador puro do subconjunto legado | concluída | 172 testes JVM aprovados; golden, capacidades, expansão limitada, ciclos e jornada compilada executada pelo renderer real; ver [validação](validation.md) |
@@ -53,7 +53,7 @@ Estados: **pronta**, **pendente**, **em execução**, **bloqueada**, **concluíd
 | T17 | Editor local e Inspector | concluída | Implementação 2d9d6eb; 183 testes JVM; importação/ação/downloads observados pelo agente e abertura manual/confirmado relatados pelo usuário em 2026-10-24; ver [validação](validation.md) |
 | T18 | Seleção, bounds e drop geométrico | concluída | 8a12ea0/04df7c0/75f50f6; 202 testes JVM; commit de drag no Chrome e guia confirmada manualmente pelo usuário em 2026-10-24; ver [validação](validation.md) |
 | T19 | Grafo de interações e conectores | concluída | Codex, 2026-10-24: 94 testes autorais + 30 sample; canvas usa bounds reais, cúbicas/setas/hit/zoom/Escape; relações/undo e jornadas exportadas executadas. Chrome observou ida/volta e seleção rosa; pacote com 3 artefatos verificado |
-| T20 | Aplicação de servidor e interfaces | pendente | Criar fronteiras/casos de uso/host local com autorização |
+| T20 | Aplicação de servidor e interfaces | pronta | Criar fronteiras/casos de uso/host HTTP local com autorização; depende de T06/T15 concluídas |
 | T21 | Rascunhos/revisões em PostgreSQL | pendente | Validar persistência/transações em banco real local |
 | T22 | Publicação imutável e capacidades | pendente | Publicar snapshot local compatível sem dados de sessão |
 | T23 | Resolução BFF e isolamento de dados | pendente | Resolver fontes registradas com limites e isolamento |
@@ -157,7 +157,7 @@ Essas limitações descrevem o código, não comportamentos que devam ser perpet
 
 Os builds principais declaram toolchain JVM **25** e compatibilidade Java Android **17**. O [catálogo](../gradle/libs.versions.toml) declara Kotlin `2.4.21`, Compose `1.8.2`, AGP `8.13.2`, Ktor `3.6.0` e Navigation `2.9.2`; aliases JVM/Spring usam Kotlin `2.2.10`. Esses valores não demonstram resolução dos artefatos ou compatibilidade entre versões.
 
-A referência agregada mais recente é 281 testes JVM após a jornada local da T11, sem falhas/erros/ignorados. As fixtures de parsing/limites pertencem ao commonTest do contrato; o teste headless comprova ausência de classes UI no classpath. Evidências incrementais estão nos recortes T09; procedimentos em [validação](validation.md).
+A referência agregada mais recente é 286 testes JVM após a bridge local da T12, sem falhas/erros/ignorados. As fixtures de parsing/limites pertencem ao commonTest do contrato; o teste headless comprova ausência de classes UI no classpath. Evidências incrementais estão nos recortes T09; procedimentos em [validação](validation.md).
 
 A dependência Lifecycle do core permanece api porque seu ViewModel aparece na API pública. O host JVM fornece handle de estado em memória por factory explícita; os outros hosts mantêm o caminho padrão. O contrato é exportado pelo core e usa bytecode JVM 17 com toolchain 25.
 
@@ -254,3 +254,17 @@ T11 concluída no escopo cliente sob demanda: definição/dados separados; ident
 Codex, 2026-10-24: NativeBridge/Request/Result/Handler em core/commonMain, registro copiado com nomes limitados, versão 1, input/output canônicos com orçamento e cancelamento no chamador. Sucesso, rejeição e indisponibilidade explícitos; falhas de programação propagadas. Nenhum acesso a plataforma/rede ou instalação no Studio/core por padrão.
 
 Executado: build/t12/bridge.log — 74 testes core JVM (dois novos grupos de casos), metadata/Wasm/Android core, BUILD SUCCESSFUL. Cobertura nova: sucesso tipado, registro não alterado externamente, rejeição de argumentos/versão/orçamento, registro vazio, cancelamento/cleanup e defeitos/resultado inválido. Integração sample e probe Android em andamento; isto não conclui T12. Usuário confirmou emulador configurado; Small_API_35 iniciado para teste em modo read-only, sem janela e sem salvar snapshot; Pixel_3a_API_34 do usuário preservado.
+
+### T12 — fechamento: bridge real no host Android e fallback browser
+
+Codex, 2026-10-24: AndroidNativeBridge registra device.uptime por SystemClock.elapsedRealtime, sem permissão/Activity. NativeCapabilityExample usa action:method registrado, resultados tipados e Store próprio descartável; readOnStart é opt-in e ativado apenas no perfil Android nativeExample=true. A entrada padrão permanece App. Wasm ?native recebe registro vazio explícito. Surface/safeDrawingPadding e estilo de barras corrigem contraste/insets observados no Android.
+
+Verificações: build/t12/final-platforms.log — sete módulos JVM, 286 casos (52/74/4/95/7/10/44), zero falhas/erros/ignorados, Wasm sample e APKs debug/instrumentação, BUILD SUCCESSFUL. Core metadata/Wasm/Android passou em bridge.log; host Android compilou e empacotou. Testes Compose adicionais validam sucesso tipado, fallback vazio, recriação limpando resultado/cancelando chamada pendente e onCreate explícito executando novamente no novo formulário. Handlers de fixture desses testes não são a prova nativa.
+
+Prova Android real: APKs locais instalados somente na instância de teste Small_API_35 (API35, emulator-5556, read-only). build/t12/final-device.log: native.result=PASS; real-uptime/argument-rejection/unavailable/version-rejection; native.hostRecreation=PASS após Activity.recreate com dois onCreate e ao menos um onDestroy; INSTRUMENTATION_CODE=-1. O probe não usa JUnit e não está contado nos 286 casos JVM. Nenhuma dependência nova de runner foi adicionada. NativeBridgeInstrumentation é o runner próprio deste recorte; procedimento em validation.md.
+
+Observação do APK final: Activity iniciada com nativeExample=true; onCreate passou pelo executor/adapter real e mostrou NATIVE_SUCCESS, uptime 1027567 ms, Surface legível e barras com contraste. Captura REA somente leitura em build/t12/android-verified/screen.png (720x1280, sha256 5112956e3b1eef05c98b59080a42b2809235be4f77aaaec2e44c4cdd553165d8). Chrome/Wasm ?native mostrou NATIVE_UNAVAILABLE ao clicar em Ler uptime; build/t12/browser-unavailable.png. Bundle final atualizado em final-browser-bundle.log. Screenshots/probes são artefatos locais ignorados, não versões de código.
+
+T12 concluída para a capacidade local escolhida, com callback suspenso, dados limitados, registro explícito, ausência/negação/cancelamento e recriação demonstrados. Não representa suporte a outras APIs/permissões, hardware físico ou Apple. Não houve backend, credenciais, publicação ou push. A instância Pixel_3a_API_34 preexistente não recebeu instalações nem comandos de parada. Próxima etapa T20 pronta: aplicação/host HTTP local; persistência durável somente T21 e sem mudanças remotas implícitas.
+
+Limpeza do recorte: a instância Small_API_35 de teste foi encerrada após confirmar sua identidade via ADB; sem salvar snapshot. Pixel_3a_API_34/emulator-5554 preservado. ADB não foi parado. O servidor loopback e as abas ?journey/?native permanecem disponíveis; não presumir serial de emulador ou sessão de terminal em uma nova retomada. Nenhum APK foi instalado na instância do usuário.
