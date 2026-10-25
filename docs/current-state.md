@@ -10,7 +10,7 @@ Atualizado durante T11: cache versionado integrado opt-in, carga fria e recupera
 | --- | --- |
 | Última atualização | 2026-10-24 — T09 em b388bc1 e commits anteriores; T10 com código/evidência abaixo; commits locais sem push |
 | Última entrega | T11: cache em 4333931; integração opt-in Graph com JourneyDefinitions e teste Compose de hit/TTL, descrita abaixo |
-| Tarefa de implementação em execução | Nenhuma; T11 encerrada no escopo cliente local abaixo |
+| Tarefa de implementação em execução | T12 — Codex; protocolo/registro opt-in e capacidade local de uptime Android |
 | Próxima tarefa | **T12 — bridge de capacidades nativas** |
 | Próxima ação concreta | Inspecionar hosts Android/browser e ambiente de execução; implementar bridge opt-in registrada com resultado tipado, disponibilidade, cancelamento e capacidade local neutra |
 | Critério para avançar | Definição e dado personalizado separados; cache particionado por sessão/versão; recuperação e invalidação demonstradas sem refazer o isolamento já entregue |
@@ -45,7 +45,7 @@ Estados: **pronta**, **pendente**, **em execução**, **bloqueada**, **concluíd
 | T09 | Propriedades reativas, tokens e validação | concluída | Codex: três componentes opt-in, envelopes 1, schema 2 para tokens/máscara, 258 testes JVM, metadata/JS/Wasm e Android visual compilados; texto/habilitação/visibilidade/ação observados Chrome; evidência e limites nos recortes T09 abaixo |
 | T10 | Transporte HTTP com ownership e resultado | concluída | Codex: 7 testes de rede JVM com MockEngine/HTTP loopback e ramos reais; matriz total 265 casos; metadata/JS/Wasm/Android compilados; ownership e exportação de supertipos públicos corrigidos; limites abaixo |
 | T11 | Jornada, navegação e cache versionado | concluída | Codex: cache opt-in, deep link frio, reload/retry, cancelamento, sessão e codec de definição; 281 testes JVM e exemplo Chrome/Wasm; políticas/limites no fechamento T11 abaixo |
-| T12 | Bridge de capacidades nativas | pronta | Iniciar protocolo/registro opt-in e qualificar capacidade local real no host Android, com fallback browser |
+| T12 | Bridge de capacidades nativas | em execução | Codex: registro suspenso/resultado tipado, indisponibilidade e capacidade uptime; emulador configurado informado pelo usuário, execução ainda não comprovada |
 | T13 | Documento autoral e importação/exportação | concluída | 21 testes autorais; 135 JVM no conjunto; metadata/JS/Wasm compilados; modelo, índices, codec canônico e ponte legada com diagnósticos |
 | T14 | Comandos, chaves de ordem e undo local | concluída | 158 testes JVM no conjunto, metadata/JS/Wasm compilados; midpoint, transações por CAS, inversas e undo/redo com limites e concorrência |
 | T15 | Compilador puro do subconjunto legado | concluída | 172 testes JVM aprovados; golden, capacidades, expansão limitada, ciclos e jornada compilada executada pelo renderer real; ver [validação](validation.md) |
@@ -248,3 +248,9 @@ Executado: VersionedJourneyExampleTest com Compose real — edição Ana, detalh
 Chrome/Wasm em http://127.0.0.1:8080/?journey: observado detalhe por link frio, restauração com fontes=0/restaurados=1, diálogo DEFINITION_UNAVAILABLE preservando formulário, recuperação com restaurados=2, troca para sessão 2 com fontes=1/restaurados=0 e métricas entradas=1/cargas=1/espera=1ms. Evidências locais ignoradas: build/t11/browser-reload-failure.png e browser-session-ready.png. Servidor de desenvolvimento em loopback; Studio na URL sem query continua como antes. Nenhuma publicação/push.
 
 T11 concluída no escopo cliente sob demanda: definição/dados separados; identidade fixa; TTL/LRU; cold link; erro/retry/reload; volta/entradas repetidas/cancelamento (incluindo evidência T07); troca de sessão e snapshot incompatível/expirado rejeitado. Política de restauração: apenas definição validada, início novo, sem dados/pilha de processo; storage e confiança pertencem ao host. EAGER/PREFETCH não habilitadas. Rede real tem evidência JVM na T10, sem nova qualificação de rede browser/Android. T12 fica pronta; implantação, persistência remota e targets Apple permanecem fora deste fechamento.
+
+### T12 — primeiro recorte: protocolo de capacidades registrado
+
+Codex, 2026-10-24: NativeBridge/Request/Result/Handler em core/commonMain, registro copiado com nomes limitados, versão 1, input/output canônicos com orçamento e cancelamento no chamador. Sucesso, rejeição e indisponibilidade explícitos; falhas de programação propagadas. Nenhum acesso a plataforma/rede ou instalação no Studio/core por padrão.
+
+Executado: build/t12/bridge.log — 74 testes core JVM (dois novos grupos de casos), metadata/Wasm/Android core, BUILD SUCCESSFUL. Cobertura nova: sucesso tipado, registro não alterado externamente, rejeição de argumentos/versão/orçamento, registro vazio, cancelamento/cleanup e defeitos/resultado inválido. Integração sample e probe Android em andamento; isto não conclui T12. Usuário confirmou emulador configurado; Small_API_35 iniciado para teste em modo read-only, sem janela e sem salvar snapshot; Pixel_3a_API_34 do usuário preservado.
