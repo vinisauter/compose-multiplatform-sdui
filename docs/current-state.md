@@ -2,7 +2,7 @@
 
 Este é o ponto de entrada para **continuar o desenvolvimento**. Reúne o estado observado, o rastreamento das etapas e a próxima ação. O [plano](development-plan.md) define dependências, escopo e critérios de aceite; este documento é a única fonte de status e retomada.
 
-Atualizado durante T11: cache versionado integrado opt-in, carga fria e recuperação. Suíte JVM: 52 contrato + 72 core + 4 ações + 95 autoria + 7 rede + 7 navegação + 39 sample = 276 casos, zero falhas/erros/ignorados. Transporte compilado para metadata/JS/Wasm/Android e executado em HTTP loopback JVM. Formulário observado no Chrome/Wasm. Compilação não comprova rede em browser/Android; Apple permanece sem execução.
+Atualizado durante T11: cache versionado integrado opt-in, carga fria e recuperação. Suíte JVM: 52 contrato + 72 core + 4 ações + 95 autoria + 7 rede + 7 navegação + 40 sample = 277 casos, zero falhas/erros/ignorados. Transporte compilado para metadata/JS/Wasm/Android e executado em HTTP loopback JVM. Formulário observado no Chrome/Wasm. Compilação não comprova rede em browser/Android; Apple permanece sem execução.
 
 ## Ponto de retomada
 
@@ -12,7 +12,7 @@ Atualizado durante T11: cache versionado integrado opt-in, carga fria e recupera
 | Última entrega | T11: cache em 4333931; integração opt-in Graph com JourneyDefinitions e teste Compose de hit/TTL, descrita abaixo |
 | Tarefa de implementação em execução | T11 — Codex; integração opt-in do cache no Graph, carga de rota e testes Compose |
 | Próxima tarefa | **T11 — jornada, navegação e cache versionado** |
-| Próxima ação concreta | Qualificar troca de sessão com descarte dos owners e cancelamento, definir/restaurar snapshot versionado sem dados personalizados e acrescentar fluxo demonstrável no sample |
+| Próxima ação concreta | Definir codec/restauração de snapshot versionado sem dados personalizados e acrescentar fluxo demonstrável no sample |
 | Critério para avançar | Definição e dado personalizado separados; cache particionado por sessão/versão; recuperação e invalidação demonstradas sem refazer o isolamento já entregue |
 | Bloqueio de implementação conhecido | Nenhum para iniciar T11 local; fixtures e servidor loopback não dependem de backend remoto |
 | Limite do próximo recorte | Navegação/cache do cliente; sem backend remoto, publicação, credenciais no payload ou mudanças de infraestrutura |
@@ -44,7 +44,7 @@ Estados: **pronta**, **pendente**, **em execução**, **bloqueada**, **concluíd
 | T08 | Linguagem de expressões limitada | concluída | Codex, 2026-10-24: 10 testes novos da linguagem; 43 contrato/242 JVM no conjunto; grammar/versão, escopos, precedência, curto-circuito, tipos, números/índices inválidos, limites e cancelamento. Metadata/JS/Wasm compilados; sem integração UI |
 | T09 | Propriedades reativas, tokens e validação | concluída | Codex: três componentes opt-in, envelopes 1, schema 2 para tokens/máscara, 258 testes JVM, metadata/JS/Wasm e Android visual compilados; texto/habilitação/visibilidade/ação observados Chrome; evidência e limites nos recortes T09 abaixo |
 | T10 | Transporte HTTP com ownership e resultado | concluída | Codex: 7 testes de rede JVM com MockEngine/HTTP loopback e ramos reais; matriz total 265 casos; metadata/JS/Wasm/Android compilados; ownership e exportação de supertipos públicos corrigidos; limites abaixo |
-| T11 | Jornada, navegação e cache versionado | em execução | Codex: cache integrado opt-in ao Graph; 7 testes navegação e 36 sample JVM; deep link real/recuperação/reload/cancelamento qualificados em JVM; logout e restauração ainda exigem implementação/qualificação |
+| T11 | Jornada, navegação e cache versionado | em execução | Codex: cache integrado opt-in ao Graph; 7 testes navegação e 36 sample JVM; deep link real/recuperação/reload/cancelamento qualificados em JVM; troca de sessão do host qualificada em JVM; restauração e exemplo interativo ainda pendentes |
 | T12 | Bridge de capacidades nativas | pendente | Capacidade real no host e não suporte explícito nos demais |
 | T13 | Documento autoral e importação/exportação | concluída | 21 testes autorais; 135 JVM no conjunto; metadata/JS/Wasm compilados; modelo, índices, codec canônico e ponte legada com diagnósticos |
 | T14 | Comandos, chaves de ordem e undo local | concluída | 158 testes JVM no conjunto, metadata/JS/Wasm compilados; midpoint, transações por CAS, inversas e undo/redo com limites e concorrência |
@@ -226,3 +226,9 @@ Codex, 2026-10-24: Graph recebe diretamente JourneyDefinitions por overload para
 Executado: build/t11/cold-focused.log, três testes aprovados. build/t11/cold-final.log, sete módulos JVM e Wasm sample, BUILD SUCCESSFUL; total 276 casos (52/72/4/95/7/7/39), zero falhas/erros/ignorados. Metadata/Wasm/Android navegação compilaram em build/t11/cold-load.log, cuja primeira execução de testes falhou apenas por assertSame ignorar o wrapper de recuperação de stacktrace das coroutines; teste corrigido para verificar a exceção original na cadeia de causas. Nenhuma atualização de dependências. git diff --check aprovado.
 
 Limites: deep link é entrada da API do host, sem integração de URL com SO/browser; teste usa Compose JVM, sem nova observação Chrome. Retry/reload são decisões do host, sem ação nova de payload, botão automático ou persistência. Falta demonstrar troca de sessão descartando owners e definir restauração compatível; T11 continua em execução.
+
+### T11 — fronteira de troca de sessão no host
+
+Codex, 2026-10-24: teste JourneySessionTest com HummingSDUI, Compose Navigation e modo ISOLATED_ENTRIES reais. O host desmonta a jornada, destrói/limpa ViewModelStore, invalida sessão a e só então monta sessão b com novo owner/identidade. Campo editado e inputs de a são limpos, tarefa suspensa da entrada é cancelada, Graph descartado recusa deep link, b inicia com campo inicial/input próprio e o cache mantém apenas sua definição. A mesma fonte declarativa é carregada em ambas as partições; nenhum dado de tela é serializado.
+
+Executado: build/t11/session-focused.log, teste novo aprovado. Regressão completa do sample em build/t11/session-final.log: 40 casos JVM, zero falhas/erros/ignorados, BUILD SUCCESSFUL. Outros módulos mantêm a última evidência do recorte anterior. Não há logout automático no core nem obrigação de usar backend; o protocolo de lifecycle pertence ao host e está descrito no contrato. Restauração persistida e exemplo interativo de jornada ainda pendentes; não concluir T11.
