@@ -155,6 +155,7 @@ fun LocalStudio(files: StudioFiles? = null, workspace: LocalWorkspace = remember
             FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 OutlinedButton(enabled = workspace.remoteEditor == null, onClick = { jsonText = ""; jsonDialog = true }) { Text("Importar JSON") }
                 OutlinedButton(enabled = workspace.remoteEditor == null, onClick = { requestReplace { replaced(workspace.importContract(DROP_EXAMPLE)) } }) { Text("Exemplo de arraste") }
+                OutlinedButton(enabled = workspace.remoteEditor == null, onClick = { requestReplace { replaced(workspace.importContract(MATERIAL3_EXAMPLE)) } }) { Text("Exemplo Material 3") }
                 OutlinedButton(enabled = workspace.remoteEditor == null, onClick = { requestReplace {
                     replaced(workspace.openAuthoring(AuthoringDocumentCodec(workspace.catalog).encode(journeyExample()).requireValue()))
                 } }) { Text("Exemplo de navegação") }

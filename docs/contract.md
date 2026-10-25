@@ -88,7 +88,7 @@ Exemplo mínimo do formato legado a caracterizar e usar no fluxo local:
 }
 ```
 
-Este exemplo ilustra a estrutura. T00 executou um payload local equivalente em forma de campo/binding/ação pelo catálogo, e T01 caracterizou eventos objeto/array e separação de conteúdo/ação. Isso não significa que cada exemplo deste documento foi executado literalmente. O subconjunto com schema está inventariado abaixo; os demais componentes mantêm o caminho legado e não são declarados editáveis. Exemplos com integrações ausentes não são testes de aceitação.
+Este exemplo ilustra a estrutura. T00 executou um payload local equivalente em forma de campo/binding/ação pelo catálogo, e T01 caracterizou eventos objeto/array e separação de conteúdo/ação. Isso não significa que cada exemplo deste documento foi executado literalmente. O catálogo inicial com schema está inventariado abaixo, e sua ampliação no inventário Material 3. image, animatedVisibility e style conservam o caminho legado fora do subconjunto autoral. Exemplos com integrações ausentes não são testes de aceitação.
 
 ## Schemas do catálogo inicial
 
@@ -102,7 +102,7 @@ Este exemplo ilustra a estrutura. T00 executou um payload local equivalente em f
 | `action:update`, `method`, `ifState`, `then`; componente `action:event` | [ActionDefinitions](../humming-contract/src/commonMain/kotlin/me/developes/humming/sdui/action/ActionDefinitions.kt) |
 | `navigation:graph`, `node`, `goTo`, `goBack` | [NavigationDefinitions](../humming-contract/src/commonMain/kotlin/me/developes/humming/sdui/navigation/NavigationDefinitions.kt) |
 
-São 18 definições: as 15 originais e reactiveButton na versão 1; reactiveText e validatedTextField na versão 2, com tokens declarados. `parse(node)` produz `ParsedNodeProperties`: strings originais, diagnóstico por campo e `requireValid()` para rejeitar erros. Os adapters modelados usam esse parser; conversões finais para tipos Compose permanecem no catálogo visual. Defaults informam o Inspector, sem serem injetados no payload: ausência, string vazia e valor explícito continuam distintos. FontWeight.Normal, estado TextField_<id>, limites derivados da máscara e scroll por presença possuem descrição explícita em vez de um default wire inventado. O parser é compartilhável por código; não há exportação JSON Schema entregue.
+O subconjunto original tinha 18 definições: as 15 originais e reactiveButton na versão 1; reactiveText e validatedTextField na versão 2, com tokens declarados. `parse(node)` produz `ParsedNodeProperties`: strings originais, diagnóstico por campo e `requireValid()` para rejeitar erros. Os adapters modelados usam esse parser; conversões finais para tipos Compose permanecem no catálogo visual. Defaults informam o Inspector, sem serem injetados no payload: ausência, string vazia e valor explícito continuam distintos. FontWeight.Normal, estado TextField_<id>, limites derivados da máscara e scroll por presença possuem descrição explícita em vez de um default wire inventado. O parser é compartilhável por código; não há exportação JSON Schema entregue.
 
 ### Validação e compatibilidade
 
@@ -399,3 +399,7 @@ POST /presence e /presence/leave exigem READ+EDIT; actor vem da autenticação. 
 POST /undo exige READ+EDIT e RemoteUndoCommand(commandId,expectedRevision,undoOfCommandId). Revisão esperada usa CAS; commandId estável admite replay. Somente autor original pode desfazer edição ainda não desfeita. Todos os nós/arestas afetados precisam coincidir integralmente com sua postimagem original; inversa precisa formar documento válido. UNDO_CONFLICT retorna 409 sem mutação. Compensação, vínculo, evento e recibo são atômicos; undo de undo não é suportado.
 
 Checkpoint v2 guarda pendingUndo opcional, mutuamente exclusivo com edição pendente. Intenção é persistida antes da chamada; falha/perda de resposta mantém o mesmo comando para retry. Enquanto existe undo pendente, novas edições são bloqueadas. Ack reconhece appliedRevision original e pode adotar snapshot atual mais novo, pois não há edição otimista concorrente nesse estado. Conflito exige resolução explícita com arquivo de recuperação.
+
+## Extensão do catálogo Material 3
+
+LayoutDefinitions agrega Material3Definitions e LegacyMaterial3Definitions sem dependência Compose. A extensão preserva os schemas anteriores e acrescenta nomes/slots/eventos descritos no [inventário Material 3](material3.md). stateKey, endStateKey e expandedStateKey são chaves literais. Variantes Material reais usam materialTextButton/materialOutlinedButton/materialIconButton para preservar os três wrappers legados. Consultar o inventário para receivers, defaults, faixas e fallback; a qualificação pertence ao estado atual.

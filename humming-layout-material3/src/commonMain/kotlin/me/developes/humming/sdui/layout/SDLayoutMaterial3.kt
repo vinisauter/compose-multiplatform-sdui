@@ -46,7 +46,9 @@ class SDLayoutMaterial3 : SDLibrary("layout") {
             "topAppBar" -> return { node, viewModel -> SDCTopAppBar(node, viewModel) }
             "divider" -> return { node, viewModel -> SDCDivider(node, viewModel) }
             "style" -> return { node, viewModel -> SDCStyle(node, viewModel) }
-            else -> null
+            else -> if (name in Material3Definitions.names) { node, viewModel ->
+                me.developes.humming.sdui.layout.components.SDCMaterial3(node, viewModel)
+            } else null
         }
     }
 }

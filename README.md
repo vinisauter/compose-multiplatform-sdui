@@ -40,6 +40,10 @@ O modo local carrega uma tela de formulário sem rede. O teste verifica edição
 
 Abrir http://127.0.0.1:8080 para o Studio: selecionar pela árvore, editar propriedades por schema, inserir/remover/ordenar, desfazer/refazer, importar JSON, salvar documento e exportar contrato. O preview executa somente capacidades locais. Exemplo de arraste + Modo edição habilitam seleção e movimentação entre containers; há zoom/pan, guia de inserção e cancelamento por Escape. O aceite visual desse recorte está no estado atual. Abrir documento usa o seletor do navegador; downloads exigem preservação pelo usuário. O modo anterior de fixture está em http://127.0.0.1:8080/?preview. Veja o [guia do Studio](docs/studio.md) e a [validação](docs/validation.md) para limites.
 
+## Catálogo Material 3
+
+No Studio, abra **Exemplo Material 3** para experimentar os controles locais e editar o documento. Consulte o [inventário de componentes](docs/material3.md) para nomes wire, propriedades, estado, eventos, slots e compatibilidade com os wrappers legados.
+
 ## Consumir o contrato sem UI
 
 Use humming-contract para parsing, schemas e serialização sem Compose/Lifecycle. O runtime humming-core o exporta para os consumidores existentes. Para verificar a fronteira headless:

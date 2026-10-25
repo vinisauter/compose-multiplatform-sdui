@@ -269,3 +269,10 @@ Esta trilha pode avançar em paralelo à autoria local. Cada novo formato exige 
 ## Início concreto
 
 A sequência começa por T00, sem alteração estrutural preventiva: inventariar o ambiente, descobrir tarefas, reproduzir bloqueios e executar um fluxo local mínimo. T01 configura testes úteis, T02 melhora diagnóstico, T03 corrige a execução e T04 fecha lifecycle. Só depois o catálogo recebe schemas e alimenta a autoria. O próximo trabalho efetivo é sempre o registrado no ponto de retomada do estado atual. Essa ordem reduz a chance de o editor reproduzir defeitos do runtime e mantém entregas demonstráveis ao longo do desenvolvimento.
+
+## T27 — catálogo Material 3
+
+- Dependências: T05, T09, T17; reabre T26 para componentes novos.
+- Entradas: API Material 3 efetivamente resolvida, handlers layout, schemas puros e Studio.
+- Trabalho: inventariar famílias visuais públicas da versão resolvida, acrescentar handlers e schemas sem alterar os wrappers legados; conectar estado/eventos, slots e escopos de containers; documentar APIs auxiliares e limites.
+- Aceite: inventário API → wire → propriedades/slots; registro coerente com schema, validação de payloads, testes de UI com mudanças de estado/eventos e containers; compilação JVM/Android/Wasm. Sem upgrade de dependências ou promessa de paridade com versões futuras.

@@ -2,20 +2,20 @@
 
 Este é o ponto de entrada para **continuar o desenvolvimento**. Reúne o estado observado, o rastreamento das etapas e a próxima ação. O [plano](development-plan.md) define dependências, escopo e critérios de aceite; este documento é a única fonte de status e retomada.
 
-Atualizado após T26 no recorte local: colaboração desktop opt-in com journal transacional, replay, presença e undo conservador. Relatórios: 327 JVM regulares + 15 integrações reais, sem falhas/erros/ignorados. Studio browser permanece local; sem deploy público.
+Atualizado após T27: catálogo Material 3 1.8.2 ampliado com 92 adapters e 7 schemas legados, galeria editável e auditoria reproduzível. Relatórios: 341 JVM regulares + 15 integrações reais, sem falhas/erros/ignorados. Metadata, Android e Wasm compilados; UI nova exercitada em Compose/JVM. Sem deploy público.
 
 ## Ponto de retomada
 
 | Campo | Registro atual |
 | --- | --- |
 | Última atualização | 2026-10-25; T25 em 6e3a1ae; T20–T24 em 42d6de8, dc51068, 4cdf7bc, 2f67dd9, 277ad71 e 681f91e; commits locais sem push |
-| Última entrega | T26: matriz local, CI sem distribuição, APK debug e bundle Wasm; 342 casos no conjunto T25 |
-| Tarefa de implementação em execução | Nenhuma; T00–T25 e qualificação T26 do recorte local concluídos |
-| Próxima tarefa | Próximo recorte deve reabrir T26 conforme target/funcionalidade escolhido; sem implementação obrigatória restante no plano local |
-| Próxima ação concreta | Inspecionar manualmente o modo desktop remoto em ambiente configurado; para Apple obter host compatível; CI remota só após autorização de push |
+| Última entrega | T27: famílias visuais públicas Material 3 resolvido, galeria, schemas, auditoria e 356 casos no conjunto |
+| Tarefa de implementação em execução | Nenhuma; T27 concluída no recorte descrito abaixo |
+| Próxima tarefa | T26 para observação dos componentes novos em Android/browser, caso esses targets sejam anunciados; demais gates da matriz permanecem |
+| Próxima ação concreta | Abrir Exemplo Material 3 no Studio para QA browser; executar fluxo Android em ambiente compatível; não confundir compile com execução |
 | Critério para avançar | Novo recorte deve definir aceite e evidência; não anunciar browser remoto/Apple nem distribuição a partir desta conclusão local |
 | Bloqueio de implementação conhecido | Nenhum para qualificação local JVM/Android/Wasm; Apple exige host compatível |
-| Limite do próximo recorte | Validação e CI local; sem deploy, push, distribuição ou credenciais versionadas |
+| Limite do próximo recorte | Qualificação local dos componentes; preservar wrappers legados e versão resolvida; sem push/distribuição |
 
 ### Protocolo quando o pedido for “continue o desenvolvimento”
 
@@ -60,6 +60,7 @@ Estados: **pronta**, **pendente**, **em execução**, **bloqueada**, **concluíd
 | T24 | Edição remota com revisão e recuperação | concluída | Codex: desktop opt-in, Inspector com HTTP/arquivo/PostgreSQL, replay/perda de ack e conflito arquivado; limites/qualificação abaixo |
 | T25 | Múltiplos editores e conflitos | concluída | Journal/replay, dois hosts/controllers, presença e undo guardado; 342 casos; evidência abaixo |
 | T26 | Qualificação por plataforma e recorte | concluída | Somente recorte local identificado na matriz abaixo; Android/Wasm compilados, CI configurada sem execução remota; demais gates explícitos |
+| T27 | Catálogo Compose Material 3 | concluída | 92 adapters novos, 7 schemas legados, 341 JVM + 15 integrações; metadata/Android/Wasm; limites abaixo |
 
 Os requisitos completos e a ordem das dependências estão no [plano](development-plan.md). A numeração identifica tarefas; não significa executar T07–T12 antes de T13–T19. A prioridade inicial é base → schemas/fronteira → autoria local → manipulação visual; capacidades adicionais do cliente podem avançar em paralelo quando elegíveis.
 
@@ -361,3 +362,17 @@ Avisos observados: namespaces Android compartilhados entre bibliotecas e avisos 
 Fechamento T26 em 2026-10-25, responsável Codex: .\gradlew.bat :sample:composeApp:tasks --all (build/t26-tasks.log) descobriu as tarefas; .\gradlew.bat :sample:composeApp:assembleDebug :sample:composeApp:wasmJsBrowserDistribution --console=plain (build/t26-platform-build.log) terminou BUILD SUCCESSFUL em 5m34s, 217 tarefas. Artefatos locais: sample/composeApp/build/outputs/apk/debug/composeApp-debug.apk e sample/composeApp/build/dist/wasmJs/productionExecutable/index.html com JS/Wasm. Não instalados/publicados neste recorte. Webpack avisou sobre tamanho do bundle; Gradle reportou deprecações incompatíveis com Gradle 10. Não houve atualização de dependências.
 
 CI consolidada em build-release.yml: Windows/JDK25/wrapper, dez jvmTest e metadata/Wasm; dois workflows obsoletos de distribuição removidos. YAML analisado com PyYAML/BaseLoader, permissões read e estrutura conferidas. Links locais revisados sem alvos ausentes; git diff --check passou. Configuração CI não foi executada remotamente. Não restam tarefas obrigatórias de implementação no plano local atual. Gates fora desse recorte: execução manual do composition root remoto, processos cliente independentes/carga, CI remota, Apple e eventual adapter remoto browser/Android. Abrir um desses escopos exige registrar tarefa/aceite e reabrir a qualificação; não reiniciar T00–T25.
+
+## Fechamento T27 — catálogo Material 3 — 2026-10-25
+
+Inspeção inicial: 19 handlers layout, somente 9 schemas; compose.material3 resolve 1.8.2 (build/material3-inventory.log). Entrada material3=1.13.0-alpha02 do catálogo não é utilizada por compose.material3. Preservar wrappers textButton/outlinedButton/iconButton legados; expor equivalentes Material reais com nomes explícitos, sem migração visual silenciosa.
+
+Resultado: 111 handlers layout / 108 schemas (117 definições no catálogo inicial completo). As três extensões image/animatedVisibility/style conservam dispatch legado fora da autoria. Auditoria dos sources resolvidos: 100 nomes públicos composables top-level, todas as 98 famílias visuais cobertas; MaterialTheme/ProvideTextStyle são configuração, e ExposedDropdownMenu é membro adicional coberto. Não se promete paridade de todos os overloads/parâmetros Kotlin. ExpressiveNavigationBar é interno nessa versão e foi excluído após inspeção, sem acesso por reflexão. Inventário e política em material3.md, indexado no README da documentação.
+
+Schemas puros e adapters separados em controles, estrutura, overlays e seletores/gestos. Seleção sem chave explícita preserva estado automático, coberto por teste de rádio. Estado no owner antes do evento; callbacks combinados em sequência única; seleção/receivers verdadeiros, menu ancorado, data UTC, hora controlada e FAB desabilitado acessível. Adicionado Exemplo Material 3 ao Studio; importação/compilação do documento e execução de Salvar testadas. Wrappers textButton/outlinedButton/iconButton preservados; variantes Material exatas com prefixo material nos três nomes. Scaffold recebe slots snackbarHost/floatingActionButton.
+
+Evidência: build/material3-api-audit.log (scripts/audit-material3.py contra sources 1.8.2: nenhuma família visual ausente); build/material3-final-regression.log, BUILD SUCCESSFUL, dez jvmTest e metadata/Wasm/Android Material + Wasm sample. build/material3-final-platform.log, BUILD SUCCESSFUL após revisão final: sample 60 casos, metadata/Android/Wasm do módulo e Wasm do sample. Relatórios atuais: contrato 54, core 74, ações 4, modelo 110, rede 7, navegação 10, aplicação 13, host 8, PostgreSQL 1, sample 60 = 341 regulares; sem falhas/erros/ignorados. São 2 casos novos de contrato, 11 de UI e 1 de compatibilidade/compilação do exemplo. Asserções cobrem receivers, estados, ações, remount/descartes, UTC/hora externa, menu exposto, intervalo e disabled.
+
+.\scripts\verify-postgres.ps1 -PublishedClient: build/material3-postgres.log e build/t21/{integration,after-restart,restart}.log, BUILD SUCCESSFUL antes/depois do restart, 17 registros preservados. 8 PostgreSQL + 2 HTTP + 5 publicação/controller/Compose = 15 integrações; zero falhas/erros/ignorados; fixture própria humming-t21-4bebf631f175 parada no finally. Total 356 casos distintos. Nenhum segredo versionado ou publicação/push.
+
+Captura sample/composeApp/build/reports/material3-gallery.png inspecionada: card, campo Ana, checkbox marcado, switch, slider/progresso, chips, abas e Salvo legíveis em Surface Material. Teste automatizado JVM, sem alegar nova inspeção manual browser/Android/Apple. O smoke monta os 92 adapters, mas não equivale a inspeção visual de cada popup aberto em cada plataforma. Fontes não atualizadas; avisos preexistentes de Kotlin/Skiko/deprecações permanecem. Uma falha incremental Wasm recuperou por fallback de recompilação; builds finais passaram sem alteração de dependências. Falhas intermediárias de matcher de data/hora foram corrigidas usando semântica da API, e a retenção real de TextFieldValue do TimeInput recebeu correção com teste externo. Links locais e diff revisados. Próximo gate é QA de runtime dos componentes novos nos demais targets, não reconstruir o catálogo.

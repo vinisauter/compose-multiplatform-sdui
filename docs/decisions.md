@@ -251,3 +251,7 @@ A revisão e o journal pertencem ao PostgreSQL; duas instâncias não dependem d
 ## CI do recorte local
 
 Manter um workflow de validação com o wrapper do repositório e JDK 25, sem Gradle 7.2 externo ou módulo androidApp inexistente. Retirar definições antigas de distribuição Firebase: não há fluxo de assinatura/publicação qualificado. O runner verifica JVM e compilação Wasm; PostgreSQL, Android e Apple exigem seus próprios ambientes e provas. Não confundir configuração de CI com execução remota comprovada.
+
+## Catálogo Material 3 da dependência resolvida
+
+A ampliação usa 1.8.2 efetivamente resolvido por compose.material3, sem conectar por engano a entrada não utilizada do catálogo. Famílias visuais públicas recebem handlers no módulo visual e metadados no contrato puro. Wrappers legados de botão mantêm aparência e nomes; variantes Material reais têm nomes explícitos. Receivers são fornecidos pelos pais com CompositionLocal e diagnósticos locais quando ausentes. APIs internas Expressive não são reconstruídas; helpers de tema/defaults não se tornam nós artificiais. TimeInput remonta seu subtree apenas para mudança externa porque a API 1.8.2 guarda TextFieldValue inicial. Inventário e regras em material3.md; estado/evidências em current-state.md.

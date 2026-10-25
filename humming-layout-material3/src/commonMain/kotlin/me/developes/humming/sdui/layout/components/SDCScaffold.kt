@@ -59,7 +59,9 @@ class SDCScaffold(
     override fun Content() {
         Scaffold(
             topBar = { loadTopBar.invoke() },
-            bottomBar = { loadBottomBar.invoke() }
+            bottomBar = { loadBottomBar.invoke() },
+            snackbarHost = { node.propertyNodes("snackbarHost").forEach { viewModel.loadComponent(it)?.Content() } },
+            floatingActionButton = { node.propertyNodes("floatingActionButton").forEach { viewModel.loadComponent(it)?.Content() } },
         ) { innerPadding ->
             Column(
                 modifier = modifier

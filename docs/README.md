@@ -25,6 +25,10 @@ Este é o índice de entrada para desenvolvedores e agentes de IA. A documentaç
 
 O [README do projeto](../README.md) é a apresentação resumida. `AGENTS.md` é a entrada operacional. Evite criar outra versão de arquitetura, roadmap ou prompts mestres com instruções concorrentes.
 
+## Catálogos especializados
+
+- [Compose Material 3](material3.md): inventário API → wire, estado, eventos, slots e compatibilidade dos componentes.
+
 ## Autoridade e status
 
 Instruções do usuário delimitam o trabalho; `AGENTS.md` orienta sua execução. O código, os builds e resultados executados demonstram o estado implementado. O contrato registra compatibilidade, enquanto arquitetura e Studio descrevem também soluções planejadas, identificadas como tais. O documento de estado atual é a única fonte de status e retomada; o plano define o trabalho e seus gates. Uma divergência deve ser resolvida com inspeção do código e registro no documento responsável, sem converter defeitos em requisitos.

@@ -19,8 +19,17 @@ import kotlin.test.assertTrue
 class CatalogCompatibilityTest {
     private val catalog = NodeCatalog(SDLayoutMaterial3().definitions + SDActions().definitions + SDNavigation().definitions)
 
+    @Test fun materialGalleryIsEditableAndCompilesWithRegisteredHandlers() {
+        val workspace = me.developes.humming.sdui.studio.LocalWorkspace()
+        workspace.importContract(MATERIAL3_EXAMPLE).requireValue()
+        val compiled = workspace.compile().requireValue()
+        assertTrue(compiled.artifacts.values.single().contains("layout:outlinedTextField"))
+        val library = SDLayoutMaterial3()
+        library.definitions.forEach { assertTrue(library.getComponent(it.identifier.substringAfter(':')) != null, it.identifier) }
+    }
+
     @Test fun initialCapabilitiesAreVersionedAndUnmodeledRenderersStayOutsideTheEditableSubset() {
-        assertEquals(18, catalog.capabilities.size)
+        assertEquals(18 + me.developes.humming.sdui.layout.Material3Definitions.all.size + me.developes.humming.sdui.layout.LegacyMaterial3Definitions.all.size, catalog.capabilities.size)
         assertEquals(2, catalog.capabilities["layout:reactiveText"])
         assertEquals(2, catalog.capabilities["layout:validatedTextField"])
         assertTrue(catalog.capabilities.filterKeys { it !in setOf("layout:reactiveText", "layout:validatedTextField") }.values.all { it == 1 })

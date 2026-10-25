@@ -101,5 +101,5 @@ object LayoutDefinitions {
         PropertyDefinition("maskToken", PropertyKind.MASK_TOKEN),
     )).copy(version = 2)
 
-    val all: List<NodeDefinition> = listOf(text, textField, button, row, column, box, reactiveText, reactiveButton, validatedTextField)
+    val all: List<NodeDefinition> by lazy { listOf(text, textField, button, row, column, box, reactiveText, reactiveButton, validatedTextField) + Material3Definitions.all + LegacyMaterial3Definitions.all }
 }
