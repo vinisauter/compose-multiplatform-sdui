@@ -16,6 +16,7 @@ sealed interface DraftEditResult {
 interface RevisionedDraftRepository : DraftRepository {
     /** Atomically checks revision, applies and stores canonical command receipt with the new source. */
     suspend fun edit(key: DocumentKey, canonicalCommand: String): DraftEditResult
+    suspend fun editAs(key: DocumentKey, canonicalCommand: String, actorId: String): DraftEditResult = edit(key, canonicalCommand)
 }
 class DraftEditingApplication(private val repository: RevisionedDraftRepository, private val authorizer: DocumentAuthorizer) {
     private val json = Json { encodeDefaults = true; classDiscriminator = "operationType" }
@@ -38,6 +39,6 @@ class DraftEditingApplication(private val repository: RevisionedDraftRepository,
                 "COMMAND_JSON", "Invalid command structure", "editDraft", documentId = key.document)))
         }
         currentCoroutineContext().ensureActive()
-        return repository.edit(key, canonical)
+        return repository.editAs(key, canonical, actor.id)
     }
 }

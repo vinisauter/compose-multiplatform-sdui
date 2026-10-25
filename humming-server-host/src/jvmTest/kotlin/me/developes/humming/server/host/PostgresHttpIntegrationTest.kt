@@ -13,6 +13,69 @@ import java.util.UUID
 import kotlin.test.*
 
 class PostgresHttpIntegrationTest {
+    @Test fun twoIndependentHttpHostsShareRevisionJournalPresenceAndIdempotentUndo() {
+        val url = requireNotNull(System.getenv("HUMMING_TEST_DB_URL"))
+        val uri = URI(url.removePrefix("jdbc:"))
+        require(uri.host in setOf("127.0.0.1", "localhost") && uri.path == "/humming_test")
+        val catalog = initialNodeCatalog()
+        fun repository() = PostgresDraftRepository(postgresDataSource(url,
+            requireNotNull(System.getenv("HUMMING_TEST_DB_USER")), requireNotNull(System.getenv("HUMMING_TEST_DB_PASSWORD"))), catalog)
+        val key = DocumentKey("replicas", "doc-${UUID.randomUUID()}")
+        val grants = Permission.entries.map { DocumentGrant(key, it) }.toSet()
+        val a = Actor("alice", grants); val b = Actor("bob", grants)
+        val tokenA = UUID.randomUUID().toString(); val tokenB = UUID.randomUUID().toString()
+        fun host(actor: Actor, token: String): DraftHttpHost {
+            val repo = repository(); runBlocking { repo.migrate() }
+            return DraftHttpHost(DraftApplication(repo, ExactGrantAuthorizer, catalog, TargetCapabilities(catalog.capabilities)),
+                BearerAuthenticator(token, actor), editing = DraftEditingApplication(repo, ExactGrantAuthorizer),
+                collaboration = CollaborationApplication(repo, ExactGrantAuthorizer))
+        }
+        val path = "/v1/tenants/${key.tenant}/documents/${key.document}"
+        val source = AuthoringDocumentCodec(catalog).encode(LegacyAuthoringCodec(catalog).importDocument(
+            """{"id":"label","component":"layout:text","properties":{"text":"initial"}}""", key.document).requireValue()).requireValue()
+        fun command(id: String) = """{"commandId":"$id","expectedRevision":0,"operations":[{"operationType":"putProperty","nodeId":"label","name":"text","value":"$id"}]}"""
+        fun request(host: DraftHttpHost, token: String, method: String, suffix: String = "", body: String = "") =
+            HttpRequest.newBuilder(URI("http://127.0.0.1:${host.port}$path$suffix")).timeout(Duration.ofSeconds(15))
+                .header("Authorization", "Bearer $token").header("Content-Type", "application/json")
+                .method(method, HttpRequest.BodyPublishers.ofString(body)).build()
+        host(a, tokenA).use { hostA -> host(b, tokenB).use { hostB ->
+            HttpClient.newHttpClient().use { clientA -> HttpClient.newHttpClient().use { clientB ->
+                fun send(client: HttpClient, host: DraftHttpHost, token: String, method: String = "GET", suffix: String = "", body: String = "") =
+                    client.send(request(host, token, method, suffix, body), HttpResponse.BodyHandlers.ofString())
+                assertEquals(201, send(clientA, hostA, tokenA, "POST", body = source).statusCode())
+                assertEquals(200, send(clientB, hostB, tokenB).statusCode())
+                val first = clientA.sendAsync(request(hostA, tokenA, "POST", "/commands", command("alice-command")), HttpResponse.BodyHandlers.ofString())
+                val second = clientB.sendAsync(request(hostB, tokenB, "POST", "/commands", command("bob-command")), HttpResponse.BodyHandlers.ofString())
+                val results = listOf(first.get(), second.get()); assertEquals(listOf(200, 409), results.map { it.statusCode() }.sorted())
+                val aliceWon = results.first().statusCode() == 200
+                val winnerHost = if (aliceWon) hostA else hostB; val winnerToken = if (aliceWon) tokenA else tokenB
+                val winnerClient = if (aliceWon) clientA else clientB; val winnerId = if (aliceWon) "alice-command" else "bob-command"
+                val feedA = send(clientA, hostA, tokenA, suffix = "/updates/0")
+                val feedB = send(clientB, hostB, tokenB, suffix = "/updates/0")
+                assertEquals(200, feedA.statusCode()); assertEquals(feedA.body(), feedB.body())
+                val events = DraftUpdateFeedCodec().decode(feedA.body()).requireValue()
+                assertEquals(1, events.currentRevision); assertEquals(winnerId, events.events.single().commandId)
+                assertEquals(feedA.body(), send(clientA, hostA, tokenA, suffix = "/updates/0").body()) // Lost/duplicate poll cannot create another event.
+                assertEquals(200, send(clientA, hostA, tokenA, "POST", "/presence").statusCode())
+                val presence = send(clientB, hostB, tokenB, "POST", "/presence")
+                assertEquals(setOf("alice", "bob"), Json.decodeFromString(DraftPresenceList.serializer(), presence.body()).members.map { it.actorId }.toSet())
+                val undo = """{"commandId":"undo-winner","expectedRevision":1,"undoOfCommandId":"$winnerId"}"""
+                val compensated = send(winnerClient, winnerHost, winnerToken, "POST", "/undo", undo)
+                assertEquals(200, compensated.statusCode())
+                val repeated = send(winnerClient, winnerHost, winnerToken, "POST", "/undo", undo)
+                assertEquals(JsonPrimitive(true), Json.parseToJsonElement(repeated.body()).jsonObject["replayed"])
+                val latest = send(clientB, hostB, tokenB)
+                assertEquals(JsonPrimitive(2), Json.parseToJsonElement(latest.body()).jsonObject["revision"])
+                assertTrue(latest.body().contains("initial"))
+                val tail = DraftUpdateFeedCodec().decode(send(clientA, hostA, tokenA, suffix = "/updates/1").body()).requireValue()
+                assertEquals(listOf(2L), tail.events.map { it.revision })
+                assertTrue(DraftUpdateFeedCodec().decode(send(clientA, hostA, tokenA, suffix = "/updates/99").body()).requireValue().resyncRequired)
+                assertEquals(200, send(clientB, hostB, tokenB, "POST", "/presence/leave").statusCode())
+                assertEquals(setOf("alice"), Json.decodeFromString(DraftPresenceList.serializer(), send(clientA, hostA, tokenA, "POST", "/presence").body()).members.map { it.actorId }.toSet())
+            } }
+        } }
+    }
+
     @Test fun httpEditsSurviveHostReplacementAndRetryWithoutRepeatingTheMutation() {
         val url = requireNotNull(System.getenv("HUMMING_TEST_DB_URL"))
         val uri = URI(url.removePrefix("jdbc:"))

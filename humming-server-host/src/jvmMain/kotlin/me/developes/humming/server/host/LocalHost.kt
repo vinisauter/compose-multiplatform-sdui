@@ -45,6 +45,7 @@ class DraftHttpHost(
     private val publications: PublicationApplication? = null,
     private val data: PublicationDataApplication? = null,
     private val dataIdentity: (Actor) -> DataIdentity? = { null },
+    private val collaboration: CollaborationApplication? = null,
     private val onUnexpectedFailure: (Throwable) -> Unit = { System.err.println("Draft host failed: ${it::class.simpleName}") },
 ) : AutoCloseable {
     private val job = SupervisorJob()
@@ -79,7 +80,7 @@ class DraftHttpHost(
         val actor = authenticator.authenticate(authorization?.singleOrNull())
         if (actor == null) { respond(exchange, 401, error("UNAUTHENTICATED")); return }
         if (exchange.requestURI.rawQuery != null) { respond(exchange, 400, error("INVALID_ROUTE")); return }
-        if (handleData(exchange, actor) || handlePublication(exchange, actor)) return
+        if (handleCollaboration(exchange, actor) || handleData(exchange, actor) || handlePublication(exchange, actor)) return
         val route = Regex("/v1/tenants/([A-Za-z0-9][A-Za-z0-9_-]{0,127})/documents/([A-Za-z0-9][A-Za-z0-9_-]{0,127})(/validate|/commands)?")
             .matchEntire(exchange.requestURI.rawPath)
         if (route == null) { respond(exchange, 404, error("ROUTE_NOT_FOUND")); return }
@@ -146,6 +147,62 @@ class DraftHttpHost(
                 else -> kotlin.error("Unknown application result")
             }
         }
+    }
+
+    private suspend fun handleCollaboration(exchange: HttpExchange, actor: Actor): Boolean {
+        val route = Regex("/v1/tenants/([A-Za-z0-9][A-Za-z0-9_-]{0,127})/documents/([A-Za-z0-9][A-Za-z0-9_-]{0,127})/(updates/[0-9]{1,19}|presence|presence/leave|undo)")
+            .matchEntire(exchange.requestURI.rawPath) ?: return false
+        val key = DocumentKey(route.groupValues[1], route.groupValues[2]); val operation = route.groupValues[3]
+        val reading = operation.startsWith("updates/")
+        val method = if (reading) "GET" else "POST"
+        if (exchange.requestMethod != method) { exchange.responseHeaders.set("Allow", method); respond(exchange, 405, error("METHOD_NOT_ALLOWED")); return true }
+        if (!application.isAllowed(actor, key, Permission.READ) || (!reading && !application.isAllowed(actor, key, Permission.EDIT))) {
+            respond(exchange, 403, error("FORBIDDEN")); return true
+        }
+        val app = collaboration ?: run { respond(exchange, 501, error("COLLABORATION_UNAVAILABLE")); return true }
+        if (operation == "undo") {
+            val source = jsonBody(exchange) ?: return true
+            when (val result = app.undo(actor, key, source)) {
+                is DraftEditResult.Accepted -> respond(exchange, 200, buildJsonObject {
+                    put("revision", result.draft.revision); put("appliedRevision", result.appliedRevision); put("replayed", result.replayed)
+                    put("document", Json.parseToJsonElement(result.draft.source)); put("diagnostics", JsonArray(result.diagnostics.map(::diagnostic)))
+                })
+                is DraftEditResult.Rejected -> respond(exchange, when (result.code) {
+                    ApplicationError.FORBIDDEN -> 403
+                    ApplicationError.NOT_FOUND -> 404
+                    ApplicationError.REVISION_CONFLICT, ApplicationError.COMMAND_REPLAY_CONFLICT, ApplicationError.UNDO_CONFLICT -> 409
+                    else -> 422
+                }, buildJsonObject {
+                    put("code", result.code.name); result.currentRevision?.let { put("currentRevision", it) }
+                    put("diagnostics", JsonArray(result.diagnostics.map(::diagnostic)))
+                })
+            }
+            return true
+        }
+        val result: ApplicationResult<*> = when {
+            reading -> {
+                val cursor = operation.removePrefix("updates/").toLongOrNull()
+                if (cursor == null) { respond(exchange, 422, error("INVALID_CURSOR")); return true }
+                app.updates(actor, key, cursor)
+            }
+            operation == "presence" -> app.heartbeat(actor, key)
+            else -> app.leave(actor, key)
+        }
+        when (result) {
+            is ApplicationResult.Failure -> respond(exchange, when (result.code) {
+                ApplicationError.FORBIDDEN -> 403
+                ApplicationError.NOT_FOUND -> 404
+                else -> 422
+            }, error(result.code.name))
+            is ApplicationResult.Success<*> -> when (val value = result.value) {
+                is me.developes.humming.sdui.studio.DraftUpdateFeed -> respond(exchange, 200, Json.parseToJsonElement(
+                    me.developes.humming.sdui.studio.DraftUpdateFeedCodec().encode(value).requireValue()).jsonObject)
+                is me.developes.humming.sdui.studio.DraftPresenceList -> respond(exchange, 200, Json.encodeToJsonElement(me.developes.humming.sdui.studio.DraftPresenceList.serializer(), value).jsonObject)
+                is Boolean -> respond(exchange, 200, buildJsonObject { put("left", value) })
+                else -> kotlin.error("Unknown collaboration result")
+            }
+        }
+        return true
     }
 
     private suspend fun handleData(exchange: HttpExchange, actor: Actor): Boolean {
@@ -274,7 +331,8 @@ fun main() {
         TargetCapabilities(catalog.capabilities))
     val editing = (repository as? RevisionedDraftRepository)?.let { DraftEditingApplication(it, ExactGrantAuthorizer) }
     val publications = (repository as? PublicationRepository)?.let { publicationApplication(repository, it, catalog) }
-    val host = DraftHttpHost(application, BearerAuthenticator(token, actor), editing = editing, publications = publications)
+    val collaboration = (repository as? CollaborationRepository)?.let { CollaborationApplication(it, ExactGrantAuthorizer) }
+    val host = DraftHttpHost(application, BearerAuthenticator(token, actor), editing = editing, publications = publications, collaboration = collaboration)
     Runtime.getRuntime().addShutdownHook(Thread { host.close() })
     println("Draft host: http://127.0.0.1:${host.port}/v1/tenants/local/documents/example (storage=${if (editing == null) "volatile" else "postgresql"})")
     CountDownLatch(1).await()

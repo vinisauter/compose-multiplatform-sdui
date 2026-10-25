@@ -91,4 +91,49 @@ class RemoteEditorTest {
         assertEquals(1, editor.pendingCount); assertTrue(editor.sending)
         editor.failed(ticket, RemotePause.REJECTED); assertFalse(editor.retry())
     }
+    @Test fun updatesCannotOverwritePendingWorkOrRewriteAnExistingRevision() {
+        val editor = open(); editor.enqueue(command("mine", 0, "local"))
+        val server = EditSession(base(), catalog); val changed = server.execute(command("peer", 0, "remote"))
+        val feed = DraftUpdateFeed("document", 0, 1, listOf(DraftUpdate(1, "peer", "other", changed.forward!!)), false, false)
+        assertFalse(editor.receiveUpdates(feed).requireValue())
+        assertEquals(JsonPrimitive("local"), text(editor.document)); assertEquals(1, editor.pendingCount)
+        val clean = open()
+        val rewritten = changed.document!!.copy(revision = 0)
+        assertFalse(clean.adoptClean(codec.encode(rewritten).requireValue()).isSuccess)
+        assertEquals(JsonPrimitive("initial"), text(clean.document))
+        assertTrue(clean.receiveUpdates(feed).requireValue())
+        assertFalse(clean.receiveUpdates(feed).requireValue())
+        assertEquals(JsonPrimitive("remote"), text(clean.document))
+    }
+    @Test fun pendingUndoIsPersistedAndReplayedWithoutAllowingAnEditToBeLostDuringItsReceipt() {
+        val server = EditSession(base(), catalog); val own = server.execute(command("one", 0, "own"))
+        val editor = RemoteEditor.open(identity, codec.encode(own.document!!).requireValue(), catalog).requireValue()
+        val undo = RemoteUndoCommand("undo-one", 1, "one")
+        assertTrue(editor.enqueueUndo(undo).requireValue()); assertNull(editor.beginUndo())
+        assertFalse(editor.enqueue(command("must-wait", 1, "local edit")).isSuccess)
+        val checkpoint = save(editor)
+        assertEquals(2, Json.parseToJsonElement(checkpoint).jsonObject.getValue("formatVersion").jsonPrimitive.int)
+        val beforeRestart = assertNotNull(editor.beginUndo())
+        val recovered = RemoteEditor.restore(identity, checkpoint, catalog).requireValue()
+        val retry = assertNotNull(recovered.beginUndo()); assertEquals(beforeRestart.command, retry.command)
+        val reverted = server.undo("undo-one", 1); assertTrue(reverted.isSuccess)
+        val newer = server.execute(command("peer", 2, "newer peer"))
+        assertTrue(recovered.acknowledgeUndo(retry, codec.encode(newer.document!!).requireValue(), 2).requireValue())
+        assertEquals(0, recovered.pendingCount); assertEquals(3, recovered.confirmedRevision)
+        assertEquals(JsonPrimitive("newer peer"), text(recovered.document))
+        assertFalse(recovered.acknowledgeUndo(beforeRestart, codec.encode(newer.document).requireValue(), 2).requireValue())
+    }
+    @Test fun versionOneRecoveryMigratesToVersionTwoAndMixedUndoAndEditsAreRejected() {
+        val editor = open(); val current = Json.parseToJsonElement(save(editor)).jsonObject
+        val legacy = JsonObject((current - "pendingUndo") + ("formatVersion" to JsonPrimitive(1))).toString()
+        val restored = RemoteEditor.restore(identity, legacy, catalog).requireValue()
+        assertEquals(editor.document, restored.document)
+        assertEquals(2, Json.parseToJsonElement(restored.checkpoint().requireValue()).jsonObject.getValue("formatVersion").jsonPrimitive.int)
+        restored.enqueue(command("edit", 0, "local"))
+        val source = Json.parseToJsonElement(save(restored)).jsonObject
+        val mixed = JsonObject(source + ("pendingUndo" to buildJsonObject {
+            put("commandId", "undo"); put("expectedRevision", 0); put("undoOfCommandId", "other")
+        })).toString()
+        assertFalse(RemoteEditor.restore(identity, mixed, catalog).isSuccess)
+    }
 }

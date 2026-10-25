@@ -22,6 +22,8 @@ import androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
 import me.developes.humming.sdui.HummingSDUI
 import me.developes.humming.sdui.action.SDActions
 import me.developes.humming.sdui.common.*
@@ -49,6 +51,7 @@ fun LocalStudio(files: StudioFiles? = null, workspace: LocalWorkspace = remember
     var remoteEpoch by remember { mutableStateOf(0) }
     var synchronizing by remember { mutableStateOf(false) }
     var replaceRemote by remember { mutableStateOf(false) }
+    var followingEditors by remember { mutableStateOf(false) }
     DisposableEffect(Unit) { onDispose { active = false } }
     val compilation = remember(document) { workspace.compilePreview() }
     val treeRows = remember(document) { workspace.tree() }
@@ -60,6 +63,12 @@ fun LocalStudio(files: StudioFiles? = null, workspace: LocalWorkspace = remember
             if (!remoteHost.saveRecovery()) messages = "Recuperação não salva; envio remoto bloqueado"
             remoteEpoch++
         }
+    }
+    LaunchedEffect(followingEditors, remoteHost) {
+        if (followingEditors && remoteHost != null) while (isActive) {
+            remoteHost.pollUpdates(); workspace.refreshRemote(); document = workspace.document; remoteEpoch++
+            delay(2_000)
+        } else if (remoteHost?.presenceAvailable == true) { remoteHost.leavePresence(); remoteEpoch++ }
     }
     val remoteStatus = remember(document, remoteEpoch) { workspace.remoteEditor?.let { remote ->
         "Confirmada ${remote.confirmedRevision} • pendentes ${remote.pendingCount} • ${remote.pause}" +
@@ -101,6 +110,20 @@ fun LocalStudio(files: StudioFiles? = null, workspace: LocalWorkspace = remember
                 }) { Text("Sincronizar pendências") }
                 OutlinedButton(enabled = !synchronizing && remoteHost.editor.pause in setOf(RemotePause.CONFLICT, RemotePause.REJECTED),
                     onClick = { replaceRemote = true }) { Text("Arquivar e usar remoto") }
+                OutlinedButton(enabled = !synchronizing && remoteHost.supportsCollaboration && remoteHost.lastOwnCommandId != null &&
+                    remoteHost.editor.pendingCount == 0 && !remoteHost.editor.needsPersistence, onClick = {
+                    synchronizing = true
+                    scope.launch {
+                        try { messages = remoteHost.undoLast(); workspace.refreshRemote(); document = workspace.document; remoteEpoch++ }
+                        finally { synchronizing = false }
+                    }
+                }) { Text("Desfazer último envio") }
+            }
+            if (remoteHost?.supportsCollaboration == true) Row {
+                Checkbox(followingEditors, { followingEditors = it }, Modifier.testTag("studio-follow-editors"))
+                Text("Acompanhar editores • " + if (remoteHost.presenceAvailable)
+                    "colaboradores: ${remoteHost.presence.members.joinToString { it.actorId }}${if (remoteHost.presence.truncated) " …" else ""}"
+                    else "presença indisponível")
             }
             FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 Button(enabled = workspace.remoteEditor == null, onClick = { requestReplace {

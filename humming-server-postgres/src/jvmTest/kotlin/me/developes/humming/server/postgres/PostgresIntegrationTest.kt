@@ -27,6 +27,81 @@ class PostgresIntegrationTest {
         """{"commandId":"$id","expectedRevision":$revision,"operations":[{"operationType":"putProperty","nodeId":"label","name":"text","value":"$text"}]}"""
     private fun actor(key: DocumentKey) = Actor("author", Permission.entries.map { DocumentGrant(key, it) }.toSet())
 
+    @Test fun twoAdaptersReplayJournalAndGuardUndoWithoutErasingAPeersChanges() = runBlocking {
+        val ds = dataSource(); val first = PostgresDraftRepository(ds, catalog); first.migrate()
+        val second = PostgresDraftRepository(dataSource(), catalog); second.migrate()
+        val key = key()
+        val base = LegacyAuthoringCodec(catalog).importDocument(
+            """{"id":"root","component":"layout:column","children":[{"id":"left","component":"layout:text","properties":{"text":"left initial"}},{"id":"right","component":"layout:text","properties":{"text":"right initial"}}]}""", key.document).requireValue()
+        val source = codec.encode(base).requireValue(); assertTrue(first.create(StoredDraft(key, 0, source)))
+        val a = Actor("alice", actor(key).grants); val b = Actor("bob", actor(key).grants)
+        val editA = DraftEditingApplication(first, ExactGrantAuthorizer); val editB = DraftEditingApplication(second, ExactGrantAuthorizer)
+        val collabA = CollaborationApplication(first, ExactGrantAuthorizer); val collabB = CollaborationApplication(second, ExactGrantAuthorizer)
+        fun edit(id: String, rev: Long, node: String, text: String) = """{"commandId":"$id","expectedRevision":$rev,"operations":[{"operationType":"putProperty","nodeId":"$node","name":"text","value":"$text"}]}"""
+        fun undo(id: String, rev: Long, original: String) = """{"commandId":"$id","expectedRevision":$rev,"undoOfCommandId":"$original"}"""
+        assertIs<DraftEditResult.Accepted>(editA.edit(a, key, edit("alice-left", 0, "left", "alice changed")))
+        assertIs<DraftEditResult.Accepted>(editB.edit(b, key, edit("bob-right", 1, "right", "bob changed")))
+        val feed = assertIs<ApplicationResult.Success<DraftUpdateFeed>>(collabB.updates(b, key, 0)).value
+        assertEquals(listOf(1L, 2L), feed.events.map { it.revision }); assertEquals(listOf("alice", "bob"), feed.events.map { it.actorId })
+        val clientA = RemoteEditor.open(RemoteDocument("server", key.tenant, key.document), source, catalog).requireValue()
+        val clientB = RemoteEditor.open(RemoteDocument("server", key.tenant, key.document), source, catalog).requireValue()
+        assertFalse(clientB.receiveUpdates(feed.copy(events = feed.events.reversed())).isSuccess)
+        assertEquals(0, clientB.document.revision)
+        assertFalse(clientB.receiveUpdates(feed.copy(events = feed.events.drop(1))).isSuccess)
+        assertTrue(clientA.receiveUpdates(feed).requireValue()); assertTrue(clientB.receiveUpdates(feed).requireValue())
+        assertEquals(clientA.document, clientB.document); assertFalse(clientB.receiveUpdates(feed).requireValue())
+        assertEquals(codec.decode(first.find(key)!!.source).requireValue(), clientA.document)
+        assertEquals(ApplicationError.FORBIDDEN, assertIs<DraftEditResult.Rejected>(collabB.undo(b, key, undo("forbidden", 2, "alice-left"))).code)
+        val undone = assertIs<DraftEditResult.Accepted>(collabA.undo(a, key, undo("undo-alice", 2, "alice-left")))
+        assertEquals(3, undone.appliedRevision)
+        val after = codec.decode(undone.draft.source).requireValue()
+        assertEquals(JsonPrimitive("left initial"), after.nodes.getValue("left").properties["text"])
+        assertEquals(JsonPrimitive("bob changed"), after.nodes.getValue("right").properties["text"])
+        val replay = assertIs<DraftEditResult.Accepted>(collabB.undo(a, key, undo("undo-alice", 2, "alice-left")))
+        assertTrue(replay.replayed); assertEquals(3, replay.appliedRevision)
+        assertEquals(ApplicationError.UNDO_CONFLICT, assertIs<DraftEditResult.Rejected>(collabA.undo(a, key, undo("again", 3, "alice-left"))).code)
+        val next = assertIs<ApplicationResult.Success<DraftUpdateFeed>>(collabA.updates(a, key, 2)).value
+        clientA.receiveUpdates(next).requireValue(); clientB.receiveUpdates(next).requireValue(); assertEquals(after, clientB.document)
+        assertIs<DraftEditResult.Accepted>(editA.edit(a, key, edit("alice-again", 3, "left", "alice newer")))
+        assertIs<DraftEditResult.Accepted>(editB.edit(b, key, edit("bob-same-node", 4, "left", "bob newest")))
+        assertEquals(ApplicationError.UNDO_CONFLICT, assertIs<DraftEditResult.Rejected>(collabA.undo(a, key, undo("must-not-erase", 5, "alice-again"))).code)
+        assertEquals(JsonPrimitive("bob newest"), codec.decode(first.find(key)!!.source).requireValue().nodes.getValue("left").properties["text"])
+        assertEquals(5, first.find(key)?.revision)
+        assertEquals(ApplicationError.FORBIDDEN, assertIs<ApplicationResult.Failure>(collabA.updates(a, key.copy(tenant = "other"), 0)).code)
+        assertFailsWith<SQLException> { ds.connection.use { connection -> connection.prepareStatement("UPDATE public.humming_edit_events SET actor_id=actor_id WHERE tenant_id=? AND document_id=?").use {
+            it.setString(1, key.tenant); it.setString(2, key.document); it.executeUpdate()
+        } } }
+        Unit
+    }
+
+    @Test fun journalPagesAndPresenceAreSharedAndLegacyGapsRequireResynchronization() = runBlocking {
+        val ds = dataSource(); val first = PostgresDraftRepository(ds, catalog); first.migrate()
+        val second = PostgresDraftRepository(dataSource(), catalog)
+        val key = key(); assertTrue(first.create(StoredDraft(key, 0, source(key))))
+        val a = Actor("alice", actor(key).grants); val b = Actor("bob", actor(key).grants)
+        val editor = DraftEditingApplication(first, ExactGrantAuthorizer)
+        for (revision in 0L..34L) assertIs<DraftEditResult.Accepted>(editor.edit(a, key, command("page-$revision", revision, "revision-$revision")))
+        val page = second.updates(key, 0)!!
+        assertEquals(32, page.events.size); assertTrue(page.hasMore); assertFalse(page.resyncRequired)
+        val tail = first.updates(key, 32)!!; assertEquals(listOf(33L, 34L, 35L), tail.events.map { it.revision }); assertFalse(tail.hasMore)
+        assertEquals(second.updates(key, 0), first.updates(key, 0))
+        val collabA = CollaborationApplication(first, ExactGrantAuthorizer); val collabB = CollaborationApplication(second, ExactGrantAuthorizer)
+        assertEquals(setOf("alice"), assertIs<ApplicationResult.Success<DraftPresenceList>>(collabA.heartbeat(a, key)).value.members.map { it.actorId }.toSet())
+        assertEquals(setOf("alice", "bob"), assertIs<ApplicationResult.Success<DraftPresenceList>>(collabB.heartbeat(b, key)).value.members.map { it.actorId }.toSet())
+        ds.connection.use { connection -> connection.prepareStatement("UPDATE public.humming_presence SET expires_at=clock_timestamp()-interval '1 second' WHERE tenant_id=? AND document_id=? AND actor_id='alice'").use {
+            it.setString(1, key.tenant); it.setString(2, key.document); it.executeUpdate()
+        } }
+        assertEquals(setOf("bob"), assertIs<ApplicationResult.Success<DraftPresenceList>>(collabB.heartbeat(b, key)).value.members.map { it.actorId }.toSet())
+        collabB.leave(b, key)
+        assertEquals(setOf("alice"), assertIs<ApplicationResult.Success<DraftPresenceList>>(collabA.heartbeat(a, key)).value.members.map { it.actorId }.toSet())
+        val legacy = key()
+        val old = codec.decode(source(legacy)).requireValue().copy(revision = 5)
+        assertTrue(first.create(StoredDraft(legacy, 5, codec.encode(old).requireValue())))
+        assertTrue(second.updates(legacy, 0)!!.resyncRequired)
+        assertFalse(second.updates(legacy, 5)!!.resyncRequired)
+        assertTrue(second.updates(legacy, 6)!!.resyncRequired)
+    }
+
     @Test fun publicationIsContentAddressedImmutableAndRollbackOnlySelectsExistingContent() = runBlocking {
         val ds = dataSource(); val repo = PostgresDraftRepository(ds, catalog); repo.migrate(); repo.migrate()
         val key = key(); val author = actor(key)

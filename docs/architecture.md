@@ -117,7 +117,7 @@ O host usa HttpServer do JDK 25 após prova de build/HTTP real, evitando escolhe
 
 humming-server-postgres implementa DraftRepository/RevisionedDraftRepository com JDBC e depende somente da aplicação, sem rotas ou UI. O host injeta DataSource e catálogo; cada operação fecha a conexão. O composition root seleciona explicitamente adapter PostgreSQL quando as três variáveis HUMMING_DB são fornecidas, ou mantém modo volátil. O Studio continua desacoplado dessa escolha.
 
-A chave persistida é tenant/documento. Edição autoriza READ+EDIT antes do parse (a resposta contém a definição), prepara comando canônico limitado e entra em transação READ COMMITTED. SELECT FOR UPDATE serializa apenas o documento; recibo por tenant/documento/commandId distingue repetição de conflito. Documento, revisão e recibo são gravados juntos. Não há chamada externa durante o lock; rollback/cancelamento preservam a revisão anterior. O journal atual guarda fingerprint/recibo, não uma promessa de undo remoto ou log completo de operações.
+A chave persistida é tenant/documento. Edição autoriza READ+EDIT antes do parse (a resposta contém a definição), prepara comando canônico limitado e entra em transação READ COMMITTED. SELECT FOR UPDATE serializa apenas o documento; recibo por tenant/documento/commandId distingue repetição de conflito. Documento, revisão e recibo são gravados juntos. Não há chamada externa durante o lock; rollback/cancelamento preservam a revisão anterior. A migração V3 acrescenta journal imutável com actor, comando e patches forward/inverse; documento, recibo e evento são atômicos. Links de undo impedem compensação repetida; presença é efêmera em tabela separada.
 
 ## Publicação e pin do cliente
 
@@ -140,3 +140,9 @@ RemoteStudioHost coordena RemoteStudioApi e RemoteStudioRecovery no owner UI. Sa
 JvmRemoteStudioApi é opt-in para HTTP loopback, com bearer em memória, redirects recusados, request de 10s, connect de 5s e resposta limitada durante leitura. JvmRemoteStudioRecovery usa arquivo escolhido pelo host, UTF-8 estrito, limite de 8 milhões de caracteres/32 milhões de bytes, FileChannel.force e substituição atômica. Uma cópia com sufixo conflict-UUID é gravada antes da resolução destrutiva. Não é garantia de queda de energia/durabilidade de diretório em qualquer filesystem; erro de substituição atômica interrompe a confirmação local.
 
 O composition root desktop --remote-studio instala explicitamente o controller. Sem essa opção, sample e Studio browser continuam no modo local. Browser/Android não ganham HTTP ou storage por essa implementação JVM. Nenhum módulo do cliente passa a depender do servidor em produção.
+
+## Colaboração por journal
+
+CollaborationApplication aplica autorização antes de acessar CollaborationRepository. PostgresDraftRepository serializa por documento entre instâncias. O feed pull consulta eventos persistidos em páginas limitadas, dispensando broker e broadcast em memória como autoridade. Falha entre commit e leitura não perde evento. History gap sinaliza ressincronização; não há rebase ou CRDT.
+
+RemoteStudioCollaborationApi é extensão opt-in do adapter JVM. O controller só adota feed quando está sem pendências, valida sequência e salva recuperação após mudança. Presença usa heartbeat e expiração no banco. Undo é compensação conservadora guardada pela postimagem completa, com intenção durável na mesma máquina de estados da outbox. Polling pertence à composição e termina ao desativar acompanhamento; saída abrupta depende do TTL. Cada editor precisa de arquivo de recuperação próprio; identidade de actor deve ser atribuída pelo autenticador do host, não por payload.

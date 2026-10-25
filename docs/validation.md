@@ -19,7 +19,7 @@ Leia [AGENTS.md](../AGENTS.md), a tarefa e suas dependências, o contrato e as [
 
 Escolha um fluxo do sample com recursos e providers disponíveis. A existência de um JSON não garante que seus nomes, destinos ou handlers estejam registrados. Registre quais partes serão observadas e quais ficam fora do recorte.
 
-Consulte [settings.gradle.kts](../settings.gradle.kts), o build de cada módulo afetado e o [catálogo de versões](../gradle/libs.versions.toml). `humming-network` está fora dos includes; não invoque tarefas desse módulo como se ele já estivesse integrado. Toolchain JVM 25 e compatibilidade Java Android 17 são configurações distintas. Investigue uma falha antes de alterar versões ou plataformas.
+Consulte [settings.gradle.kts](../settings.gradle.kts), o build de cada módulo afetado e o [catálogo de versões](../gradle/libs.versions.toml). `humming-network` está incluído como transporte opt-in; o host fornece e fecha cliente/engine. Toolchain JVM 25 e compatibilidade Java Android 17 são configurações distintas. Investigue uma falha antes de alterar versões ou plataformas.
 
 ### Descoberta pelo wrapper
 
@@ -421,3 +421,9 @@ A integração PostgreSQL/HTTP de publishedClientIntegrationTest salva checkpoin
 jvmTest do sample inclui política de storage falho, cancelamento durante envio, defeito de adapter propagado, arquivo obrigatório antes da substituição e UTF-8/storage inválidos. publishedClientIntegrationTest usa LocalStudio/Inspector, JvmRemoteStudioApi, arquivo real e PostgreSQL: aplicar propriedade, clicar Sincronizar, confirmar no banco, interromper host, salvar pendência offline, recriar host/controller por checkpoint e confirmar envio. Em disputa de revisão, a UI deve conservar o texto local e só substituir após Arquivar e usar remoto/confirmar; arquivo separado conserva a pendência e não contém bearer. Token inválido deve produzir UNAUTHORIZED sem avançar revisão. Snapshot publicado anterior permanece igual.
 
 run --args="--remote-studio" é o composition root opt-in; consultar tabela de ambiente em Studio. A prova automatizada monta o mesmo controller/LocalStudio, sem alegar inspeção manual da janela nativa. O controller comum compila em Wasm, mas HTTP/storage JVM não qualificam conexão remota no browser/Android/Apple. Resultados/limites executados pertencem ao estado atual.
+
+## Procedimento de colaboração
+
+Executar jvmTest do modelo/aplicação/host e as tarefas postgresIntegrationTest, postgresHttpIntegrationTest e publishedClientIntegrationTest contra fixture PostgreSQL local. scripts/verify-postgres.ps1 -PublishedClient cria fixture isolada, verifica readiness, executa integrações, reinicia banco e repete. Não imprimir variáveis de senha/token; manter logs ignorados. Conferir XML por suite e falhas, não somente exit code do shell.
+
+Cobrir dois adapters/hosts/controllers, corrida CAS, feed duplicado/fora de ordem/lacuna, proteção de pendências, presença/expiração/leave, undo de outro autor e postimagem divergente, perda do ack e replay do undo após recuperação em arquivo. Verificar publicação imutável e codec operationType/versão obrigatória. Testes de instâncias no mesmo JVM não comprovam isolamento de processos ou escala. Registrar comandos/resultados e limites no estado atual.

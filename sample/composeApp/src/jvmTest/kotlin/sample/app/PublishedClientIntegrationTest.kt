@@ -74,6 +74,91 @@ class PublishedClientIntegrationTest {
         override fun close() { server.stop(0); executor.shutdownNow(); assertTrue(executor.awaitTermination(5, TimeUnit.SECONDS)) }
     }
 
+    @Test fun collaborativeControllersConvergeAndDurableUndoNeverErasesAPeer() {
+        val url = requireNotNull(System.getenv("HUMMING_TEST_DB_URL"))
+        val uri = URI(url.removePrefix("jdbc:"))
+        require(uri.host in setOf("127.0.0.1", "localhost") && uri.path == "/humming_test")
+        val catalog = initialNodeCatalog(); val codec = AuthoringDocumentCodec(catalog)
+        fun repository() = PostgresDraftRepository(postgresDataSource(url, requireNotNull(System.getenv("HUMMING_TEST_DB_USER")),
+            requireNotNull(System.getenv("HUMMING_TEST_DB_PASSWORD"))), catalog)
+        val repoA = repository(); val repoB = repository()
+        val document = DocumentKey("collaborative", "doc-${UUID.randomUUID()}")
+        val grants = Permission.entries.map { DocumentGrant(document, it) }.toSet()
+        val alice = Actor("alice", grants); val bob = Actor("bob", grants)
+        val tokenA = UUID.randomUUID().toString(); val tokenB = UUID.randomUUID().toString()
+        val source = codec.encode(LegacyAuthoringCodec(catalog).importDocument(
+            """{"id":"root","component":"layout:column","children":[{"id":"left","component":"layout:text","properties":{"text":"left initial"}},{"id":"right","component":"layout:text","properties":{"text":"right initial"}}]}""", document.document).requireValue()).requireValue()
+        val publisher = publicationApplication(repoA, repoA, catalog)
+        val publication = runBlocking {
+            repoA.migrate(); repoB.migrate(); assertTrue(repoA.create(StoredDraft(document, 0, source)))
+            assertIs<ApplicationResult.Success<StoredPublication>>(publisher.publish(alice, document, 0, "local-tree")).value
+        }
+        fun server(repo: PostgresDraftRepository, actor: Actor, token: String) = DraftHttpHost(
+            DraftApplication(repo, ExactGrantAuthorizer, catalog, TargetCapabilities(catalog.capabilities)), BearerAuthenticator(token, actor),
+            editing = DraftEditingApplication(repo, ExactGrantAuthorizer), collaboration = CollaborationApplication(repo, ExactGrantAuthorizer))
+        val identity = RemoteDocument("collaborative-server", document.tenant, document.document)
+        val directory = Path.of("build", "reports", "collaborative-studio", document.document)
+        val storeA = JvmRemoteStudioRecovery(directory.resolve("alice.json")); val storeB = JvmRemoteStudioRecovery(directory.resolve("bob.json"))
+        fun awaitStatus(text: String) = compose.waitUntil(15_000) {
+            compose.onAllNodes(hasTestTag("studio-remote-state") and hasText(text, substring = true)).fetchSemanticsNodes().size == 1
+        }
+        fun apply(text: String) {
+            compose.onNodeWithTag("studio-node-left").performScrollTo().performClick()
+            compose.onNodeWithTag("studio-property-value").performScrollTo().performTextReplacement(text)
+            compose.onNodeWithText("Aplicar propriedade").performScrollTo().performClick()
+            compose.onNodeWithText("Sincronizar pendências").performClick()
+        }
+        fun text(host: RemoteStudioHost, node: String) = host.workspace.document.nodes.getValue(node).properties["text"]
+        server(repoA, alice, tokenA).use { serverA -> server(repoB, bob, tokenB).use { serverB ->
+            JvmRemoteStudioApi("http://127.0.0.1:${serverA.port}", identity, tokenA).use { apiA ->
+                JvmRemoteStudioApi("http://127.0.0.1:${serverB.port}", identity, tokenB).use { apiB ->
+                    val a = runBlocking { RemoteStudioHost.open(identity, catalog, apiA, storeA).requireValue() }
+                    val b = runBlocking { RemoteStudioHost.open(identity, catalog, apiB, storeB).requireValue() }
+                    val current = mutableStateOf(a)
+                    compose.setContent { if (mounted.value) key(current.value) { LocalStudio(workspace = current.value.workspace, remoteHost = current.value) } }
+                    try {
+                        apply("Alice left"); awaitStatus("Confirmada 1 • pendentes 0")
+                        compose.runOnIdle { runBlocking { b.pollUpdates() }; assertEquals(JsonPrimitive("Alice left"), text(b, "left")) }
+                        compose.onNodeWithTag("studio-follow-editors").performClick()
+                        compose.waitUntil(10_000) { compose.onAllNodesWithText("colaboradores: alice, bob", substring = true).fetchSemanticsNodes().size == 1 }
+                        compose.runOnIdle { runBlocking { b.workspace.putProperty("right", "text", JsonPrimitive("Bob right")); b.synchronize() } }
+                        awaitStatus("Confirmada 2 • pendentes 0")
+                        compose.onNodeWithText("Desfazer último envio").performClick(); awaitStatus("Confirmada 3 • pendentes 0")
+                        compose.runOnIdle {
+                            assertEquals(JsonPrimitive("left initial"), text(a, "left")); assertEquals(JsonPrimitive("Bob right"), text(a, "right"))
+                            runBlocking { b.pollUpdates() }; assertEquals(a.workspace.document, b.workspace.document)
+                        }
+                        apply("Alice again"); awaitStatus("Confirmada 4 • pendentes 0")
+                        compose.runOnIdle { runBlocking { b.pollUpdates(); b.workspace.putProperty("left", "text", JsonPrimitive("Bob newest")); b.synchronize() } }
+                        awaitStatus("Confirmada 5 • pendentes 0")
+                        compose.onNodeWithText("Desfazer último envio").performClick(); awaitStatus("CONFLICT")
+                        compose.runOnIdle { assertEquals(JsonPrimitive("Bob newest"), text(a, "left")); assertTrue(a.editor.hasPendingUndo) }
+                        compose.onNodeWithText("Arquivar e usar remoto").performClick(); compose.onNodeWithText("Arquivar e substituir").performClick()
+                        awaitStatus("Confirmada 5 • pendentes 0")
+                        apply("Alice safe"); awaitStatus("Confirmada 6 • pendentes 0")
+                        // Persist the undo, commit it, then lose its response before changing the client object.
+                        compose.runOnIdle { runBlocking {
+                            a.editor.enqueueUndo(RemoteUndoCommand("lost-undo", 6, a.lastOwnCommandId!!)).requireValue(); assertTrue(a.saveRecovery())
+                            val ticket = assertNotNull(a.editor.beginUndo())
+                            assertIs<RemoteStudioSubmit.Acknowledged>(apiA.undo(ticket.command))
+                            b.pollUpdates(); b.workspace.putProperty("right", "text", JsonPrimitive("Bob after undo")); b.synchronize()
+                        } }
+                        val recovered = runBlocking { RemoteStudioHost.open(identity, catalog, apiA, storeA).requireValue() }
+                        assertTrue(recovered.editor.hasPendingUndo)
+                        compose.runOnIdle { current.value = recovered }
+                        compose.onNodeWithText("Sincronizar pendências").performClick(); awaitStatus("Confirmada 8 • pendentes 0")
+                        compose.runOnIdle {
+                            assertEquals(JsonPrimitive("Bob newest"), text(recovered, "left")); assertEquals(JsonPrimitive("Bob after undo"), text(recovered, "right"))
+                            runBlocking { b.pollUpdates(); recovered.leavePresence(); b.leavePresence() }
+                            assertEquals(recovered.workspace.document, b.workspace.document)
+                        }
+                        runBlocking { assertEquals(8, repoA.find(document)?.revision); assertEquals(publication, repoB.publication(document, publication.version)) }
+                    } finally { compose.runOnIdle { mounted.value = false }; compose.waitForIdle() }
+                }
+            }
+        } }
+    }
+
     @Test fun studioInspectorSavesReopensOfflineWorkAndArchivesAConflictThroughTheRealAdapters() {
         val url = requireNotNull(System.getenv("HUMMING_TEST_DB_URL"))
         val uri = URI(url.removePrefix("jdbc:"))
@@ -99,8 +184,8 @@ class PublishedClientIntegrationTest {
         val recovery = JvmRemoteStudioRecovery(path)
         fun origin(host: DraftHttpHost) = "http://127.0.0.1:${host.port}"
         fun apply(text: String) {
-            compose.onNodeWithTag("studio-property-value").performTextReplacement(text)
-            compose.onNodeWithText("Aplicar propriedade").performClick()
+            compose.onNodeWithTag("studio-property-value").performScrollTo().performTextReplacement(text)
+            compose.onNodeWithText("Aplicar propriedade").performScrollTo().performClick()
         }
         fun awaitStatus(text: String) = compose.waitUntil(15_000) {
             compose.onAllNodes(hasTestTag("studio-remote-state") and hasText(text, substring = true)).fetchSemanticsNodes().size == 1

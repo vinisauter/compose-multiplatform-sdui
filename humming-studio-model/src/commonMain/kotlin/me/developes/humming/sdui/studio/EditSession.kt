@@ -250,7 +250,7 @@ private fun difference(before: AuthoringDocument, after: AuthoringDocument): Doc
     after.entryNodeId.takeIf { it != before.entryNodeId },
 )
 
-private fun applyPatch(document: AuthoringDocument, patch: DocumentPatch): AuthoringDocument {
+internal fun applyPatch(document: AuthoringDocument, patch: DocumentPatch): AuthoringDocument {
     val nodes = document.nodes.toMutableMap()
     val edges = document.edges.toMutableMap()
     patch.nodes.forEach { (id, node) -> if (node == null) nodes.remove(id) else nodes[id] = node }

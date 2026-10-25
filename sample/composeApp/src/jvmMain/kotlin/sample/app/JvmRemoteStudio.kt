@@ -19,7 +19,7 @@ import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 
 /** Local desktop opt-in. This client owns its HTTP resources and never writes the bearer into recovery. */
-class JvmRemoteStudioApi(origin: String, identity: RemoteDocument, private val token: String) : RemoteStudioApi, AutoCloseable {
+class JvmRemoteStudioApi(origin: String, identity: RemoteDocument, private val token: String) : RemoteStudioApi, RemoteStudioCollaborationApi, AutoCloseable {
     private val client: HttpClient
     private val endpoint: URI
     private val json = Json { encodeDefaults = true; classDiscriminator = "operationType" }
@@ -33,11 +33,12 @@ class JvmRemoteStudioApi(origin: String, identity: RemoteDocument, private val t
         client = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(5)).followRedirects(HttpClient.Redirect.NEVER).build()
     }
     private data class Response(val status: Int, val body: JsonObject?)
-    private suspend fun request(command: EditCommand?): Response = try {
-        val request = HttpRequest.newBuilder(if (command == null) endpoint else URI(endpoint.toString() + "/commands"))
+    private suspend fun request(command: EditCommand?): Response = requestAt(if (command == null) "" else "/commands",
+        if (command == null) "GET" else "POST", command?.let { boundedCanonicalJson(json.encodeToJsonElement(EditCommand.serializer(), it), 2_000_000) })
+    private suspend fun requestAt(suffix: String, method: String, source: String? = null): Response = try {
+        val request = HttpRequest.newBuilder(URI(endpoint.toString() + suffix))
             .timeout(Duration.ofSeconds(10)).header("Authorization", "Bearer $token").header("Content-Type", "application/json")
-        val source = command?.let { boundedCanonicalJson(json.encodeToJsonElement(EditCommand.serializer(), it), 2_000_000) }
-        request.method(if (source == null) "GET" else "POST", source?.let(HttpRequest.BodyPublishers::ofString) ?: HttpRequest.BodyPublishers.noBody())
+        request.method(method, source?.let(HttpRequest.BodyPublishers::ofString) ?: HttpRequest.BodyPublishers.noBody())
         val response = client.sendAsync(request.build(), HttpResponse.BodyHandler { BoundedBody() }).await()
         val type = response.headers().firstValue("Content-Type").orElse("").substringBefore(';').trim().lowercase()
         val body = if (type == "application/json") try {
@@ -60,12 +61,30 @@ class JvmRemoteStudioApi(origin: String, identity: RemoteDocument, private val t
             else RemoteStudioRead.Failed(reason(response))
     }
     override suspend fun submit(command: EditCommand): RemoteStudioSubmit {
-        val response = request(command)
+        return submitted(request(command))
+    }
+    private fun submitted(response: Response): RemoteStudioSubmit {
         val source = response.body?.get("document") as? JsonObject
         val applied = (response.body?.get("appliedRevision") as? JsonPrimitive)?.takeUnless { it.isString }?.longOrNull
         return if (response.status == 200 && source != null && applied != null) RemoteStudioSubmit.Acknowledged(source.toString(), applied)
             else RemoteStudioSubmit.Failed(reason(response))
     }
+    override suspend fun updates(afterRevision: Long): DraftUpdateFeed? {
+        require(afterRevision >= 0)
+        val response = requestAt("/updates/$afterRevision", "GET")
+        if (response.status != 200 || response.body == null) return null
+        return DraftUpdateFeedCodec().decode(response.body.toString()).value
+    }
+    override suspend fun heartbeat(): DraftPresenceList? {
+        val response = requestAt("/presence", "POST")
+        if (response.status != 200 || response.body == null) return null
+        val value = try { json.decodeFromJsonElement(DraftPresenceList.serializer(), response.body) }
+        catch (_: kotlinx.serialization.SerializationException) { return null }
+        return value.takeIf { it.members.size <= 64 && it.members.all { member -> member.actorId.isNotBlank() && member.actorId.length <= 128 && member.expiresAtMillis > 0 } }
+    }
+    override suspend fun leave() { requestAt("/presence/leave", "POST") }
+    override suspend fun undo(command: RemoteUndoCommand): RemoteStudioSubmit = submitted(requestAt("/undo", "POST",
+        boundedCanonicalJson(json.encodeToJsonElement(RemoteUndoCommand.serializer(), command), 4096)))
     override fun close() { client.shutdownNow(); check(client.awaitTermination(Duration.ofSeconds(5))) { "Remote Studio HTTP client did not stop" } }
     private class BoundedBody : HttpResponse.BodySubscriber<ByteArray> {
         private val body = CompletableFuture<ByteArray>()

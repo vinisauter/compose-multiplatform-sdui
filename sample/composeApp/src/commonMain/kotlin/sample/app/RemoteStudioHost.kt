@@ -18,6 +18,12 @@ interface RemoteStudioApi {
     suspend fun read(): RemoteStudioRead
     suspend fun submit(command: EditCommand): RemoteStudioSubmit
 }
+interface RemoteStudioCollaborationApi {
+    suspend fun updates(afterRevision: Long): DraftUpdateFeed?
+    suspend fun heartbeat(): DraftPresenceList?
+    suspend fun leave()
+    suspend fun undo(command: RemoteUndoCommand): RemoteStudioSubmit
+}
 sealed interface RecoveryRead {
     data class Saved(val source: String?) : RecoveryRead
     data object Failed : RecoveryRead
@@ -32,6 +38,13 @@ interface RemoteStudioRecovery {
 class RemoteStudioHost private constructor(val editor: RemoteEditor, val workspace: LocalWorkspace,
     private val api: RemoteStudioApi, private val recovery: RemoteStudioRecovery) {
     private val mutex = Mutex()
+    val supportsCollaboration: Boolean get() = api is RemoteStudioCollaborationApi
+    var presence: DraftPresenceList = DraftPresenceList(emptyList())
+        private set
+    var presenceAvailable: Boolean = false
+        private set
+    var lastOwnCommandId: String? = null
+        private set
     private suspend fun saveLatest(): Boolean {
         repeat(8) {
             val source = editor.checkpoint().requireValue()
@@ -46,15 +59,22 @@ class RemoteStudioHost private constructor(val editor: RemoteEditor, val workspa
         if (!saveLatest()) return@withLock "Falha ao salvar recuperação; nenhum novo comando enviado"
         var sent = 0
         while (editor.pendingCount > 0 && sent++ < 128) {
-            val ticket = editor.beginSend() ?: break
+            val undo = editor.beginUndo()
+            val ticket = if (undo == null) editor.beginSend() else null
+            if (ticket == null && undo == null) break
+            fun fail(reason: RemotePause) { if (undo != null) editor.failedUndo(undo, reason) else editor.failed(ticket!!, reason) }
             try {
-                when (val response = api.submit(ticket.command)) {
+                val submitted = if (undo != null) (api as? RemoteStudioCollaborationApi)?.undo(undo.command)
+                    ?: RemoteStudioSubmit.Failed(RemotePause.REJECTED) else api.submit(ticket!!.command)
+                when (val response = submitted) {
                     is RemoteStudioSubmit.Acknowledged -> {
-                        val result = editor.acknowledge(ticket, response.source, response.appliedRevision)
-                        if (!result.isSuccess) editor.failed(ticket, RemotePause.REJECTED)
+                        val result = if (undo != null) editor.acknowledgeUndo(undo, response.source, response.appliedRevision)
+                            else editor.acknowledge(ticket!!, response.source, response.appliedRevision)
+                        if (!result.isSuccess) fail(RemotePause.REJECTED)
+                        else if (result.value == true) lastOwnCommandId = if (undo == null) ticket!!.command.commandId else null
                     }
                     is RemoteStudioSubmit.Failed -> {
-                        editor.failed(ticket, response.reason)
+                        fail(response.reason)
                         if (response.reason == RemotePause.CONFLICT) when (val remote = api.read()) {
                             is RemoteStudioRead.Document -> editor.observeConflict(remote.source)
                             is RemoteStudioRead.Failed -> Unit // Keep the outbox and conflict even if the follow-up GET fails.
@@ -62,10 +82,10 @@ class RemoteStudioHost private constructor(val editor: RemoteEditor, val workspa
                     }
                 }
             } catch (cancelled: CancellationException) {
-                editor.failed(ticket, RemotePause.OFFLINE)
+                fail(RemotePause.OFFLINE)
                 throw cancelled
             } catch (failure: Throwable) {
-                editor.failed(ticket, RemotePause.REJECTED)
+                fail(RemotePause.REJECTED)
                 throw failure
             }
             workspace.refreshRemote()
@@ -75,6 +95,38 @@ class RemoteStudioHost private constructor(val editor: RemoteEditor, val workspa
         if (editor.pendingCount == 0) "Salvo no servidor na revisão ${editor.confirmedRevision}"
         else "Pendências preservadas; sincronização incompleta"
     }
+    @OptIn(kotlin.uuid.ExperimentalUuidApi::class)
+    suspend fun undoLast(): String {
+        val enqueued = mutex.withLock {
+            val original = lastOwnCommandId ?: return@withLock false
+            if (!supportsCollaboration || editor.pendingCount > 0 || editor.sending) return@withLock false
+            editor.enqueueUndo(RemoteUndoCommand("undo-${kotlin.uuid.Uuid.random()}", editor.confirmedRevision, original)).isSuccess
+        }
+        return if (enqueued) synchronize() else "Nenhum envio próprio elegível para desfazer"
+    }
+    suspend fun pollUpdates(): String = mutex.withLock {
+        val collaboration = api as? RemoteStudioCollaborationApi ?: return@withLock "Atualizações não instaladas"
+        val members = collaboration.heartbeat()
+        presenceAvailable = members != null
+        presence = members ?: DraftPresenceList(emptyList())
+        if (editor.pendingCount > 0 || editor.sending) return@withLock "Pendências locais preservadas"
+        val feed = collaboration.updates(editor.confirmedRevision) ?: return@withLock "Atualizações indisponíveis"
+        val applied = editor.receiveUpdates(feed)
+        var changed = applied.value == true
+        if (!applied.isSuccess) {
+            when (val snapshot = api.read()) {
+                is RemoteStudioRead.Document -> {
+                    val adopted = editor.adoptClean(snapshot.source)
+                    if (!adopted.isSuccess) return@withLock "Ressincronização rejeitada"
+                    changed = adopted.value == true
+                }
+                is RemoteStudioRead.Failed -> return@withLock "Ressincronização indisponível"
+            }
+        }
+        if (changed) workspace.refreshRemote()
+        if (editor.needsPersistence && !saveLatest()) "Atualização recebida; recuperação ainda não salva" else "Atualizações verificadas"
+    }
+    suspend fun leavePresence() = mutex.withLock { (api as? RemoteStudioCollaborationApi)?.leave(); presence = DraftPresenceList(emptyList()); presenceAvailable = false }
     suspend fun archiveAndUseRemote(): String = mutex.withLock {
         if (editor.sending) return@withLock "Aguarde o request atual"
         val latest = api.read()
@@ -85,6 +137,7 @@ class RemoteStudioHost private constructor(val editor: RemoteEditor, val workspa
         val result = editor.discardPendingAndOpen(latest.source)
         if (!result.isSuccess) return@withLock "Versão remota rejeitada; pendências preservadas"
         workspace.refreshRemote()
+        lastOwnCommandId = null
         if (!saveLatest()) "Versão remota aberta; recuperação ainda não salva, arquivo anterior preservado"
         else "Pendências arquivadas; versão remota aberta na revisão ${editor.confirmedRevision}"
     }

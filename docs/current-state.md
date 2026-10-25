@@ -2,20 +2,20 @@
 
 Este é o ponto de entrada para **continuar o desenvolvimento**. Reúne o estado observado, o rastreamento das etapas e a próxima ação. O [plano](development-plan.md) define dependências, escopo e critérios de aceite; este documento é a única fonte de status e retomada.
 
-Atualizado após T24: edição remota desktop opt-in com outbox, storage/HTTP reais, confirmação ordenada e recuperação pelo Inspector. Conjunto de relatórios: 322 JVM regulares + 11 integrações reais, sem falhas/erros/ignorados; módulos afetados reexecutados. Studio browser permanece local, sem deploy público.
+Atualizado após T25: colaboração desktop opt-in com journal transacional, replay, presença e undo conservador. Relatórios: 327 JVM regulares + 15 integrações reais, sem falhas/erros/ignorados. Studio browser permanece local; sem deploy público.
 
 ## Ponto de retomada
 
 | Campo | Registro atual |
 | --- | --- |
-| Última atualização | 2026-10-25 — T20 em 42d6de8; T21 em dc51068; T22 em 4cdf7bc; T23 em 2f67dd9; T24 parcial em 277ad71 e fechamento abaixo; commits locais sem push |
-| Última entrega | T24: Studio remoto JVM opt-in, arquivo/HTTP/PostgreSQL reais, recuperação e conflito arquivado; 333 casos no conjunto |
-| Tarefa de implementação em execução | Nenhuma; próxima etapa pronta |
-| Próxima tarefa | **T25 — múltiplos editores e conflitos** |
-| Próxima ação concreta | Implementar journal/replay transacional e canal de atualização para dois editores/duas instâncias; definir presença, ressincronização e undo que não sobrescreva edição alheia |
-| Critério para avançar | T25: dois clientes/servidores convergem ou preservam conflito recuperável; eventos duplicados/perdidos/fora de ordem e reconexão; undo não apaga alteração de outro editor |
-| Bloqueio de implementação conhecido | Nenhum para T25 local; PostgreSQL real já qualificado, fixtures ficam paradas em Docker e precisam de readiness/porta redescoberta ao iniciar |
-| Limite do próximo recorte | Aplicação/host servidor local; sem deploy, banco remoto, credenciais versionadas ou integração implícita no Studio |
+| Última atualização | 2026-10-25; T20–T24 em 42d6de8, dc51068, 4cdf7bc, 2f67dd9, 277ad71 e 681f91e; commits locais sem push |
+| Última entrega | T25: dois controllers e dois hosts HTTP convergem com PostgreSQL; presença e undo recuperável; 342 casos no conjunto |
+| Tarefa de implementação em execução | Nenhuma; fechamento T25 validado |
+| Próxima tarefa | **T26 — qualificação por plataforma e recorte** |
+| Próxima ação concreta | Confrontar workflows com tarefas reais, executar compilação Android afetada e consolidar matriz de qualificação e limites |
+| Critério para avançar | Qualificar somente funcionalidades/targets com evidência; explicitar Apple, browser remoto e inspeções manuais ausentes |
+| Bloqueio de implementação conhecido | Nenhum para qualificação local JVM/Android/Wasm; Apple exige host compatível |
+| Limite do próximo recorte | Validação e CI local; sem deploy, push, distribuição ou credenciais versionadas |
 
 ### Protocolo quando o pedido for “continue o desenvolvimento”
 
@@ -58,8 +58,8 @@ Estados: **pronta**, **pendente**, **em execução**, **bloqueada**, **concluíd
 | T22 | Publicação imutável e capacidades | concluída | Codex: 304 JVM regulares + 8 integrações PostgreSQL/HTTP/Compose; pin e dados pessoais separados; detalhes abaixo |
 | T23 | Resolução BFF e isolamento de dados | concluída | Codex: 5 testes de política + 3 HTTP reais, 9 integrações PostgreSQL/HTTP/Compose no conjunto; detalhes abaixo |
 | T24 | Edição remota com revisão e recuperação | concluída | Codex: desktop opt-in, Inspector com HTTP/arquivo/PostgreSQL, replay/perda de ack e conflito arquivado; limites/qualificação abaixo |
-| T25 | Múltiplos editores e conflitos | pronta | Testar concorrência, replay e undo entre processos |
-| T26 | Qualificação por plataforma e recorte | pendente | Iniciar após T00; anexar evidência de cada recorte anunciado |
+| T25 | Múltiplos editores e conflitos | concluída | Journal/replay, dois hosts/controllers, presença e undo guardado; 342 casos; evidência abaixo |
+| T26 | Qualificação por plataforma e recorte | pronta | Consolidar matriz, corrigir CI e verificar Android afetado |
 
 Os requisitos completos e a ordem das dependências estão no [plano](development-plan.md). A numeração identifica tarefas; não significa executar T07–T12 antes de T13–T19. A prioridade inicial é base → schemas/fronteira → autoria local → manipulação visual; capacidades adicionais do cliente podem avançar em paralelo quando elegíveis.
 
@@ -334,3 +334,11 @@ Fixtures Docker criadas pelo script foram paradas no finally; containers e volum
 - build/t24-controller-integration.log executou PostgreSQL 6 e HTTP 1 com sucesso. O novo fluxo UI inicialmente falhou no matcher do teste, que contava simultaneamente badge e mensagem OFFLINE; restringido ao testTag do status. build/t24-controller-integration-final.log: BUILD SUCCESSFUL, 4 casos sample reais, zero falhas/erros/ignorados. Total de **11 integrações** e **333 casos distintos** no conjunto. Fixture própria humming-t21-36a704e4951a reutilizada, porta redescoberta, credenciais só em memória e container parado no finally.
 - Prova pelo Inspector real: aplicar UI saved, clicar sincronizar e ler revisão 1 no PostgreSQL; parar host, editar UI offline, gravar pendência/OFFLINE; criar outro host/controller com arquivo existente e sincronizar revisão 2. Outro editor alterou para revisão 3; UI conservou UI conflict ao receber 409. Confirmação Arquivar e substituir criou arquivo separado contendo a pendência e abriu other editor. Bearer não apareceu no checkpoint/arquivo. Token incorreto resultou UNAUTHORIZED sem nova revisão. Snapshot publicado original permaneceu igual.
 - Limites: UI automatizada Compose/JVM, sem inspeção manual da janela do composition root. HTTP/storage concretos são JVM loopback; browser padrão continua local e Wasm teve somente compilação do controller/Studio comum. Sem qualificação remota Android/Apple, queda de energia ou restauração de processo cliente independente. Não há sync multiusuário/presença/undo remoto; T25 é a próxima etapa, com política própria para coordenação entre instâncias.
+
+## Fechamento T25 — colaboração local — 2026-10-25
+
+Responsável Codex. Journal imutável e compensações persistidos na mesma transação que revisão/recibo; PostgreSQL é a autoridade compartilhada. Feed paginado de patches, deduplicação, lacunas/ressincronização e presença por actor com TTL. Acompanhar editores é opt-in; polling de 2s não envia pendências automaticamente. Undo exige autoria e postimagem intacta de todos os nós/arestas afetados; conflito conserva intenção recuperável. Checkpoint v2 migra v1 e inclui undo pendente.
+
+Comandos e relatórios: build/t25-complete-regression.log (dez jvmTest, metadata e Wasm do modelo, Wasm do sample), BUILD SUCCESSFUL: contrato 52, core 74, ações 4, autoria 110, rede 7, navegação 10, aplicação servidor 13, host 8, PostgreSQL 1 e sample 48 = 327. build/t25-collaborative-ui-final.log: postgresIntegrationTest 8, postgresHttpIntegrationTest 2, publishedClientIntegrationTest 5 = 15 integrações reais. Todos sem falhas/erros/ignorados. Fixture PostgreSQL 18.6 local, HTTP e arquivos reais; containers de teste parados ao terminar. Restart com 16 registros preservados em build/t25-integration-run.log.
+
+Teste Compose com dois controllers/dois hosts comprovou convergência, presença, undo preservando edição em outro nó, recusa quando o mesmo nó mudou e recuperação após perder ack do undo, sem revisão duplicada. Testes puros incluem feed duplicado/fora de ordem/lacuna e proteção de pendências. Codec compartilhado corrige discriminador polimórfico operationType; rejeita versão ausente/futura. Não são processos JVM separados, teste de carga, CRDT ou entrega exatamente uma vez. Sem inspeção manual nova de janela nativa. Undo da UI abrange o último envio próprio reconhecido nesta conexão; sem redo remoto. Journal anterior à migração exige ressincronização por snapshot. Publicações permanecem imutáveis.

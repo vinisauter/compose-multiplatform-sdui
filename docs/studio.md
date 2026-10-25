@@ -355,4 +355,10 @@ O host servidor local usa sua configuração PostgreSQL/HUMMING_LOCAL_TOKEN desc
 
 LocalStudio recebe RemoteStudioHost e seu workspace explicitamente. Após cada revisão local, tenta salvar recuperação e mostra a confirmação do storage. Sincronizar pendências executa flush ordenado/retry, exibindo revisão confirmada, pendências e pausa. Ao reabrir com outbox existente, ela é restaurada antes de qualquer substituição por leitura remota, para recuperar recibo perdido. Em conflito/rejeição, Arquivar e usar remoto exige confirmação do usuário, grava cópia das pendências e só então adota a definição remota. Falha ao arquivar conserva o preview local. O download de Exportar recuperação continua distinto da gravação efetiva do storage.
 
-O adapter desktop fecha HTTP ao sair. Workspace/preview não instalam métodos de negócio nem rede no renderer; a API de edição pertence ao host. Browser padrão permanece local até receber adapters e qualificação próprios. Undo/redo remoto e sincronização entre editores pertencem à política da etapa seguinte.
+O adapter desktop fecha HTTP ao sair. Workspace/preview não instalam métodos de negócio nem rede no renderer; a API de edição pertence ao host. Browser padrão permanece local até receber adapters e qualificação próprios. Colaboração remota usa a política abaixo.
+
+### Acompanhamento e undo remoto
+
+Acompanhar editores inicia polling a cada 2s enquanto habilitado na composição. Mostra presença por actor e indisponibilidade; não sincroniza automaticamente comandos locais. Ao desabilitar tenta remover presença; saída abrupta expira em 30s. Feed limpo aplica patches contíguos; lacuna carrega snapshot. Pendências locais permanecem protegidas.
+
+Desfazer último envio cria compensação do último comando próprio reconhecido nesta conexão. Só fica habilitado sem pendências; grava intenção antes de enviar. Alteração de outro editor no mesmo nó/aresta bloqueia undo integralmente, mesmo que seja outro campo. Alteração em outro nó é preservada. Falha mantém intenção para retry ou arquivo/resolução explícita. Não há redo remoto ou histórico multínivel remoto na UI. Dois editores devem usar checkpoints distintos e actors atribuídos pelo host; runLocal de demonstração não é provisionamento multiusuário.
