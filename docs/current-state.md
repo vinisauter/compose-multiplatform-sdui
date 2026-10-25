@@ -2,19 +2,19 @@
 
 Este é o ponto de entrada para **continuar o desenvolvimento**. Reúne o estado observado, o rastreamento das etapas e a próxima ação. O [plano](development-plan.md) define dependências, escopo e critérios de aceite; este documento é a única fonte de status e retomada.
 
-Atualizado após T12: jornada/cache opt-in e bridge nativa com prova Android. Suíte JVM: 52 contrato + 74 core + 4 ações + 95 autoria + 7 rede + 10 navegação + 44 sample = 286 casos, zero falhas/erros/ignorados. Transporte compilado para metadata/JS/Wasm/Android e executado em HTTP loopback JVM. Formulário observado no Chrome/Wasm. Compilação não comprova rede em browser/Android; Apple permanece sem execução.
+Atualizado após T21: aplicação/HTTP local e persistência PostgreSQL revisionada opt-in. Evidência: 298 testes JVM regulares em dez módulos + 6 integrações PostgreSQL/HTTP reais, sem falhas/erros/ignorados. Banco reiniciado preservou registros; host HTTP recriado leu revisão e recibo. Cliente/Studio mantêm as qualificações anteriores; não há deploy público ou integração remota automática.
 
 ## Ponto de retomada
 
 | Campo | Registro atual |
 | --- | --- |
-| Última atualização | 2026-10-24 — T11 em cinco commits até 6fb9e0d; protocolo T12 em 8b74700 e integração abaixo; commits locais sem push |
-| Última entrega | T12: adapter Android real, fallback browser, lifecycle/recriação e probe no Small_API_35; 286 testes JVM |
-| Tarefa de implementação em execução | Nenhuma; T20 encerrada no escopo local abaixo |
-| Próxima tarefa | **T21 — rascunhos e revisões em PostgreSQL** |
-| Próxima ação concreta | Implementar adapter PostgreSQL nas interfaces da aplicação; migrations, revisão esperada e commandId em transação; validar persistência/concorrência em banco local real |
-| Critério para avançar | T21: PostgreSQL real com migrations, CRUD/revisões duráveis, conflito/deduplicação/rollback/tenant e reabertura após reiniciar host |
-| Bloqueio de implementação conhecido | Nenhum para T20 local; banco real pertence à T21 e serviços/infraestrutura externos não estão autorizados implicitamente |
+| Última atualização | 2026-10-24 — T20 em 42d6de8; T21 com evidência abaixo; commits locais sem push |
+| Última entrega | T21: PostgreSQL/HTTP reais, revisão/recibo transacionais, rollback/cancelamento e persistência após restart; 304 casos no conjunto |
+| Tarefa de implementação em execução | Nenhuma; T21 encerrada no escopo local abaixo |
+| Próxima tarefa | **T22 — publicação imutável e capacidades** |
+| Próxima ação concreta | Implementar snapshot imutável por versão/capacidades, seleção e rollback por referência, com persistência local e carregamento pelo cliente real |
+| Critério para avançar | T22: publicar não altera snapshot anterior; rollback seleciona versão existente; incompatibilidade por capacidade tem diagnóstico; cliente carrega snapshot sem dados personalizados |
+| Bloqueio de implementação conhecido | Nenhum para T22 local; PostgreSQL real já qualificado, fixtures ficam paradas em Docker e precisam de readiness/porta redescoberta ao iniciar |
 | Limite do próximo recorte | Aplicação/host servidor local; sem deploy, banco remoto, credenciais versionadas ou integração implícita no Studio |
 
 ### Protocolo quando o pedido for “continue o desenvolvimento”
@@ -54,8 +54,8 @@ Estados: **pronta**, **pendente**, **em execução**, **bloqueada**, **concluíd
 | T18 | Seleção, bounds e drop geométrico | concluída | 8a12ea0/04df7c0/75f50f6; 202 testes JVM; commit de drag no Chrome e guia confirmada manualmente pelo usuário em 2026-10-24; ver [validação](validation.md) |
 | T19 | Grafo de interações e conectores | concluída | Codex, 2026-10-24: 94 testes autorais + 30 sample; canvas usa bounds reais, cúbicas/setas/hit/zoom/Escape; relações/undo e jornadas exportadas executadas. Chrome observou ida/volta e seleção rosa; pacote com 3 artefatos verificado |
 | T20 | Aplicação de servidor e interfaces | concluída | Codex: aplicação pura (5 casos), HTTP real (5 casos), classpath headless, smoke runLocal/401 e 296 testes no conjunto; detalhes abaixo |
-| T21 | Rascunhos/revisões em PostgreSQL | pronta | Validar persistência/transações em banco real local |
-| T22 | Publicação imutável e capacidades | pendente | Publicar snapshot local compatível sem dados de sessão |
+| T21 | Rascunhos/revisões em PostgreSQL | concluída | Codex: adapter/migration, CAS e recibos, seis integrações reais incluindo restart/rollback/cancelamento; 304 casos no conjunto; detalhes abaixo |
+| T22 | Publicação imutável e capacidades | pronta | Publicar snapshot local compatível sem dados de sessão |
 | T23 | Resolução BFF e isolamento de dados | pendente | Resolver fontes registradas com limites e isolamento |
 | T24 | Edição remota com revisão e recuperação | pendente | Salvar/reabrir/reconectar sem perda silenciosa |
 | T25 | Múltiplos editores e conflitos | pendente | Testar concorrência, replay e undo entre processos |
@@ -63,13 +63,15 @@ Estados: **pronta**, **pendente**, **em execução**, **bloqueada**, **concluíd
 
 Os requisitos completos e a ordem das dependências estão no [plano](development-plan.md). A numeração identifica tarefas; não significa executar T07–T12 antes de T13–T19. A prioridade inicial é base → schemas/fronteira → autoria local → manipulação visual; capacidades adicionais do cliente podem avançar em paralelo quando elegíveis.
 
-### Trabalho parcial e bloqueios
+### Evidências históricas — T07 a T19
+
+Os registros desta seção preservam evidências anteriores; não substituem o ponto de retomada no início do documento.
 
 T08 concluída no recorte puro, responsável Codex; sem trabalho parcial ativo. ExpressionSpec exige marcador/versão, AST é privado e o programa reutilizável não guarda contexto/resultados. Operadores e acesso são fechados e tipados; não existem chamadas/reflexão/atribuição. Parsing limita fonte/tokens/profundidade; avaliação limita visitas/texto e propaga cancelamento do chamador. Inteiros fora do intervalo seguro, resultado não finito, divisão por zero e índices inválidos têm diagnóstico por offset. Missing difere de Null; operadores booleanos/coalesce e acesso sobre ausência têm curto-circuito. Formatação do resultado Double não é promessa de texto canônico entre targets; igualdade numérica/testes são por valor.
 
 Comandos: .\gradlew.bat :humming-contract:jvmTest :humming-contract:compileCommonMainKotlinMetadata :humming-contract:compileKotlinJs :humming-contract:compileKotlinWasmJs --console=plain (build/t08/expressions.log); regressões de contrato/core/ações/autoria/sample e Wasm em build/t08/consumers.log; teste final do contrato em build/t08/final-tests.log. BUILD SUCCESSFUL, 43 contrato + 69 core + 4 ações + 94 autoria + 32 sample = 242, zero falhas/erros/ignorados. Dez casos novos cobrem gramática, escopos/chaves/índices, coerção proibida, curto-circuito, versões/chamadas proibidas, números, budgets, reutilização e CancellationException original. Duas expectativas iniciais de fixture foram corrigidas: (1).field para testar acesso escalar e 1/1e-309 para overflow sem atingir primeiro a guarda de inteiro seguro. Não se alteraram dependências.
 
-A linguagem não foi ligada a propriedades, Inspector ou runtime de UI; nenhum binding #{chave} foi reinterpretado. Não há nova prova de execução JS/Wasm do evaluator (somente compilação). T09 é o próximo recorte para dependências/reatividade, capacidades, formatação e fallback; não declarar expressão de UI pronta por existir parser.
+A linguagem não foi ligada a propriedades, Inspector ou runtime de UI; nenhum binding #{chave} foi reinterpretado. Não há nova prova de execução JS/Wasm do evaluator (somente compilação). Naquele recorte, T09 era a próxima etapa para dependências/reatividade, capacidades, formatação e fallback; não declarar expressão de UI pronta por existir parser.
 
 T07 concluída no recorte local, responsável Codex. Nenhum trabalho parcial ativo. O estado agora tem autoridade tipada e projeção textual viva; Missing remove, Null permanece explícito e strings/IDs não passam por inferência. response/error são slots por execução/owner, herdados por sequências aninhadas e limpos em finally. ISOLATED_ENTRIES é opt-in do host, ativado no preview compilado do Studio; LEGACY_SHARED permanece o padrão compatível. server/nav vêm de entryInputs; state pertence ao owner. Retorno na pilha conserva a entrada e pop limpa valores e cancela jobs. Não há restauração automática após processo/página reiniciados.
 
@@ -85,7 +87,7 @@ No Chrome/Wasm: exemplo abriu segunda tela e voltou; canvas desenhou a conexão,
 
 Após a orientação de carregar o exemplo, o usuário respondeu “agora sim”, confirmando a guia que faltava no aceite de T18. Essa é evidência manual, distinta da observação automatizada do commit no Chrome e da captura de pixels em Compose; detalhes e limites estão em [validação](validation.md). Não repetir a verificação sem motivo novo.
 
-Retomar por T09, dependências T05/T08 concluídas. T20–T25 permanecem posteriores; este recorte não criou servidor, transporte HTTP ou persistência remota.
+Naquele recorte, a retomada era T09, com dependências T05/T08 concluídas. T20–T25 permanecem posteriores; este recorte não criou servidor, transporte HTTP ou persistência remota.
 
 ### T09 — recorte de dependências e streams tipados
 
@@ -103,7 +105,7 @@ Os relatórios e planos antigos estão ausentes. O registro de M01 conserva o re
 
 ## Escopo implementado
 
-HummingUI é uma POC de cliente SDUI. Interpreta nós JSON, mantém estado textual, resolve componentes e ações por namespace e integra bibliotecas no sample. O editor local integra árvore/Inspector, seleção/drop, canvas de interações e preview/exportação de jornadas. Não há backend de contratos, publicação imutável ou colaboração implementados nos módulos incluídos.
+HummingUI é uma POC de cliente SDUI. Interpreta nós JSON, mantém estado tipado com projeção textual legada, resolve componentes e ações por namespace e integra bibliotecas no sample. O editor local integra árvore/Inspector, seleção/drop, canvas de interações e preview/exportação de jornadas. Há aplicação/HTTP local opcional e persistência PostgreSQL; publicação imutável e colaboração ainda não foram implementadas.
 
 | Módulo | Responsabilidade observada |
 | --- | --- |
@@ -111,11 +113,14 @@ HummingUI é uma POC de cliente SDUI. Interpreta nós JSON, mantém estado textu
 | `humming-studio-model` | Documento autoral normalizado, comandos, histórico, compilador por capacidades e codecs; não depende do runtime |
 | `humming-core` | Registro, ViewModel, estado, despacho e helpers visuais; exporta o contrato |
 | `humming-actions` | Métodos registrados, eventos, atualização e condições |
-| `humming-navigation` | Grafo e ações com Compose Navigation; cache de definições por rota e owners por entrada no modo isolado |
+| `humming-navigation` | Compose Navigation; definições opt-in por jornada/versão/sessão e owners por entrada no modo isolado |
 | `humming-layout-material3` | Catálogo de componentes Compose Material 3 e leitura de propriedades |
 | `sample:composeApp` | Host, providers e exemplos compartilhados com targets de aplicação |
 | `sample:iosApp` | Projeto incluído para integração Apple; execução depende de ambiente compatível |
 | `humming-network` | Incluído: adaptador HTTP opt-in, sem engine ou cliente criado pelo módulo |
+| `humming-server-application` | Casos de uso/DTOs, grants por documento, interfaces de persistência e edição; sem UI/driver |
+| `humming-server-postgres` | JDBC, migrations e revisão/recibo transacionais; sem rotas/UI |
+| `humming-server-host` | Composition root HTTP loopback com autenticação e adapter escolhido explicitamente |
 
 Os includes reais estão em [settings.gradle.kts](../settings.gradle.kts). Não há motivo para renomear os módulos existentes apenas para reproduzir uma arquitetura futura.
 
@@ -157,7 +162,7 @@ Essas limitações descrevem o código, não comportamentos que devam ser perpet
 
 Os builds principais declaram toolchain JVM **25** e compatibilidade Java Android **17**. O [catálogo](../gradle/libs.versions.toml) declara Kotlin `2.4.21`, Compose `1.8.2`, AGP `8.13.2`, Ktor `3.6.0` e Navigation `2.9.2`; aliases JVM/Spring usam Kotlin `2.2.10`. Esses valores não demonstram resolução dos artefatos ou compatibilidade entre versões.
 
-A referência agregada mais recente é 286 testes JVM após a bridge local da T12, sem falhas/erros/ignorados. As fixtures de parsing/limites pertencem ao commonTest do contrato; o teste headless comprova ausência de classes UI no classpath. Evidências incrementais estão nos recortes T09; procedimentos em [validação](validation.md).
+A referência agregada mais recente é 298 testes JVM regulares e seis integrações PostgreSQL/HTTP após a T21, sem falhas/erros/ignorados. As fixtures de parsing/limites pertencem ao commonTest do contrato; o teste headless comprova ausência de classes UI no classpath. Evidências incrementais estão nos recortes T09; procedimentos em [validação](validation.md).
 
 A dependência Lifecycle do core permanece api porque seu ViewModel aparece na API pública. O host JVM fornece handle de estado em memória por factory explícita; os outros hosts mantêm o caminho padrão. O contrato é exportado pelo core e usa bytecode JVM 17 com toolchain 25.
 
@@ -165,7 +170,11 @@ Gradle 9.5.1 com Java 25.0.3 em Windows 11 x64 executou `projects`, descoberta d
 
 ## Evolução ainda não implementada
 
-Permanecem pendentes schemas para o restante do catálogo, políticas de cache, bridge nativa, persistência remota, publicação e colaboração. Valores tipados, linguagem pura, formulário reativo opt-in, isolamento por entrada e grafo visual local possuem evidência nos recortes anteriores. Máscaras de domínio adicionais e aritmética decimal exata não são capacidades instaladas; nenhuma propriedade monetária foi declarada. O [plano](development-plan.md) define o escopo restante.
+Permanecem pendentes schemas para o restante do catálogo, publicação imutável, BFF, integração remota do Studio, colaboração e qualificação adicional por plataforma. Cache de definições, bridge local e adapter PostgreSQL possuem evidência nos recortes correspondentes. Valores tipados, linguagem pura, formulário reativo opt-in, isolamento por entrada e grafo visual local possuem evidência nos recortes anteriores. Máscaras de domínio adicionais e aritmética decimal exata não são capacidades instaladas; nenhuma propriedade monetária foi declarada. O [plano](development-plan.md) define o escopo restante.
+
+## Histórico incremental — T09 em diante
+
+As próximas ações citadas nos registros abaixo eram válidas na data de cada recorte. A tabela inicial é a única instrução vigente de retomada.
 
 ### T09 — envelope e texto/visibilidade no catálogo
 
@@ -278,3 +287,15 @@ Executado: descoberta tasks dos dois módulos; aplicação tem cinco casos JVM, 
 Smoke independente: runLocal com credencial temporária só no ambiente, sem logs/arquivo de token. build/t20-localhost.log registrou host em 127.0.0.1:53145; Invoke-WebRequest real retornou 401 e UNAUTHENTICATED sem credencial. Socket exigiu execução fora do sandbox; nenhuma permissão de rede pública foi ampliada. Host do smoke foi encerrado. Porta efêmera não é configuração futura. git diff --check aprovado.
 
 T20 concluída no recorte autorizado: aplicação/HTTP local e repository volátil explicitamente sem durabilidade. Timeout é cooperativo de suspensão, não garantia de deadline de IO bloqueante para host público. O contrato documenta limites/status/autenticação. Sem banco/GraphQL/federação, deploy, push ou credenciais versionadas. T21 pronta. Preparação: Docker Desktop já instalado estava parado; iniciado por CLI, engine29.9.1 Linux respondeu; download da imagem oficial PostgreSQL18.6 em andamento. Não declarar PostgreSQL validado antes de teste real.
+
+### T21 — persistência PostgreSQL, revisão e recibos transacionais
+
+Codex, 2026-10-24: novo humming-server-postgres, driver pgJDBC42.7.14 e migration V1 com chave composta tenant/documento, FK e recibo por commandId. Migration transacional/idempotente sob advisory lock e checksum normalizado LF. DraftEditingApplication autoriza READ+EDIT antes do parse, canoniza comando com budgets e chama RevisionedDraftRepository. Adapter aplica EditSession existente sob SELECT FOR UPDATE/READ COMMITTED e grava fonte/revisão/recibo na mesma transação; fingerprint diferencia retry de conflito. Cliente/core não dependem de servidor/driver. boundedCanonicalJson tornou-se público sem alterar o algoritmo/formato.
+
+Host: /commands devolve revisão/appliedRevision/replayed e diagnósticos, ou conflito409/erro422. Composition root injeta PostgreSQL quando HUMMING_DB_URL/USER/PASSWORD estão todas presentes; sem elas continua explicitamente volátil (edição501), nunca fallback silencioso de configuração incompleta. JSON, UTF-8, grants e limites anteriores preservados. Não foram adicionadas rotas de publicação, exclusão, RLS de cliente ou colaboração.
+
+Prova real: .\scripts\verify-postgres.ps1 criou banco local humming_test em imagem oficial postgres18.6 por digest sha256:edb0c08dc33befd0262ab3b5cf1c4f3f8cfd8b09e88c05b45adee29d6761ddb6, porta só em127.0.0.1 e credencial aleatória apenas em ambiente/Docker. Cinco testes JDBC e um HTTP (seis casos, zero falhas/erros/ignorados) qualificam migration idempotente, nova instância de adapter, oito revisões concorrentes com um vencedor, quatro retries do mesmo comando com uma aplicação, conflito de identidade, tenant separado, lote inválido, falha forçada entre UPDATE e recibo com rollback, cancelamento durante row lock real sem revisão/recibo, e host HTTP recriado lendo fonte/revisão/recibo. build/t21/integration.log, after-restart.log e final-integration.log: BUILD SUCCESSFUL. restart.log: sete registros antes/depois do reinício do banco, PASS. A primeira tentativa após restart detectou porta dinâmica alterada; script agora redescobre binding e verifica TCP antes do novo ciclo. Nenhum banco substituto foi usado.
+
+Regressão: build/t21-regression.log — dez módulos JVM, 298 casos regulares (52 contrato/74 core/4 ações/95 autoria/7 rede/10 navegação/6 aplicação/5 host/1 adapter/44 sample), sem falhas/erros/ignorados; metadata/Wasm do modelo e Wasm sample compilados. Integrações reais são tarefas dedicadas e adicionais, não casos ignorados: total304 casos distintos. Os testes reais foram repetidos após restart e após os ajustes finais de cancelamento/cleanup. git diff --check aprovado. Não há nova prova UI/Android/Apple neste recorte.
+
+Fixtures Docker criadas pelo script foram paradas no finally; containers e volumes rotulados T21 preservados sem apagar dados. build/t21/environment.json é apenas snapshot sem segredo (último container humming-t21-714dd5db2ec1, volume de mesmo prefixo com sufixo -data); consultar nome/label e redescobrir porta ao reiniciar. Não versionar nem imprimir Config.Env/credenciais. Docker Desktop permaneceu disponível; nada remoto foi provisionado. T21 concluída no escopo local. T22 pronta para snapshot/publicação local de teste; nenhuma autorização de deploy/push está implícita.

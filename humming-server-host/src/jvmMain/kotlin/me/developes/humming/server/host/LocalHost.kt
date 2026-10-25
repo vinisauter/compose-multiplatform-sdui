@@ -6,6 +6,8 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.CancellationException
 import kotlinx.serialization.json.*
 import me.developes.humming.server.*
+import me.developes.humming.server.postgres.PostgresDraftRepository
+import me.developes.humming.server.postgres.postgresDataSource
 import me.developes.humming.sdui.common.*
 import me.developes.humming.sdui.studio.TargetCapabilities
 import java.net.InetSocketAddress
@@ -39,6 +41,7 @@ class DraftHttpHost(
     port: Int = 0,
     private val maxBodyBytes: Int = 2_000_000,
     private val operationTimeoutMillis: Long = 10_000,
+    private val editing: DraftEditingApplication? = null,
     private val onUnexpectedFailure: (Throwable) -> Unit = { System.err.println("Draft host failed: ${it::class.simpleName}") },
 ) : AutoCloseable {
     private val job = SupervisorJob()
@@ -73,33 +76,47 @@ class DraftHttpHost(
         val actor = authenticator.authenticate(authorization?.singleOrNull())
         if (actor == null) { respond(exchange, 401, error("UNAUTHENTICATED")); return }
         if (exchange.requestURI.rawQuery != null) { respond(exchange, 400, error("INVALID_ROUTE")); return }
-        val route = Regex("/v1/tenants/([A-Za-z0-9][A-Za-z0-9_-]{0,127})/documents/([A-Za-z0-9][A-Za-z0-9_-]{0,127})(/validate)?")
+        val route = Regex("/v1/tenants/([A-Za-z0-9][A-Za-z0-9_-]{0,127})/documents/([A-Za-z0-9][A-Za-z0-9_-]{0,127})(/validate|/commands)?")
             .matchEntire(exchange.requestURI.rawPath)
         if (route == null) { respond(exchange, 404, error("ROUTE_NOT_FOUND")); return }
         val key = DocumentKey(route.groupValues[1], route.groupValues[2])
-        val validation = route.groupValues[3].isNotEmpty()
+        val validation = route.groupValues[3] == "/validate"
+        val command = route.groupValues[3] == "/commands"
+        val special = validation || command
         val method = exchange.requestMethod
-        if ((validation && method != "POST") || (!validation && method !in setOf("GET", "POST"))) {
-            exchange.responseHeaders.set("Allow", if (validation) "POST" else "GET, POST")
+        if ((special && method != "POST") || (!special && method !in setOf("GET", "POST"))) {
+            exchange.responseHeaders.set("Allow", if (special) "POST" else "GET, POST")
             respond(exchange, 405, error("METHOD_NOT_ALLOWED")); return
         }
-        val permission = if (validation) Permission.VALIDATE else if (method == "GET") Permission.READ else Permission.CREATE
+        val permission = if (command) Permission.EDIT else if (validation) Permission.VALIDATE else if (method == "GET") Permission.READ else Permission.CREATE
         if (!application.isAllowed(actor, key, permission)) { respond(exchange, 403, error("FORBIDDEN")); return }
+        if (command && !application.isAllowed(actor, key, Permission.READ)) { respond(exchange, 403, error("FORBIDDEN")); return }
+        if (command) {
+            val editor = editing ?: run { respond(exchange, 501, error("EDIT_UNAVAILABLE")); return }
+            val source = jsonBody(exchange) ?: return
+            when (val result = editor.edit(actor, key, source)) {
+                is DraftEditResult.Accepted -> respond(exchange, 200, buildJsonObject {
+                    put("revision", result.draft.revision); put("appliedRevision", result.appliedRevision)
+                    put("replayed", result.replayed); put("document", Json.parseToJsonElement(result.draft.source))
+                    put("diagnostics", JsonArray(result.diagnostics.map(::diagnostic)))
+                })
+                is DraftEditResult.Rejected -> respond(exchange, when (result.code) {
+                    ApplicationError.FORBIDDEN -> 403
+                    ApplicationError.NOT_FOUND -> 404
+                    ApplicationError.REVISION_CONFLICT, ApplicationError.COMMAND_REPLAY_CONFLICT -> 409
+                    else -> 422
+                }, buildJsonObject {
+                    put("code", result.code.name); result.currentRevision?.let { put("currentRevision", it) }
+                    put("diagnostics", JsonArray(result.diagnostics.map(::diagnostic)))
+                })
+            }
+            return
+        }
         val result = when {
             validation -> application.validate(actor, key)
             method == "GET" -> application.read(actor, key)
             else -> {
-                // Authorization is checked by the application before parsing, but the transport must bound wire input first.
-                val contentType = exchange.requestHeaders.getFirst("Content-Type")?.lowercase()?.replace(" ", "")
-                if (contentType !in setOf("application/json", "application/json;charset=utf-8")) {
-                    respond(exchange, 415, error("JSON_REQUIRED")); return
-                }
-                val bytes = exchange.requestBody.readNBytes(maxBodyBytes + 1)
-                if (bytes.size > maxBodyBytes) { respond(exchange, 413, error("BODY_LIMIT")); return }
-                val source = try {
-                    Charsets.UTF_8.newDecoder().onMalformedInput(CodingErrorAction.REPORT)
-                        .onUnmappableCharacter(CodingErrorAction.REPORT).decode(ByteBuffer.wrap(bytes)).toString()
-                } catch (_: CharacterCodingException) { respond(exchange, 400, error("INVALID_UTF8")); return }
+                val source = jsonBody(exchange) ?: return
                 application.create(actor, key, source)
             }
         }
@@ -127,6 +144,19 @@ class DraftHttpHost(
         }
     }
 
+    private fun jsonBody(exchange: HttpExchange): String? {
+        val contentType = exchange.requestHeaders.getFirst("Content-Type")?.lowercase()?.replace(" ", "")
+        if (contentType !in setOf("application/json", "application/json;charset=utf-8")) {
+            respond(exchange, 415, error("JSON_REQUIRED")); return null
+        }
+        val bytes = exchange.requestBody.readNBytes(maxBodyBytes + 1)
+        if (bytes.size > maxBodyBytes) { respond(exchange, 413, error("BODY_LIMIT")); return null }
+        return try {
+            Charsets.UTF_8.newDecoder().onMalformedInput(CodingErrorAction.REPORT)
+                .onUnmappableCharacter(CodingErrorAction.REPORT).decode(ByteBuffer.wrap(bytes)).toString()
+        } catch (_: CharacterCodingException) { respond(exchange, 400, error("INVALID_UTF8")); null }
+    }
+
     private fun diagnostic(value: NodeDiagnostic) = buildJsonObject {
         put("code", value.code); put("message", value.message); put("operation", value.operation)
         put("path", value.path); put("severity", value.severity.name)
@@ -145,7 +175,7 @@ class DraftHttpHost(
         job.cancel()
         server.stop(0)
         executor.shutdownNow()
-        check(executor.awaitTermination(5, TimeUnit.SECONDS)) { "Local HTTP workers did not stop" }
+        check(executor.awaitTermination(20, TimeUnit.SECONDS)) { "Local HTTP workers did not stop" }
     }
 }
 
@@ -154,10 +184,17 @@ fun main() {
     val key = DocumentKey("local", "example")
     val actor = Actor("local-author", Permission.entries.map { DocumentGrant(key, it) }.toSet())
     val catalog = initialNodeCatalog()
-    val application = DraftApplication(VolatileDraftRepository(), ExactGrantAuthorizer, catalog,
+    val database = listOf("HUMMING_DB_URL", "HUMMING_DB_USER", "HUMMING_DB_PASSWORD").map(System::getenv)
+    require(database.all { it == null } || database.all { !it.isNullOrBlank() }) { "Supply all three HUMMING_DB variables, or none for volatile mode" }
+    val repository: DraftRepository = if (database.first() == null) VolatileDraftRepository() else {
+        PostgresDraftRepository(postgresDataSource(database[0]!!, database[1]!!, database[2]!!), catalog)
+            .also { runBlocking { it.migrate() } }
+    }
+    val application = DraftApplication(repository, ExactGrantAuthorizer, catalog,
         TargetCapabilities(catalog.capabilities))
-    val host = DraftHttpHost(application, BearerAuthenticator(token, actor))
+    val editing = (repository as? RevisionedDraftRepository)?.let { DraftEditingApplication(it, ExactGrantAuthorizer) }
+    val host = DraftHttpHost(application, BearerAuthenticator(token, actor), editing = editing)
     Runtime.getRuntime().addShutdownHook(Thread { host.close() })
-    println("Volatile draft host: http://127.0.0.1:${host.port}/v1/tenants/local/documents/example (no durable storage)")
+    println("Draft host: http://127.0.0.1:${host.port}/v1/tenants/local/documents/example (storage=${if (editing == null) "volatile" else "postgresql"})")
     CountDownLatch(1).await()
 }

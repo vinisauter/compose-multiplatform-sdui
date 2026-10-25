@@ -5,9 +5,23 @@ kotlin {
     sourceSets {
         jvmMain.dependencies {
             implementation(project(":humming-server-application"))
+            implementation(project(":humming-server-postgres"))
             implementation(libs.kotlinx.coroutines.core)
         }
         jvmTest.dependencies { implementation(kotlin("test")) }
+    }
+}
+val regularHostTests = tasks.named<Test>("jvmTest") { exclude("**/PostgresHttpIntegrationTest*") }
+tasks.register<Test>("postgresHttpIntegrationTest") {
+    group = "verification"
+    dependsOn("jvmTestClasses")
+    testClassesDirs = regularHostTests.get().testClassesDirs
+    classpath = regularHostTests.get().classpath
+    include("**/PostgresHttpIntegrationTest*")
+    outputs.upToDateWhen { false }
+    doFirst {
+        for (key in listOf("HUMMING_TEST_DB_URL", "HUMMING_TEST_DB_USER", "HUMMING_TEST_DB_PASSWORD"))
+            environment(key, requireNotNull(System.getenv(key)) { "$key is required for PostgreSQL HTTP integration" })
     }
 }
 tasks.register<JavaExec>("runLocal") {

@@ -24,6 +24,7 @@ include(":humming-layout-material3")
 include(":humming-network")
 include(":humming-server-application")
 include(":humming-server-host")
+include(":humming-server-postgres")
 
 include(":sample:composeApp")
 include(":sample:iosApp")

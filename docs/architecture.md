@@ -4,7 +4,7 @@ O [estado atual](current-state.md) descreve o código existente. Os desenhos aba
 
 ## Limites do produto
 
-O cliente interpreta contratos declarativos usando capacidades instaladas. O Studio edita documentos autorais e compila contratos. Um servidor futuro armazena versões, publica snapshots e resolve dados autorizados. Essas responsabilidades devem evoluir separadamente, com testes de fronteira.
+O cliente interpreta contratos declarativos usando capacidades instaladas. O Studio edita documentos autorais e compila contratos. A aplicação opcional de servidor armazena rascunhos/revisões; publicação de snapshots e resolução de dados autorizados são extensões posteriores. Essas responsabilidades devem evoluir separadamente, com testes de fronteira.
 
 O núcleo compartilhável não conhece Material 3, banco de dados, endpoints de negócio ou credenciais. Ações não executam código arbitrário do payload. Regras do sample permanecem no host. Não é necessário construir servidor ou colaboração para demonstrar renderização, edição, importação e exportação locais.
 
@@ -59,9 +59,9 @@ O Studio reutiliza o catálogo e o renderer do cliente. Seleção, Inspector, bo
 
 ## Serviços remotos posteriores
 
-Criar módulos somente nas etapas correspondentes. Nomes abaixo descrevem responsabilidades, não imports existentes:
+Criar módulos somente quando houver necessidade concreta. As fronteiras abaixo orientam os módulos existentes e as extensões; includes e evidências estão no estado atual:
 
-| Camada futura | Depende de | Não deve depender de |
+| Camada | Depende de | Não deve depender de |
 | --- | --- | --- |
 | Contrato/compilador puro | Kotlin e serialização adequados ao recorte | Compose, drivers de banco, framework HTTP |
 | Aplicação de servidor | Contrato, interfaces de repositório e políticas | Implementação concreta de banco |
@@ -112,3 +112,9 @@ NativeBridge no core é um registro imutável de handlers suspensos com request/
 humming-server-application contém DTOs/casos de uso de criação, leitura e validação de rascunho, interfaces DraftRepository/DocumentAuthorizer e compilação pura. Depende de humming-studio-model/contrato e coroutines, sem Compose, Lifecycle, HTTP ou driver. Código comum é compilado para JVM neste recorte. humming-server-host é um composition root JVM separado, que injeta autenticação, política por documento e adapter volátil. Nenhum módulo cliente passa a depender desses módulos.
 
 O host usa HttpServer do JDK 25 após prova de build/HTTP real, evitando escolher framework por declaração. Escuta somente 127.0.0.1 e não instala rotas no Studio. Worker pool/queue e entrada são limitados, com cancelamento de operações suspensas e encerramento dos recursos. Não é host público de produção: não implementa TLS, autenticação federada ou deadline garantido de IO bloqueante contra clientes lentos. Persistência PostgreSQL deve implementar a interface da aplicação, sem depender das rotas.
+
+## Persistência revisionada
+
+humming-server-postgres implementa DraftRepository/RevisionedDraftRepository com JDBC e depende somente da aplicação, sem rotas ou UI. O host injeta DataSource e catálogo; cada operação fecha a conexão. O composition root seleciona explicitamente adapter PostgreSQL quando as três variáveis HUMMING_DB são fornecidas, ou mantém modo volátil. O Studio continua desacoplado dessa escolha.
+
+A chave persistida é tenant/documento. Edição autoriza READ+EDIT antes do parse (a resposta contém a definição), prepara comando canônico limitado e entra em transação READ COMMITTED. SELECT FOR UPDATE serializa apenas o documento; recibo por tenant/documento/commandId distingue repetição de conflito. Documento, revisão e recibo são gravados juntos. Não há chamada externa durante o lock; rollback/cancelamento preservam a revisão anterior. O journal atual guarda fingerprint/recibo, não uma promessa de undo remoto ou log completo de operações.

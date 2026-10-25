@@ -25,7 +25,7 @@ private data class WireDocument(
 )
 
 /** Checks the character budget while writing, before a large expansion allocates its full JSON string. */
-internal fun boundedCanonicalJson(
+fun boundedCanonicalJson(
     element: JsonElement, maxChars: Int, maxDepth: Int = 64,
     operation: String = "authoringEncode", documentId: String? = null, code: String = "INPUT_LIMIT",
 ): String {
