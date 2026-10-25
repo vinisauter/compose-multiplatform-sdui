@@ -10,10 +10,10 @@ Atualizado após T12: jornada/cache opt-in e bridge nativa com prova Android. Su
 | --- | --- |
 | Última atualização | 2026-10-24 — T11 em cinco commits até 6fb9e0d; protocolo T12 em 8b74700 e integração abaixo; commits locais sem push |
 | Última entrega | T12: adapter Android real, fallback browser, lifecycle/recriação e probe no Small_API_35; 286 testes JVM |
-| Tarefa de implementação em execução | Nenhuma; T12 encerrada no escopo local qualificado abaixo |
-| Próxima tarefa | **T20 — aplicação de servidor e interfaces** |
-| Próxima ação concreta | Criar fronteira de aplicação sem Compose/driver para rascunho, validação e leitura; DTOs/política por tenant/documento e host HTTP local com framework escolhido por prova de build |
-| Critério para avançar | T20: casos de uso/autorização/entrada inválida/diagnósticos testados; interfaces sem Compose/driver e host local executado, sem declarar persistência durável |
+| Tarefa de implementação em execução | Nenhuma; T20 encerrada no escopo local abaixo |
+| Próxima tarefa | **T21 — rascunhos e revisões em PostgreSQL** |
+| Próxima ação concreta | Implementar adapter PostgreSQL nas interfaces da aplicação; migrations, revisão esperada e commandId em transação; validar persistência/concorrência em banco local real |
+| Critério para avançar | T21: PostgreSQL real com migrations, CRUD/revisões duráveis, conflito/deduplicação/rollback/tenant e reabertura após reiniciar host |
 | Bloqueio de implementação conhecido | Nenhum para T20 local; banco real pertence à T21 e serviços/infraestrutura externos não estão autorizados implicitamente |
 | Limite do próximo recorte | Aplicação/host servidor local; sem deploy, banco remoto, credenciais versionadas ou integração implícita no Studio |
 
@@ -53,8 +53,8 @@ Estados: **pronta**, **pendente**, **em execução**, **bloqueada**, **concluíd
 | T17 | Editor local e Inspector | concluída | Implementação 2d9d6eb; 183 testes JVM; importação/ação/downloads observados pelo agente e abertura manual/confirmado relatados pelo usuário em 2026-10-24; ver [validação](validation.md) |
 | T18 | Seleção, bounds e drop geométrico | concluída | 8a12ea0/04df7c0/75f50f6; 202 testes JVM; commit de drag no Chrome e guia confirmada manualmente pelo usuário em 2026-10-24; ver [validação](validation.md) |
 | T19 | Grafo de interações e conectores | concluída | Codex, 2026-10-24: 94 testes autorais + 30 sample; canvas usa bounds reais, cúbicas/setas/hit/zoom/Escape; relações/undo e jornadas exportadas executadas. Chrome observou ida/volta e seleção rosa; pacote com 3 artefatos verificado |
-| T20 | Aplicação de servidor e interfaces | pronta | Criar fronteiras/casos de uso/host HTTP local com autorização; depende de T06/T15 concluídas |
-| T21 | Rascunhos/revisões em PostgreSQL | pendente | Validar persistência/transações em banco real local |
+| T20 | Aplicação de servidor e interfaces | concluída | Codex: aplicação pura (5 casos), HTTP real (5 casos), classpath headless, smoke runLocal/401 e 296 testes no conjunto; detalhes abaixo |
+| T21 | Rascunhos/revisões em PostgreSQL | pronta | Validar persistência/transações em banco real local |
 | T22 | Publicação imutável e capacidades | pendente | Publicar snapshot local compatível sem dados de sessão |
 | T23 | Resolução BFF e isolamento de dados | pendente | Resolver fontes registradas com limites e isolamento |
 | T24 | Edição remota com revisão e recuperação | pendente | Salvar/reabrir/reconectar sem perda silenciosa |
@@ -268,3 +268,13 @@ Observação do APK final: Activity iniciada com nativeExample=true; onCreate pa
 T12 concluída para a capacidade local escolhida, com callback suspenso, dados limitados, registro explícito, ausência/negação/cancelamento e recriação demonstrados. Não representa suporte a outras APIs/permissões, hardware físico ou Apple. Não houve backend, credenciais, publicação ou push. A instância Pixel_3a_API_34 preexistente não recebeu instalações nem comandos de parada. Próxima etapa T20 pronta: aplicação/host HTTP local; persistência durável somente T21 e sem mudanças remotas implícitas.
 
 Limpeza do recorte: a instância Small_API_35 de teste foi encerrada após confirmar sua identidade via ADB; sem salvar snapshot. Pixel_3a_API_34/emulator-5554 preservado. ADB não foi parado. O servidor loopback e as abas ?journey/?native permanecem disponíveis; não presumir serial de emulador ou sessão de terminal em uma nova retomada. Nenhum APK foi instalado na instância do usuário.
+
+### T20 — aplicação de rascunhos e host HTTP local
+
+Codex, 2026-10-24: humming-server-application (commonMain/target JVM bytecode17) contém DraftApplication, DTOs, DraftRepository, política/grants exatos por documento/tenant/operação, criação revisão0/leitura/validação com codec e compilador existentes. Sem Compose/Lifecycle/driver no classpath. humming-server-host (JVM25) usa HttpServer do JDK, autenticador Bearer injetado e adapter VolatileDraftRepository. Nenhuma dependência de cliente aponta para servidor; nenhum framework/dependência existente foi atualizado.
+
+Executado: descoberta tasks dos dois módulos; aplicação tem cinco casos JVM, host cinco integrações com socket/HttpClient reais. Casos cobrem grants antes de parse/repositório, tenant/documento/permite read sem write, fonte/ID/revisão inválidos, diagnóstico localizado de compilação, create/read/validate, oito inserts concorrentes com um vencedor, volatilidade no restart, UTF-8/tamanho/tipo, 500 preservando causa, cancelamento no close e timeout504 com cleanup. Recuperação de stacktrace das coroutines envolve a causa original; a asserção foi corrigida para verificar a cadeia, sem converter defeito em payload. build/t20-final.log: nove módulos JVM, 296 casos (52 contrato/74 core/4 ações/95 autoria/7 rede/10 navegação/5 aplicação/5 host/44 sample), zero falhas/erros/ignorados, BUILD SUCCESSFUL.
+
+Smoke independente: runLocal com credencial temporária só no ambiente, sem logs/arquivo de token. build/t20-localhost.log registrou host em 127.0.0.1:53145; Invoke-WebRequest real retornou 401 e UNAUTHENTICATED sem credencial. Socket exigiu execução fora do sandbox; nenhuma permissão de rede pública foi ampliada. Host do smoke foi encerrado. Porta efêmera não é configuração futura. git diff --check aprovado.
+
+T20 concluída no recorte autorizado: aplicação/HTTP local e repository volátil explicitamente sem durabilidade. Timeout é cooperativo de suspensão, não garantia de deadline de IO bloqueante para host público. O contrato documenta limites/status/autenticação. Sem banco/GraphQL/federação, deploy, push ou credenciais versionadas. T21 pronta. Preparação: Docker Desktop já instalado estava parado; iniciado por CLI, engine29.9.1 Linux respondeu; download da imagem oficial PostgreSQL18.6 em andamento. Não declarar PostgreSQL validado antes de teste real.

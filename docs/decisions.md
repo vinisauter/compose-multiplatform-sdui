@@ -203,3 +203,9 @@ O codec de snapshot tem relógio/storage fornecidos pelo host e idade máxima in
 ## T12 — bridge suspensa com registro explícito
 
 Usar um registro imutável e SduiValue evita acoplar core a Activity, permissões ou tipos de plataforma. O host define capacidades conhecidas e política de rejeição; cancelamento acompanha a coroutine do chamador, sem trabalho desacoplado. Defeitos de handler não viram indisponibilidade. O exemplo usa action:method já registrado, com nome nativo fixado pelo host, evitando introduzir seleção arbitrária de APIs no payload. Uptime por SystemClock.elapsedRealtime é a capacidade Android neutra escolhida: leitura local sem permissão ou retenção de Activity.
+
+## T20 — aplicação pura e HTTP local por prova
+
+Separar humming-server-application e humming-server-host permite que o adapter futuro dependa das interfaces da aplicação sem criar ciclo com rotas. Fontes canônicas imutáveis atravessam o repositório; o modelo mutável do editor não é autoridade compartilhada no servidor. Grants exatos por documento/tenant e operação são verificados antes de parse/leitura, sem confiar em headers como identidade.
+
+Foi usado o plugin multiplatform já resolvido para Kotlin 2.4.21 com target JVM, evitando o alias JVM 2.2.10 antigo do catálogo. Não houve atualização de versões existentes. O servidor HTTP do JDK 25 compilou e atendeu testes em socket real; não se introduziu Spring/GraphQL/Ktor de servidor sem necessidade. O adapter volátil é explícito e atômico para criação, sem alegar banco durável. Host local não é implantação pública, e deadline de suspensão não é garantia de timeout de todo IO bloqueante.

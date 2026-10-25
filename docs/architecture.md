@@ -106,3 +106,9 @@ O módulo navigation também fornece JourneyDefinitionCache para definições im
 ## Capacidades locais opcionais
 
 NativeBridge no core é um registro imutável de handlers suspensos com request/result canônicos limitados e versão explícita. O chamador conserva coroutine/ownership; a bridge não cria tarefas nem retém Activity. Métodos registrados pelo host conectam essa API ao executor existente, sem nova capacidade implícita no catálogo. O sample Android fornece device.uptime por SystemClock; o exemplo browser fornece registro vazio e resultado Unavailable. Implementações e permissões pertencem ao host/source set de plataforma.
+
+## Aplicação de rascunhos e host local
+
+humming-server-application contém DTOs/casos de uso de criação, leitura e validação de rascunho, interfaces DraftRepository/DocumentAuthorizer e compilação pura. Depende de humming-studio-model/contrato e coroutines, sem Compose, Lifecycle, HTTP ou driver. Código comum é compilado para JVM neste recorte. humming-server-host é um composition root JVM separado, que injeta autenticação, política por documento e adapter volátil. Nenhum módulo cliente passa a depender desses módulos.
+
+O host usa HttpServer do JDK 25 após prova de build/HTTP real, evitando escolher framework por declaração. Escuta somente 127.0.0.1 e não instala rotas no Studio. Worker pool/queue e entrada são limitados, com cancelamento de operações suspensas e encerramento dos recursos. Não é host público de produção: não implementa TLS, autenticação federada ou deadline garantido de IO bloqueante contra clientes lentos. Persistência PostgreSQL deve implementar a interface da aplicação, sem depender das rotas.
