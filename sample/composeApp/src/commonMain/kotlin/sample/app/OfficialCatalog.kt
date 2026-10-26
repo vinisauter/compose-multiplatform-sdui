@@ -51,7 +51,7 @@ object OfficialCatalog {
     }
 }
 
-internal class CatalogFixture(private val name: String) {
+internal class CatalogFixture(private val name: String, private val stateOutput: Boolean = true) {
     private var serial = 0
     private val valueKey = "catalog-$name-value"
     private val openKey = "catalog-$name-open"
@@ -95,7 +95,7 @@ internal class CatalogFixture(private val name: String) {
             name == "style" -> { props["primary"] = s("#006B5E"); children = listOf(text("Tema fornecido pelo SDUI"), button("Ação com o tema")) }
             name == "animatedVisibility" -> { props["state"] = s(openKey); before = listOf(button("Ocultar", openKey, "false"), button("Mostrar", openKey, "true")) }
             name == "row" || name == "column" -> children = listOf(text("Primeiro item"), button("Segundo item"))
-            name == "box" -> children = listOf(node("column", children = listOf(text("Conte�do do Box"), button("A��o no Box"))))
+            name == "box" -> children = listOf(node("column", children = listOf(text("Conteúdo do Box"), button("Ação no Box"))))
             name == "topAppBar" -> props["color"] = s("#1A1A1A")
             name == "icon" -> props["width"] = s("40")
             name == "textField" || name == "outlinedTextField" -> { props["text"] = s("Edite aqui"); props["fillMaxWidth"] = s("1") }
@@ -153,13 +153,13 @@ internal class CatalogFixture(private val name: String) {
             name.endsWith("Carousel") -> { props["height"] = s("180"); children = (1..6).map { node("card", mapOf("width" to s("180"), "height" to s("150")), listOf(text("Cartão $it"), icon())) } }
         }
         val main = node(name, props, children)
-        return node("column", mapOf("paddingAll" to s("12"), "fillMaxSize" to s("1")), before + listOf(
-            wrap?.invoke(main) ?: main, text("Estado: #{$valueKey}"), text("Resultado: #{$statusKey}"))).toString()
+        return node("column", mapOf("paddingAll" to s("12")), before + listOf(wrap?.invoke(main) ?: main) +
+            if (stateOutput) listOf(text("Estado: #{$valueKey}"), text("Resultado: #{$statusKey}")) else emptyList()).toString()
     }
 }
 
 private fun actionFlow() = """{"component":"layout:column","id":"actions-screen","children":[
- {"component":"action:event","id":"on-create","properties":{"onCreate":{"component":"action:update","id":"init","properties":{"state":"status","value":"Criado"}},"onStateChange":{"component":"action:update","id":"observe","properties":{"state":"observed","value":"Mudan�a observada"}}}},
+ {"component":"action:event","id":"on-create","properties":{"onCreate":{"component":"action:update","id":"init","properties":{"state":"status","value":"Criado"}},"onStateChange":{"component":"action:update","id":"observe","properties":{"state":"observed","value":"Mudança observada"}}}},
  {"component":"layout:button","id":"run-actions","properties":{"onClick":[
    {"component":"action:update","id":"set-condition","properties":{"state":"ready","value":"true","delay":100}},
    {"component":"action:ifState","id":"branch","properties":{"state":"ready","equals":"true","then":{"component":"action:then","id":"then","properties":{"condition":"ready","invoke":{"component":"action:update","id":"done","properties":{"state":"status","value":"Sequência concluída"}}}}}}

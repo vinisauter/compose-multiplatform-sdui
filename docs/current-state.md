@@ -2,20 +2,20 @@
 
 Este é o ponto de entrada para **continuar o desenvolvimento**. Reúne o estado observado, o rastreamento das etapas e a próxima ação. O [plano](development-plan.md) define dependências, escopo e critérios de aceite; este documento é a única fonte de status e retomada.
 
-Atualizado após T28 (2026-10-26): catálogo Material 3 1.8.2 ampliado com 92 adapters e 7 schemas legados, galeria editável e auditoria reproduzível. Relatórios: 341 JVM regulares + 15 integrações reais, sem falhas/erros/ignorados. Metadata, Android e Wasm compilados; UI nova exercitada em Compose/JVM. Sem deploy público.
+Atualizado após T29 (2026-10-26): catálogo oficial e criador local de apps integrados. Projeto → telas → design → ações → teste → exportação SDUI, com cinco capturas novas. Última verificação: 179 casos JVM dos módulos afetados, sem falhas/erros/ignorados; builds JS/Android/Wasm e metadata passaram. Jornada de ida/volta observada no browser. Inventário regular: 350 casos; 16 integrações reais de T28 mantêm sua evidência anterior e não foram repetidas em T29. Sem deploy público.
 
 ## Ponto de retomada
 
 | Campo | Registro atual |
 | --- | --- |
-| Última atualização | 2026-10-25; T25 em 6e3a1ae; T20–T24 em 42d6de8, dc51068, 4cdf7bc, 2f67dd9, 277ad71 e 681f91e; commits locais sem push |
-| Última entrega | T27: famílias visuais públicas Material 3 resolvido, galeria, schemas, auditoria e 356 casos no conjunto |
-| Tarefa de implementação em execução | Nenhuma; T28 concluída; próximo recorte é o criador de apps solicitado |
-| Próxima tarefa | T26 para observação dos componentes novos em Android/browser, caso esses targets sejam anunciados; demais gates da matriz permanecem |
-| Próxima ação concreta | Abrir Exemplo Material 3 no Studio para QA browser; executar fluxo Android em ambiente compatível; não confundir compile com execução |
-| Critério para avançar | Novo recorte deve definir aceite e evidência; não anunciar browser remoto/Apple nem distribuição a partir desta conclusão local |
-| Bloqueio de implementação conhecido | Nenhum para qualificação local JVM/Android/Wasm; Apple exige host compatível |
-| Limite do próximo recorte | Qualificação local dos componentes; preservar wrappers legados e versão resolvida; sem push/distribuição |
+| Última atualização | 2026-10-26; T28 em e4e8160; T29 neste entregável; commits locais sem push |
+| Última entrega | T29: criador local, projeto versionado, 111 inserções, navegação/retorno, exportação e recuperação; ver fechamento abaixo |
+| Tarefa de implementação em execução | Nenhuma; T29 concluída no recorte local descrito abaixo |
+| Próxima tarefa | T26 — ampliar qualificação do criador por plataforma e percursos; futuras capacidades de produto exigem recorte no plano |
+| Próxima ação concreta | Executar criação/edição/arquivos na janela desktop e browser; qualificar Android com emulador antes de anunciar edição móvel. Manter o Inspector compacto como limite explícito |
+| Critério para avançar | Registrar target, fluxo e evidência; corrigir falhas encontradas sem reconstruir T00–T29 |
+| Bloqueio de implementação conhecido | Nenhum para evolução local; Apple exige host compatível. Inspector lateral oculto abaixo de 850 unidades lógicas |
+| Limite do próximo recorte | Qualificação e ajustes do criador; sem push, distribuição, deploy ou geração de APK/IPA pelo editor |
 
 ### Protocolo quando o pedido for “continue o desenvolvimento”
 
@@ -61,7 +61,8 @@ Estados: **pronta**, **pendente**, **em execução**, **bloqueada**, **concluíd
 | T25 | Múltiplos editores e conflitos | concluída | Journal/replay, dois hosts/controllers, presença e undo guardado; 342 casos; evidência abaixo |
 | T26 | Qualificação por plataforma e recorte | concluída | Somente recorte local identificado na matriz abaixo; Android/Wasm compilados, CI configurada sem execução remota; demais gates explícitos |
 | T27 | Catálogo Compose Material 3 | concluída | 92 adapters novos, 7 schemas legados, 341 JVM + 15 integrações; metadata/Android/Wasm; limites abaixo |
-| T28 | Catálogo oficial executável e README | concluída | 362 casos no conjunto, 111 componentes/16 ações, sete prints e browser real; detalhes abaixo |
+| T28 | Catálogo oficial executável e README | concluída | e4e8160; 362 casos no conjunto, 111 componentes/16 ações, sete prints e browser real; detalhes abaixo |
+| T29 | Criador visual e jornada de projeto | concluída | Envelope v1, 111 inserções, UI/arquivos/navegação real; 179 testes afetados e builds; limites abaixo |
 
 Os requisitos completos e a ordem das dependências estão no [plano](development-plan.md). A numeração identifica tarefas; não significa executar T07–T12 antes de T13–T19. A prioridade inicial é base → schemas/fronteira → autoria local → manipulação visual; capacidades adicionais do cliente podem avançar em paralelo quando elegíveis.
 
@@ -380,8 +381,22 @@ Captura sample/composeApp/build/reports/material3-gallery.png inspecionada: card
 
 ## Fechamento T28 — catálogo oficial — 2026-10-26
 
-Catálogo oficial de todos os componentes registrados, exemplos autorais compilados, cenários SDUI, documentação do app e capturas reais. Próxima ação: fixtures completas e host navegável; manter capacidades de plataforma/serviços explícitas.
+Catálogo oficial de todos os componentes registrados, exemplos autorais compilados, cenários SDUI, documentação do app e capturas reais; manter capacidades de plataforma/serviços explícitas.
 
 Catálogo concluído: 111 componentes e 16 ações; fixtures autorais, importação/compilação/providers/renderer reais, fontes/schemas, exportação e Studio. README completo em sample/README.md com sete prints reais. Percurso remoto cria somente se ausente, publica/fixa versão e injeta dados reais de JVM/relógio/actor no owner; preserva rascunho ao editar formulário.
 
 Validação executada: build/catalog-full-check.log (dez jvmTest, JS/Wasm e APK), build/catalog-artifact-final.log (app e bundle Wasm), build/catalog-method-capabilities.log (métodos copiados do host) e build/catalog-platform-final.log (JS/APK/metadata): BUILD SUCCESSFUL. Relatórios: 346 testes JVM regulares e 16 integrações (8 PostgreSQL + 2 HTTP + 6 publicação/Compose), sem falhas/erros/ignorados. build/catalog-final-integrations.log confirma execução antes/depois de restart, 18 registros preservados. Browser Wasm em localhost:8081 observado: campo Pessoa do catálogo, checkbox e Salvar → Salvo. Print catalog-wasm.png; demais prints Compose/JVM, incluindo largura compacta e BFF real. Sem nova execução visual Android/Apple ou CI remota. Servidor estático próprio na porta 8081 pode precisar ser reiniciado conforme sample/README.md; nenhum deploy/push.
+
+## Fechamento T29 — criador local de apps — 2026-10-26
+
+Referências: imagens fornecidas e página pública blup.in/design, somente como inspiração de interface. Novo shell com projeto, modelos, telas/árvore, paleta, viewport/zoom, Inspector, grafo, execução e exportação. Detalhes em [criador de apps](app-builder.md), indexado para desenvolvedores/agentes; comandos e cinco prints reais em [guia do app](../sample/README.md).
+
+AppProjectCodec versão 1 mantém metadados sobre AuthoringDocument; formato fechado, limites e validação. insertFragment insere composições com pais/slots/ações em uma transação desfeita de uma vez. Paleta usa os 111 componentes oficiais, com IDs/arestas/chaves exclusivas. textField novo recebe chave exclusiva, preservando payloads existentes; regressão do Studio passou usando a chave realmente gerada. Nenhuma dependência atualizada.
+
+Validação: build/builder-final-check.log, BUILD SUCCESSFUL em 28s. Comando: .\gradlew.bat :humming-studio-model:jvmTest :sample:composeApp:jvmTest :sample:composeApp:compileKotlinJs :sample:composeApp:assembleDebug :sample:composeApp:wasmJsBrowserDevelopmentExecutableDistribution :humming-studio-model:compileCommonMainKotlinMetadata --console=plain. Modelo 113 + sample 66 = 179 casos executados no recorte, sem falhas/erros/ignorados. Inventário dos dez relatórios regulares: 350; outros módulos conservam execução T28. PostgreSQL/HTTP não alterados; as 16 integrações T28 não foram repetidas nesta entrega.
+
+Novos testes: codec fechado/canônico, inserção atômica/colisão/undo/redo; compilação das 111 composições, isolamento entre inserções e UI criando duas telas, editando texto, conectando ida/volta, executando handlers, gravando/reabrindo arquivo e decodificando pacote real. Capturas builder-design/actions/preview/export.png geradas por Compose/JVM e inspecionadas. Primeiras tentativas detectaram colisão de IDs de arestas, recorte do viewport e testes dependentes de chave fixa/propriedade errada; corrigidos, com suíte final aprovada.
+
+Browser real: bundle Wasm servido somente em loopback, porta 8082, rota ?builder. Executar app → Abrir segunda → Segunda tela → Voltar → Primeira tela observado; captura builder-wasm.png. Host estático próprio pode precisar reinício: python -m http.server 8082 --bind 127.0.0.1 --directory sample/composeApp/build/dist/wasmJs/developmentExecutable. Isso não valida todo o fluxo de arquivos do browser. Android gerou APK; sem nova execução visual Android, Apple ou CI remota.
+
+Limites: criador local, sem sincronização automática do envelope, autosave, importação proprietária ou geração/publicação de binários. Save solicita arquivo e mantém aviso porque o adapter não confirma persistência; reabrir estabelece base. Metadados de nome/viewport/rótulos não participam do undo autoral. Inspector de três painéis exige largura >=850; abaixo disso usar Studio avançado. T26 é o próximo gate para qualificação adicional; novas funções de dados/assets/temas precisam de aceite próprio. Sem push/deploy.

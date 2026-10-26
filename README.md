@@ -8,6 +8,8 @@ O repositório contém contrato puro, modelo autoral/compilador, runtime, biblio
 
 O [README do app](sample/README.md) reúne todos os exemplos, prints reais e instruções de execução para catálogo, Studio, Android, serviços, publicação, BFF e colaboração.
 
+O [criador visual de apps](docs/app-builder.md) reúne criação de projeto, telas, design, ações, execução e exportação SDUI. Abra **Criador de apps** no catálogo, `?builder` no Wasm ou execute `:sample:composeApp:run --args=--builder`.
+
 ```powershell
 .\gradlew.bat :sample:composeApp:run --args=--catalog
 ```

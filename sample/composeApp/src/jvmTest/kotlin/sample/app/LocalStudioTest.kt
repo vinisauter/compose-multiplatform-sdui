@@ -7,6 +7,7 @@ import me.developes.humming.sdui.studio.*
 import org.junit.Rule
 import org.junit.Test
 import java.io.File
+import kotlinx.serialization.json.jsonPrimitive
 import kotlin.test.*
 
 class LocalStudioTest {
@@ -72,7 +73,8 @@ class LocalStudioTest {
         awaitText("Pessoa Studio")
         select(root)
         compose.onNodeWithText("+ text").performScrollTo().performClick()
-        compose.onNodeWithTag("studio-property-value").performTextReplacement("Nome: #{nome} / #{status}")
+        val stateKey = workspace.document.nodes.getValue(field).properties.getValue("onChangeUpdateState").jsonPrimitive.content
+        compose.onNodeWithTag("studio-property-value").performTextReplacement("Nome: #{$stateKey} / #{status}")
         compose.onNodeWithText("Aplicar propriedade").performClick()
         awaitText("Nome: Pessoa Studio / ")
         select(root)

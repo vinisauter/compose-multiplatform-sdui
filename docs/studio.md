@@ -362,3 +362,7 @@ O adapter desktop fecha HTTP ao sair. Workspace/preview não instalam métodos d
 Acompanhar editores inicia polling a cada 2s enquanto habilitado na composição. Mostra presença por actor e indisponibilidade; não sincroniza automaticamente comandos locais. Ao desabilitar tenta remover presença; saída abrupta expira em 30s. Feed limpo aplica patches contíguos; lacuna carrega snapshot. Pendências locais permanecem protegidas.
 
 Desfazer último envio cria compensação do último comando próprio reconhecido nesta conexão. Só fica habilitado sem pendências; grava intenção antes de enviar. Alteração de outro editor no mesmo nó/aresta bloqueia undo integralmente, mesmo que seja outro campo. Alteração em outro nó é preservada. Falha mantém intenção para retry ou arquivo/resolução explícita. Não há redo remoto ou histórico multínivel remoto na UI. Dois editores devem usar checkpoints distintos e actors atribuídos pelo host; runLocal de demonstração não é provisionamento multiusuário.
+
+## Jornada de projeto
+
+O [criador de apps](app-builder.md) acrescenta metadados versionados e um shell de autoria sobre o mesmo documento e comandos. O envelope de projeto não substitui o formato autoral nem o pacote compilado.

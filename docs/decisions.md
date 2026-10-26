@@ -263,3 +263,9 @@ Usar fixtures autorais determinísticas e os codecs/compilador/providers reais e
 Completar os três schemas de mídia/animação/tema e os schemas dos handlers legados de ação permite documentá-los pelo mesmo percurso. A semântica antiga dos operadores booleanos foi preservada e explicada, sem correção silenciosa no trabalho de catálogo. Imagem local usa chave registrada, sem requisição externa para ilustrar o componente.
 
 Publicação/BFF demonstram dados do processo real via plano opt-in catalog-system. A fixture só é criada quando o documento está ausente, preservando rascunhos existentes. Actors de duas instâncias locais são selecionados por configuração do host, sem campo de autoria no payload. Capturas de UI são geradas por execução Compose e copiadas sem edição para o README do app, com origem/plataforma declaradas.
+
+## Projeto local e criador visual
+
+O envelope AppProject versão 1 guarda nome, viewport e rótulos sobre AuthoringDocument, sem duplicar nós/histórico ou alterar o wire de runtime. O shell reaproveita LocalWorkspace, Inspector, geometria, grafo e CompiledPreview. Composições da paleta derivam das fixtures do catálogo e entram atomicamente, com IDs/arestas/chaves de estado exclusivos. Campos novos usam chave exclusiva; documentos antigos não são reescritos. Undo cobre operações autorais; metadados do projeto não têm histórico próprio.
+
+Salvar solicita o arquivo, mas não confirma persistência no adapter atual: somente reabrir estabelece uma nova base de recuperação. O criador local mantém separado o fluxo remoto já existente; não anuncia sincronização do envelope, geração de binários nativos ou deploy. Detalhes em [criador de apps](app-builder.md).

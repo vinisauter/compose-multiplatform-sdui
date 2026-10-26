@@ -74,6 +74,41 @@ class LocalWorkspace(
             JsonObject(mapOf("paddingAll" to JsonPrimitive("24"))), Placement.Root("V"), canvasPosition = position),
         previousId = AuthoringIndices(document).roots.lastOrNull()?.id)))
 
+    /** A uniquely identified composition is inserted in one undoable transaction. */
+    fun insertFragment(fragment: AuthoringDocument, parentId: String, slot: String = "children"): EditOutcome {
+        val errors = validateAuthoringDocument(fragment, catalog)
+        if (errors.any { it.severity == DiagnosticSeverity.ERROR }) return EditOutcome(null, errors)
+        if (fragment.nodes.keys.any { it in document.nodes } || fragment.edges.keys.any { it in document.edges } ||
+            fragment.nodes.values.count { it.kind == AuthorNodeKind.SCREEN } != 1 ||
+            fragment.nodes[fragment.entryNodeId]?.kind != AuthorNodeKind.SCREEN ||
+            fragment.edges.values.any { it.role == EdgeRole.NAVIGATION })
+            return rejected("FRAGMENT_SCOPE", "Fragment requires one screen, fresh IDs and no external navigation", parentId)
+        fun depth(node: AuthorNode): Int {
+            var current = node; var result = 0
+            while (current.placement is Placement.Child) { current = fragment.nodes.getValue((current.placement as Placement.Child).parentId); result++ }
+            return result
+        }
+        val inserted = mutableMapOf<ParentSlot, String>()
+        var lastRoot = AuthoringIndices(document).roots.lastOrNull()?.id
+        val operations = mutableListOf<EditOperation>()
+        for (node in fragment.nodes.values.sortedWith(compareBy(::depth, { (it.placement as? Placement.Child)?.parentId.orEmpty() },
+                { (it.placement as? Placement.Child)?.slot.orEmpty() }, { it.placement.orderKey }, { it.id }))) {
+            val copy = if (node.id == fragment.entryNodeId) node.copy(kind = AuthorNodeKind.VISUAL, placement = Placement.Child(parentId, slot, "V"), canvasPosition = null) else node
+            val placement = copy.placement
+            val previous = if (placement is Placement.Child) {
+                val key = ParentSlot(placement.parentId, placement.slot)
+                val before = inserted[key] ?: AuthoringIndices(document).childrenByParentAndSlot[key]?.lastOrNull()?.id
+                inserted[key] = node.id; before
+            } else lastRoot.also { lastRoot = node.id }
+            operations += EditOperation.InsertNode(copy, previousId = previous)
+        }
+        for (group in AuthoringIndices(fragment).edgesBySourcePort.values) {
+            var previous: String? = null
+            for (edge in group) { operations += EditOperation.InsertEdge(edge, previousId = previous); previous = edge.id }
+        }
+        return apply(operations)
+    }
+
     /** Event and branch ports come from the shared schema, never a second port registry. */
     fun connectAction(sourceId: String, port: String, targetId: String): EditOutcome {
         val source = document.nodes[sourceId] ?: return rejected("NODE_NOT_FOUND", "Origem inexistente", sourceId)
@@ -153,7 +188,7 @@ class LocalWorkspace(
         val stateKey = "field_$id"
         val properties = when (definition) {
             "layout:text" -> mapOf("text" to JsonPrimitive("Texto"))
-            "layout:textField" -> mapOf("text" to JsonPrimitive("Visitante"), "onChangeUpdateState" to JsonPrimitive("nome"))
+            "layout:textField" -> mapOf("text" to JsonPrimitive("Visitante"), "onChangeUpdateState" to JsonPrimitive(stateKey))
             "layout:reactiveText" -> mapOf("value" to expression("\"Texto\"", JsonPrimitive("Texto")))
             "layout:reactiveButton" -> mapOf("enabled" to expression("true", JsonPrimitive(false)))
             "layout:validatedTextField" -> mapOf("stateKey" to JsonPrimitive(stateKey), "label" to JsonPrimitive("Campo"),

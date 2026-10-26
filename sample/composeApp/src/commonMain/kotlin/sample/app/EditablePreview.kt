@@ -41,7 +41,7 @@ internal class PreviewControls {
 @Composable
 internal fun EditablePreview(workspace: LocalWorkspace, document: AuthoringDocument, sourceIds: Map<String, String>,
                     selectedId: String, select: (String) -> Unit, commit: (EditOutcome) -> Unit,
-                    controls: PreviewControls, content: @Composable () -> Unit) {
+                    controls: PreviewControls, showControls: Boolean = true, content: @Composable () -> Unit) {
     val geometry = remember(document) { PreviewGeometry(document, sourceIds) }
     val gesture = remember(document) { DropGesture() }
     val focus = remember { FocusRequester() }
@@ -58,7 +58,7 @@ internal fun EditablePreview(workspace: LocalWorkspace, document: AuthoringDocum
     val window = LocalWindowInfo.current
     LaunchedEffect(window.isWindowFocused) { if (!window.isWindowFocused) cancel() }
     Column(Modifier.fillMaxSize()) {
-        FlowRow {
+        if (showControls) FlowRow {
             TextButton(onClick = { cancel(); editing = !editing }) { Text(if (editing) "Modo execução" else "Modo edição") }
             TextButton(onClick = { cancel(); view = view.copy(zoom = minOf(3.0, view.zoom * 1.25), revision = view.revision + 1) }) { Text("Zoom +") }
             TextButton(onClick = { cancel(); view = view.copy(zoom = maxOf(.25, view.zoom / 1.25), revision = view.revision + 1) }) { Text("Zoom −") }
@@ -68,7 +68,7 @@ internal fun EditablePreview(workspace: LocalWorkspace, document: AuthoringDocum
             TextButton(onClick = { cancel(); view = view.copy(pan = Point2(view.pan.x, view.pan.y - 40), revision = view.revision + 1) }) { Text("Acima") }
             TextButton(onClick = { cancel(); view = view.copy(pan = Point2(view.pan.x, view.pan.y + 40), revision = view.revision + 1) }) { Text("Abaixo") }
         }
-        if (editing) Text("Arraste nós visuais. Escape cancela. Row/Column sem wrap; Box insere no fim.")
+        if (editing && showControls) Text("Arraste nós visuais. Escape cancela. Row/Column sem wrap; Box insere no fim.")
         if (diagnostic.isNotEmpty()) Text(diagnostic)
         Box(Modifier.weight(1f).fillMaxWidth().clipToBounds().onGloballyPositioned(geometry::placeViewport)) {
             CompositionLocalProvider(LocalNodeBoundsObserver provides geometry, LocalLayoutDirection provides LayoutDirection.Ltr) {

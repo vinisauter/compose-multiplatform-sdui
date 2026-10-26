@@ -6,17 +6,20 @@ import androidx.lifecycle.SavedStateHandle
 import sample.app.App
 import sample.app.DesktopRemoteStudio
 import sample.app.DesktopCatalog
+import sample.app.AppBuilder
+import sample.app.DesktopStudioFiles
 import java.awt.Dimension
 
 fun main(args: Array<String>) = application {
     Window(
         title = "sample",
-        state = rememberWindowState(width = if ("--remote-studio" in args || "--catalog" in args) 1400.dp else 800.dp,
-            height = if ("--remote-studio" in args || "--catalog" in args) 900.dp else 600.dp),
+        state = rememberWindowState(width = if (args.any { it in setOf("--remote-studio", "--catalog", "--builder") }) 1400.dp else 800.dp,
+            height = if (args.any { it in setOf("--remote-studio", "--catalog", "--builder") }) 900.dp else 600.dp),
         onCloseRequest = ::exitApplication,
     ) {
         window.minimumSize = Dimension(350, 600)
-        if ("--catalog" in args) DesktopCatalog()
+        if ("--builder" in args) AppBuilder(files = androidx.compose.runtime.remember { DesktopStudioFiles() })
+        else if ("--catalog" in args) DesktopCatalog()
         else if ("--remote-studio" in args) DesktopRemoteStudio() else App(
             initialResource = if ("--local-smoke" in args) {
                 "files/layout/local-smoke.json"

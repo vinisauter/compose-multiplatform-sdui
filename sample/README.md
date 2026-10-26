@@ -21,7 +21,33 @@ Para o desktop:
 
 O catálogo local não exige conta, backend, Docker ou credencial. Instalações do SDK Android exigidas pela configuração Gradle devem estar configuradas no ambiente/local.properties; não versione caminhos de SDK. Os builds distinguem toolchain JVM 25 de bytecode Android Java 17. Android usa compile/target SDK 37 e min SDK 24.
 
-## Prints reais
+## Criador de apps
+
+No catálogo, abra **Criador de apps**, ou execute diretamente:
+
+```powershell
+.\gradlew.bat :sample:composeApp:run --args=--builder
+```
+
+No dev server Wasm, use [criador local](http://127.0.0.1:8080/?builder). Se a porta for outra, mantenha `?builder`. O criador usa o mesmo runtime SDUI e não exige servidor para criar, testar ou exportar projetos.
+
+Siga **Novo → Estrutura → Design → Ações → Testar → Exportar**. Escolha um modelo, crie telas, insira componentes, edite propriedades e conecte eventos de navegação/retorno. A paleta usa os 111 componentes existentes, incluindo composições que preservam os slots e pais exigidos. **Studio avançado** abre o mesmo documento. Veja [formato do projeto e limites](../docs/app-builder.md).
+
+**Salvar projeto completo** gera o arquivo reeditável; **Exportar jornada SDUI** gera o pacote para um host HummingUI compatível. Preserve o download e reabra para confirmar a recuperação. Não há autosave. O pacote não gera APK/IPA nem publica serviços. O editor de três painéis é destinado a janelas largas; em larguras menores, o Inspector é acessível pelo Studio avançado.
+
+As quatro capturas abaixo foram produzidas pelo fluxo automatizado Compose/JVM, com arquivo real de projeto e pacote compilado. A quinta é Wasm no navegador, após navegar para a segunda tela; o retorno também foi observado.
+
+![Design e propriedades do app](docs/images/builder-design.png)
+
+![Grafo real conectando duas telas](docs/images/builder-actions.png)
+
+![Execução da segunda tela com retorno](docs/images/builder-preview.png)
+
+![Projeto e jornada preparados para exportação](docs/images/builder-export.png)
+
+![Criador Wasm executando a segunda tela no navegador](docs/images/builder-wasm.png)
+
+## Prints do catálogo
 
 As primeiras seis capturas são do app executado pelo renderer Compose/JVM, geradas pelos testes de UI e inspecionadas. A última mostra execução real Wasm no navegador. Não são mockups, nem prova de execução Android/Apple. A captura compacta é uma viewport estreita no teste JVM.
 

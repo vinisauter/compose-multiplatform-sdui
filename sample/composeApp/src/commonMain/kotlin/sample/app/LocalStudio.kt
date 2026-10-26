@@ -364,7 +364,7 @@ fun LocalStudio(files: StudioFiles? = null, workspace: LocalWorkspace = remember
 }
 
 @Composable
-private fun PropertyInspector(node: AuthorNode, definition: NodeDefinition?, hiddenProperties: Set<String> = emptySet(),
+internal fun PropertyInspector(node: AuthorNode, definition: NodeDefinition?, hiddenProperties: Set<String> = emptySet(),
                               change: (String, JsonElement?) -> Unit) {
     val properties = definition?.properties.orEmpty().filter {
         it.name !in hiddenProperties && it.editable && it.kind !in setOf(PropertyKind.NODES, PropertyKind.OPAQUE)
@@ -403,7 +403,7 @@ private fun PropertyInspector(node: AuthorNode, definition: NodeDefinition?, hid
 }
 
 @Composable
-private fun Choice(label: String, selected: String, values: List<String>, choose: (String) -> Unit) {
+internal fun Choice(label: String, selected: String, values: List<String>, choose: (String) -> Unit) {
     var expanded by remember { mutableStateOf(false) }
     Box {
         OutlinedButton(onClick = { expanded = true }) { Text("$label: $selected") }

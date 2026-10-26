@@ -282,3 +282,9 @@ A sequência começa por T00, sem alteração estrutural preventiva: inventariar
 - Dependências: T13–T27; exemplos reutilizam runtime/autoria existentes.
 - Trabalho: cobrir cada componente registrado com fixture determinística; autoria → compilação → provider → renderer; busca/categorias, código/schema, reset, exportação e abertura no Studio. Reunir cenários de ações/expressões/navegação/cache/nativo e conexão remota explícita. README do app com comandos e prints reais.
 - Aceite: cobertura de registro sem lacunas, todos os exemplos autorais compilados e montados; ações/overlays/escopos funcionais; cenários ponta a ponta com integrações reais quando exigirem serviço; comandos de entrada descobertos; prints inspecionados. Capacidades ausentes aparecem como indisponíveis, sem mock de sucesso.
+
+## T29 — criador visual de apps
+
+- Dependências: T13–T28.
+- Trabalho: projeto local versionado com nome/viewport/telas sobre o documento autoral existente; fluxo criar → estruturar → editar → conectar → executar → exportar. Shell com páginas/árvore, canvas e Inspector, inspirado nas referências visuais fornecidas. Reutilizar comandos, schemas, bounds/drop e navegação; sem uma segunda autoridade de nós.
+- Aceite: criar projeto/tela, inserir e selecionar componentes, editar propriedades, conectar navegação, testar ida/volta, salvar/reabrir projeto e exportar jornada real. Capturas inspecionadas e testes de fluxo; viewport não é emulador nativo. Publicação/serviços reutilizam composição existente; sem deploy automático ou geração de APK prometida.

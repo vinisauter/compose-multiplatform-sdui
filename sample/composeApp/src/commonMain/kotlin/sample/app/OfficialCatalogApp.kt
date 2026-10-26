@@ -30,13 +30,15 @@ fun OfficialCatalogApp(files: StudioFiles? = null, bridge: NativeBridge? = null,
     var editor by remember { mutableStateOf<LocalWorkspace?>(null) }
     var editorRevision by remember { mutableLongStateOf(0) }
     var leavingEditor by remember { mutableStateOf(false) }
+    var builder by remember { mutableStateOf(false) }
     val native = bridge ?: remember { NativeBridge(emptyMap()) }
     val assets = remember { mapOf("catalog-mark" to @Composable { painterResource(Res.drawable.ic_eye) }) }
     CompositionLocalProvider(LocalImageSources provides assets) {
         MaterialTheme {
             Surface(Modifier.fillMaxSize()) {
                 val workspace = editor
-                if (workspace != null) Column {
+                if (builder) AppBuilder(files = files, onExit = { builder = false })
+                else if (workspace != null) Column {
                     TextButton(onClick = { if (workspace.document.revision != editorRevision) leavingEditor = true else editor = null }) { Text("Voltar ao catálogo") }
                     Box(Modifier.weight(1f)) { LocalStudio(files, workspace) }
                     if (leavingEditor) AlertDialog(onDismissRequest = { leavingEditor = false }, title = { Text("Sair do Studio?") },
@@ -46,7 +48,7 @@ fun OfficialCatalogApp(files: StudioFiles? = null, bridge: NativeBridge? = null,
                 } else BoxWithConstraints {
                     val compact = maxWidth < 720.dp
                     val entries = OfficialCatalog.all
-                    val special = listOf("studio" to "Studio e arquivos", "journey" to "Navegação e conectores", "isolation" to "Estado por entrada", "cache" to "Cache e recuperação",
+                    val special = listOf("builder" to "Criador de apps", "studio" to "Studio e arquivos", "journey" to "Navegação e conectores", "isolation" to "Estado por entrada", "cache" to "Cache e recuperação",
                         "native" to "Capacidades nativas", "services" to "Publicação, dados e HTTP", "remote" to "Edição remota e colaboração")
                     val filtered = entries.filter { (category == "Todos" || it.category == category) &&
                         (it.title.contains(query, true) || it.component.orEmpty().contains(query, true) || it.description.contains(query, true)) }
@@ -69,7 +71,7 @@ fun OfficialCatalogApp(files: StudioFiles? = null, bridge: NativeBridge? = null,
                                     }
                                 }
                                 item { HorizontalDivider(); Text("Integrações", style = MaterialTheme.typography.titleSmall) }
-                                items(special) { (id, title) -> TextButton(onClick = { selected = id; generation = 0 }, modifier = Modifier.testTag("catalog-special-$id")) { Text(title) } }
+                                items(special) { (id, title) -> TextButton(onClick = { if (id == "builder") builder = true else selected = id; generation = 0 }, modifier = Modifier.testTag("catalog-special-$id")) { Text(title) } }
                             }
                         }
                         @Composable fun detail(modifier: Modifier) {
