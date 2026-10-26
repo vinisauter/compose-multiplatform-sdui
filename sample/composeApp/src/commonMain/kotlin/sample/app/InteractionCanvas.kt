@@ -11,6 +11,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.focus.*
 import androidx.compose.ui.geometry.Offset
@@ -48,7 +49,14 @@ internal fun InteractionCanvas(document: AuthoringDocument, compiled: CompiledCo
                                viewportState: MutableState<CanvasViewport>? = null,
                                connect: ((String, String, String) -> Unit)? = null,
                                screenNames: Map<String, String> = emptyMap(),
+                               frameViewport: ProjectViewport? = null,
                                observePorts: (List<Triple<String, String, Point2>>, Map<String, Rect2>) -> Unit = { _, _ -> }) {
+    val frameWidth = frameViewport?.width?.toDouble() ?: 280.0
+    val frameHeight = frameViewport?.height?.toDouble() ?: 240.0
+    fun position(index: Int, screen: AuthorNode): CanvasPoint {
+        val stored = screen.canvasPosition ?: CanvasPoint(index * 400.0, 0.0)
+        return if (frameViewport == null) stored else CanvasPoint(stored.x / 400 * (frameWidth + 120), stored.y / 300 * (frameHeight + 80))
+    }
     val localView = remember { mutableStateOf(CanvasViewport(zoom = .5)) }
     var view by (viewportState ?: localView)
     val viewport = view.copy(density = LocalDensity.current.density.toDouble())
@@ -97,15 +105,15 @@ internal fun InteractionCanvas(document: AuthoringDocument, compiled: CompiledCo
     val screens = document.nodes.values.filter { it.kind == AuthorNodeKind.SCREEN }.sortedWith(compareBy({ it.placement.orderKey }, { it.id }))
     fun fitScreens() {
         if (area.width == 0 || area.height == 0) return
-        val positions = screens.mapIndexed { index, node -> node.canvasPosition ?: CanvasPoint(index * 400.0, 0.0) }
+        val positions = screens.mapIndexed { index, node -> position(index, node) }
         val left = positions.minOfOrNull { it.x } ?: 0.0
         val top = positions.minOfOrNull { it.y } ?: 0.0
-        val width = (positions.maxOfOrNull { it.x + 280 } ?: 280.0) - left
-        val height = (positions.maxOfOrNull { it.y + 240 } ?: 240.0) - top
+        val width = (positions.maxOfOrNull { it.x + frameWidth } ?: frameWidth) - left
+        val height = (positions.maxOfOrNull { it.y + frameHeight } ?: frameHeight) - top
         val zoom = minOf((area.width - 32) / (width * viewport.density), (area.height - 32) / (height * viewport.density), .85).coerceAtLeast(.05)
         view = CanvasViewport(zoom, Point2(16 - left * zoom * viewport.density, 16 - top * zoom * viewport.density), revision = view.revision + 1)
     }
-    LaunchedEffect(screens.map { it.id }, area) { if (connect != null) fitScreens() }
+    LaunchedEffect(screens.map { it.id }, area, frameViewport) { if (connect != null) fitScreens() }
     LaunchedEffect(windowFocused) { if (!windowFocused) { pressed = false; noodleStart = null; noodleEnd = null } }
     Column(Modifier.fillMaxSize()) {
         FlowRow {
@@ -133,11 +141,12 @@ internal fun InteractionCanvas(document: AuthoringDocument, compiled: CompiledCo
                 }) {
                     document.nodes.values.filter { it.kind == AuthorNodeKind.SCREEN }
                         .sortedWith(compareBy({ it.placement.orderKey }, { it.id })).forEachIndexed { index, screen ->
-                        val position = screen.canvasPosition ?: CanvasPoint(index*400.0,0.0)
+                        val position = position(index, screen)
                         val source = screenSources[screen.id]
                         if (source != null) key(screen.id) {
                             Column(Modifier.offset { IntOffset((position.x*viewport.density).roundToInt(),(position.y*viewport.density).roundToInt()) }
-                                .size(280.dp,240.dp).background(Color.White).border(1.dp,Color(0xFF65558F))
+                                .wrapContentSize(Alignment.TopStart, unbounded = true).requiredSize(frameWidth.dp,frameHeight.dp)
+                                .background(Color.White).border(1.dp,Color(0xFF65558F))
                                 .onGloballyPositioned { coordinates ->
                                     val a = coordinates.localToRoot(Offset.Zero)
                                     val b = coordinates.localToRoot(Offset(coordinates.size.width.toFloat(),coordinates.size.height.toFloat()))

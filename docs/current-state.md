@@ -14,7 +14,7 @@ Atualizado após T30 (2026-10-26): correção do criador visual Wasm. Nova tela 
 | --- | --- |
 | Última atualização | 2026-10-26; T28 e4e8160; T29 4577966; T30 neste entregável; commits locais sem push |
 | Última entrega | T30: autoria gestual, telas desconectadas, miniaturas e verificação real Wasm; detalhes abaixo |
-| Tarefa de implementação em execução | Nenhuma; T30 concluída no recorte desktop/Wasm descrito abaixo |
+| Tarefa de implementação em execução | T32 — drop em todos os containers/slots visuais declarados pelo schema |
 | Próxima tarefa | T26 — qualificação adicional por plataforma/recorte; futuras capacidades exigem aceite no plano |
 | Próxima ação concreta | Qualificar interação por toque/arquivos no Android em emulador antes de anunciar edição móvel; Apple exige host compatível. Não reiniciar a implementação local concluída |
 | Critério para avançar | Registrar target e fluxo; não confundir APK compilado com gestos validados por toque |
@@ -419,3 +419,7 @@ Validação: build/builder-t30-tasks.log descobriu tarefas; build/builder-t30-fi
 Browser Wasm real, loopback 8082, em nova aba sem descartar o trabalho que o usuário já tinha aberto: criação da terceira tela, arraste de botão e texto, inserção antes do botão, reordenação depois do botão (revisões 12→15); puxada da tela inicial à terceira e do botão da terceira à inicial; undo removeu uma seta e redo restaurou (até revisão19). Executar app → clique na tela inicial → terceira tela; botão Confirmar da terceira → primeira tela. Três capturas inspecionadas e salvas sem edição: sample/docs/images/builder-t30-{design,noodles,run}.png, incluídas no README do app. A aba de verificação foi preservada; servir o build exige manter/reiniciar o host loopback conforme guia.
 
 Limites mantidos: exportar exige telas alcançáveis; paleta gestual suporta Row/Column sem wrap/reverse e Box no fim. Outros slots usam clique/Inspector. Canvas usa roteamento geométrico existente, sem contornar obstáculos arbitrários. UI estreita/Android por toque/Apple e sincronização do envelope não qualificados nesta entrega. Backend não alterado; integrações reais T28 conservam evidência anterior. Sem push/deploy. Próximo gate é T26 adicional, não refazer T00–T30.
+
+## Fechamento T31 — proporção do viewport em Ações — 2026-10-26
+
+InteractionCanvas do criador recebe ProjectViewport: frames com dimensões PHONE390×844, TABLET820×1180 e DESKTOP1280×800, sem deformação pelo limite do canvas. Enquadramento reativo e espaçamento derivado evitam sobreposição; posições persistidas não são reescritas. Chamadas legadas do Studio preservam o padrão anterior. Teste mede os três presets, verifica separação, curva válida e documento inalterado. build/builder-t31-check.log BUILD SUCCESSFUL 1m3s: sample69 testes sem falhas, builds JS/Android e distribuição Wasm. Verificação adicional no navegador impedida pelo revisor automático por limite de uso; nenhuma captura ou observação Wasm nova alegada.

@@ -21,6 +21,29 @@ class BuilderGesturesTest {
     private val target = TargetCapabilities(initialNodeCatalog().capabilities, providers = setOf("compiled-preview"),
         colorTokens = defaultPresentationTokens().colorNames, maskTokens = defaultPresentationTokens().maskNames)
 
+    @Test fun actionFramesFollowSelectedViewportRatioAndKeepConnectionsMeasured() {
+        val workspace = LocalWorkspace(journeyExample())
+        val original = workspace.document
+        var device by mutableStateOf(ProjectViewport.PHONE)
+        var frames = emptyMap<String, Rect2>()
+        var curves = emptyList<DrawnConnection>()
+        var mounted by mutableStateOf(true)
+        compose.setContent { if (mounted) MaterialTheme { Box(Modifier.size(900.dp, 650.dp)) {
+            InteractionCanvas(original, compileBuilderCanvas(workspace, target).requireValue(), null, select = { _, _ -> },
+                connect = { _, _, _ -> }, frameViewport = device, observe = { curves = it }, observePorts = { _, f -> frames = f })
+        } } }
+        for (preset in ProjectViewport.entries) {
+            compose.runOnIdle { device = preset }
+            val ratio = preset.width.toDouble() / preset.height
+            compose.waitUntil(10_000) { frames.size == 2 && frames.values.all { kotlin.math.abs(it.width / it.height - ratio) < .005 } && curves.size == 1 }
+            assertTrue(curves.single().flattened.toleranceMet)
+            val rects = frames.values.sortedBy { it.x }
+            assertTrue(rects[0].right < rects[1].x)
+            assertEquals(original, workspace.document)
+        }
+        compose.runOnIdle { mounted = false }
+    }
+
     @Test fun disconnectedScreensRemainVisibleAndPointerCreatesAnUndoableNavigation() {
         val workspace = LocalWorkspace()
         val first = workspace.document.entryNodeId

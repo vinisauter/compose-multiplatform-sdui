@@ -208,6 +208,7 @@ fun AppBuilder(files: StudioFiles? = null, initialDocument: AuthoringDocument? =
                                     2 -> if (graph.isSuccess) InteractionCanvas(document, graph.requireValue(), selectedEdge,
                                         select = { id, edge -> selected = id; selectedEdge = edge }, viewportState = graphViewport,
                                         screenNames = screens.associate { it.id to screenName(it.id) },
+                                        frameViewport = viewport,
                                         connect = { source, port, destination ->
                                             val duplicate = InteractionProjection.navigationLinks(document).value.orEmpty().any { it.sourceNodeId == source && it.targetScreenId == destination }
                                             if (duplicate) message = "Essa conexão já existe"

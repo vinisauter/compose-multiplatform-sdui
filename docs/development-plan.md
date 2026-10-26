@@ -294,3 +294,9 @@ A sequência começa por T00, sem alteração estrutural preventiva: inventariar
 - Dependências: T18, T19, T29.
 - Trabalho: nova tela sempre acessível, canvas de todas as telas inclusive desconectadas, puxada de conectores por evento até tela, paleta com miniaturas SDUI e arraste para Auto Layout. Reaproveitar geometria/comandos, sem mutação durante gesto.
 - Aceite: criar três telas; inserir por clique/arraste; guia e ordem Auto Layout; puxar/setar/cancelar conector; undo/redo e execução real da navegação. Testes de ponteiro e inspeção Wasm; arquivos e contratos preservados.
+
+## T31 — viewport do canvas de Ações
+
+- Dependências: T29, T30.
+- Trabalho: frames de Ações usam o viewport selecionado; enquadramento e espaçamento derivados acompanham dimensões, sem reescrever posições do documento.
+- Aceite: proporções PHONE/TABLET/DESKTOP medidas em UI, troca reativa, conectores válidos após mudança e build Wasm.
