@@ -1,0 +1,135 @@
+{
+  "method": "Static metadata, asset manifest keys, ZIP entry names and case-insensitive ASCII literal probes; no execution/decompilation",
+  "executable": {
+    "sha256": "D920C98CF56029D1757CFA25B890721DA6FB624CD646E01A1F32AB0B0B0EEDD9",
+    "bytes": 13188608,
+    "fileVersion": "1.54.0"
+  },
+  "aot": {
+    "sha256": "D49387AB1A18C30D7BE234226E8DD4B65C84CF238D2509D07618B9C690FAD90F",
+    "bytes": 42058656,
+    "probes": [
+      {
+        "term": "AutoLayout",
+        "firstByteOffset": 8854998
+      },
+      {
+        "term": "Import from Figma",
+        "firstByteOffset": 10907680
+      },
+      {
+        "term": "Debug Console",
+        "firstByteOffset": 8055697
+      },
+      {
+        "term": "Minimap",
+        "firstByteOffset": 7388481
+      },
+      {
+        "term": "NodePoint",
+        "firstByteOffset": 7362900
+      },
+      {
+        "term": "Choose from Assets",
+        "firstByteOffset": 8202736
+      },
+      {
+        "term": "onClick",
+        "firstByteOffset": 7693556
+      },
+      {
+        "term": "pubspec.yaml",
+        "firstByteOffset": 8156873
+      }
+    ]
+  },
+  "assets": {
+    "manifestSha256": "5E597D97694F641E4E8919E2A459FFDEAA65DD9F6940443487A638121B41BCF1",
+    "count": 2385,
+    "packageNames": [
+      "blup_dashboard",
+      "blup_login_widget",
+      "blupsheets",
+      "cupertino_icons",
+      "eva_icons_flutter",
+      "extended_phone_number_input",
+      "flutter_editor",
+      "fluttertoast",
+      "font_awesome_flutter",
+      "intl_phone_number_input",
+      "libphonenumber_plugin",
+      "material_symbols_icons",
+      "media_kit",
+      "toast",
+      "visual_builder",
+      "wakelock_plus",
+      "wakelock_web",
+      "window_manager"
+    ]
+  },
+  "editorExtensions": [
+    "extensions/bat/package.json",
+    "extensions/clojure/package.json",
+    "extensions/coffeescript/package.json",
+    "extensions/cpp/package.json",
+    "extensions/csharp/package.json",
+    "extensions/css/package.json",
+    "extensions/dart/package.json",
+    "extensions/docker/package.json",
+    "extensions/fsharp/package.json",
+    "extensions/git/package.json",
+    "extensions/go/package.json",
+    "extensions/groovy/package.json",
+    "extensions/handlebars/package.json",
+    "extensions/hlsl/package.json",
+    "extensions/html/package.json",
+    "extensions/ini/package.json",
+    "extensions/ipynb/package.json",
+    "extensions/java/package.json",
+    "extensions/javascript/package.json",
+    "extensions/json/package.json",
+    "extensions/julia/package.json",
+    "extensions/less/package.json",
+    "extensions/log/package.json",
+    "extensions/lua/package.json",
+    "extensions/make/package.json",
+    "extensions/markdown-basics/package.json",
+    "extensions/markdown-math/package.json",
+    "extensions/objective-c/package.json",
+    "extensions/perl/package.json",
+    "extensions/php/package.json",
+    "extensions/pkief.material-icon-theme-4.10.0/package.json",
+    "extensions/powershell/package.json",
+    "extensions/pug/package.json",
+    "extensions/python/package.json",
+    "extensions/r/package.json",
+    "extensions/razor/package.json",
+    "extensions/ruby/package.json",
+    "extensions/rust/package.json",
+    "extensions/scss/package.json",
+    "extensions/shaderlab/package.json",
+    "extensions/shellscript/package.json",
+    "extensions/sql/package.json",
+    "extensions/swift/package.json",
+    "extensions/theme-abyss/package.json",
+    "extensions/theme-defaults/package.json",
+    "extensions/theme-kimbie-dark/package.json",
+    "extensions/theme-monokai/package.json",
+    "extensions/theme-monokai-dimmed/package.json",
+    "extensions/theme-quietlight/package.json",
+    "extensions/theme-red/package.json",
+    "extensions/theme-seti/package.json",
+    "extensions/theme-solarized-dark/package.json",
+    "extensions/theme-solarized-light/package.json",
+    "extensions/theme-tomorrow-night-blue/package.json",
+    "extensions/typescript-basics/package.json",
+    "extensions/vb/package.json",
+    "extensions/xml/package.json",
+    "extensions/yaml/package.json"
+  ],
+  "limitations": [
+    "String presence does not establish reachability or runtime behavior",
+    "Absent literal does not establish absent capability",
+    "Asset/plugin names do not establish server architecture or enabled integrations"
+  ]
+}

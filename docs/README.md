@@ -27,6 +27,8 @@ O [README do projeto](../README.md) é a apresentação resumida. `AGENTS.md` é
 
 ## Catálogos especializados
 
+- [Pesquisa Blup](research/blup.md): evidências da instalação, fontes oficiais e funcionalidades candidatas para o Studio; não altera o roadmap de implementação.
+
 - [Criador de apps](app-builder.md): jornada, projeto versionado, arquivos e limites do editor.
 
 - [App e catálogo oficial](../sample/README.md): como executar cada parte, fluxos completos e prints reais.
