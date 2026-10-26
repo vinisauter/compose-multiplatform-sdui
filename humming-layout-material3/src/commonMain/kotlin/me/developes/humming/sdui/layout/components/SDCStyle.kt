@@ -4,6 +4,7 @@ import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 import me.developes.humming.sdui.common.SDUIFormViewModel
 import me.developes.humming.sdui.common.ServerDrivenNode
 import me.developes.humming.sdui.common.toColor
@@ -98,7 +99,7 @@ class SDCStyle(val node: ServerDrivenNode, val viewModel: SDUIFormViewModel) : L
         MaterialTheme(
             colorScheme = colorScheme,
             content = {
-                Surface {
+                Surface(modifier = Modifier.observeNodeBounds(node)) {
                     loadChildren.invoke()
                 }
             }

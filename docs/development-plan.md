@@ -300,3 +300,9 @@ A sequência começa por T00, sem alteração estrutural preventiva: inventariar
 - Dependências: T29, T30.
 - Trabalho: frames de Ações usam o viewport selecionado; enquadramento e espaçamento derivados acompanham dimensões, sem reescrever posições do documento.
 - Aceite: proporções PHONE/TABLET/DESKTOP medidas em UI, troca reativa, conectores válidos após mudança e build Wasm.
+
+## T32 — drop guiado pelo schema
+
+- Dependências: T18, T30.
+- Trabalho: aceitar destinos com children/component e slots visuais editáveis; usar bounds e slot escolhido, sem whitelist de containers. Row/Column ordenam; outros inserem no fim.
+- Aceite: mover Text para Button com renderer real, inserir da paleta em Button, undo/cancelamento/ciclos; testes de todas as definições com slots e preservação de Row/Column.

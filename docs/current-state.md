@@ -6,19 +6,19 @@ Pesquisa documental e inspeção estática parcial concluídas no recorte solici
 
 Este é o ponto de entrada para **continuar o desenvolvimento**. Reúne o estado observado, o rastreamento das etapas e a próxima ação. O [plano](development-plan.md) define dependências, escopo e critérios de aceite; este documento é a única fonte de status e retomada.
 
-Atualizado após T30 (2026-10-26): correção do criador visual Wasm. Nova tela sempre visível, paleta com miniaturas e arraste real, Auto Layout e criação de noodles por puxada. Três telas, inserção/reordenação, setas, undo/redo e execução da nova navegação observados no navegador. Relatórios regulares: 353 casos JVM, sem falhas/erros/ignorados; builds JS/Android/Wasm e metadata passaram. As 16 integrações de T28 não foram repetidas em T30. Sem deploy público.
+Atualizado após T32 (2026-10-26): proporção do viewport em Ações e drop orientado pelo schema. Text pode entrar em Button e demais containers/slots visuais declarados, com undo e sem executar ações no modo edição. Relatórios regulares: 359 casos JVM sem falhas/erros/ignorados; metadata e builds JS/Android/Wasm passaram. Última inspeção manual Wasm continua sendo T30: nova tentativa em T31 foi bloqueada pelo revisor automático por limite de uso. Sem push/deploy.
 
 ## Ponto de retomada
 
 | Campo | Registro atual |
 | --- | --- |
-| Última atualização | 2026-10-26; T28 e4e8160; T29 4577966; T30 neste entregável; commits locais sem push |
-| Última entrega | T30: autoria gestual, telas desconectadas, miniaturas e verificação real Wasm; detalhes abaixo |
-| Tarefa de implementação em execução | T32 — drop em todos os containers/slots visuais declarados pelo schema |
+| Última atualização | 2026-10-26; T30 44097fa; T31 e53ae76; T32 neste entregável; commits locais sem push |
+| Última entrega | T32: drop em containers/slots de schema, Text em Button e preferência de slot estável; proporções T31 preservadas |
+| Tarefa de implementação em execução | Nenhuma; T31/T32 concluídas no recorte testado |
 | Próxima tarefa | T26 — qualificação adicional por plataforma/recorte; futuras capacidades exigem aceite no plano |
-| Próxima ação concreta | Qualificar interação por toque/arquivos no Android em emulador antes de anunciar edição móvel; Apple exige host compatível. Não reiniciar a implementação local concluída |
+| Próxima ação concreta | Após restabelecer a cota do revisor, conferir os novos gestos/proporções no navegador sem descartar trabalho aberto; qualificar toque/arquivos em Android separadamente |
 | Critério para avançar | Registrar target e fluxo; não confundir APK compilado com gestos validados por toque |
-| Bloqueio de implementação conhecido | Nenhum para evolução local; Inspector lateral oculto abaixo de 850 unidades lógicas; Apple depende de host |
+| Bloqueio de implementação conhecido | Nenhum para código/testes locais; inspeção adicional no navegador bloqueada por limite de uso do revisor automático. Apple exige host compatível |
 | Limite do próximo recorte | Qualificação/adaptação de UI; sem push, deploy ou distribuição. Sem alegar roteamento arbitrário de obstáculos |
 
 ### Protocolo quando o pedido for “continue o desenvolvimento”
@@ -68,6 +68,8 @@ Estados: **pronta**, **pendente**, **em execução**, **bloqueada**, **concluíd
 | T28 | Catálogo oficial executável e README | concluída | e4e8160; 362 casos no conjunto, 111 componentes/16 ações, sete prints e browser real; detalhes abaixo |
 | T29 | Criador visual e jornada de projeto | concluída | Envelope v1, 111 inserções, UI/arquivos/navegação real; 179 testes afetados e builds; limites abaixo |
 | T30 | Paleta com previews/arraste e noodles gestuais | concluída | 353 regulares, 3 testes novos, Wasm real com três telas/setas/execução; ver fechamento abaixo |
+| T31 | Proporção do viewport em Ações | concluída | e53ae76; PHONE/TABLET/DESKTOP medidos em UI e builds; inspeção browser bloqueada por cota |
+| T32 | Drop em containers e slots visuais | concluída | 359 regulares; Text → Button, paleta → Button, slot Scaffold e seleção durante gesto, com undo; detalhes abaixo |
 
 Os requisitos completos e a ordem das dependências estão no [plano](development-plan.md). A numeração identifica tarefas; não significa executar T07–T12 antes de T13–T19. A prioridade inicial é base → schemas/fronteira → autoria local → manipulação visual; capacidades adicionais do cliente podem avançar em paralelo quando elegíveis.
 
@@ -423,3 +425,13 @@ Limites mantidos: exportar exige telas alcançáveis; paleta gestual suporta Row
 ## Fechamento T31 — proporção do viewport em Ações — 2026-10-26
 
 InteractionCanvas do criador recebe ProjectViewport: frames com dimensões PHONE390×844, TABLET820×1180 e DESKTOP1280×800, sem deformação pelo limite do canvas. Enquadramento reativo e espaçamento derivado evitam sobreposição; posições persistidas não são reescritas. Chamadas legadas do Studio preservam o padrão anterior. Teste mede os três presets, verifica separação, curva válida e documento inalterado. build/builder-t31-check.log BUILD SUCCESSFUL 1m3s: sample69 testes sem falhas, builds JS/Android e distribuição Wasm. Verificação adicional no navegador impedida pelo revisor automático por limite de uso; nenhuma captura ou observação Wasm nova alegada.
+
+## Fechamento T32 — drop em todos os containers de schema — 2026-10-26
+
+Removida a whitelist Row/Column/Box. DropGeometry.visualSlots aceita childrenRole=COMPONENT e propriedades NODES/COMPONENT editáveis. PreviewGeometry deriva candidatos do catálogo do workspace, com clips/bounds reais e índice estrutural de filhos. Row/Column mantêm ordenação por centros; os demais containers acrescentam ao fim. Text pode ser movido ou inserido da paleta em Button sem disparar onClick no modo edição. Ações não são destinos de views.
+
+Slots ocupados usam bounds dos filhos; preferência Adicionar em pode fornecer área para slot vazio/ambíguo. Preferências persistem por nó durante a sessão, separadas da seleção: pointer-down na origem não recria a geometria nem cancela a captura. O teste do criador completo salva/decodifica o projeto e confirma o novo pai. Bounds adicionados a Scaffold/Style/AnimatedVisibility sem wrappers extras; topBar/bottomBar do Scaffold consomem a lista declarada pelo schema, preservando nós existentes. Documentos/propriedades existentes não são reescritos.
+
+Validação: build/builder-t32-check.log BUILD SUCCESSFUL 46s; build/builder-t32-final.log BUILD SUCCESSFUL 46s; build/builder-t32-regression.log BUILD SUCCESSFUL 51s (dez jvmTest + metadata visual e builds JS/APK/Wasm); build/builder-t32-artifact-final.log BUILD SUCCESSFUL 44s após usar o índice estrutural para consultar filhos (sample73 e JS/APK/Wasm). Modelo115 + sample73 = 188 casos dos módulos afetados; inventário total359 regulares, zero falhas/erros/ignorados. Cinco casos novos: todos os destinos/slots declarados pelo catálogo e rejeição de porta de ação; gesto real Text → Button com undo e sem ação; inserção da paleta em Button; movimento para topBar com irmãos existentes; gesto no AppBuilder com seleção alterando durante captura. T31 acrescentou um caso de proporção.
+
+Limites: somente regiões visíveis/medidas recebem ponteiro; para conteúdo oculto é preciso mostrá-lo. Row/Column wrap/reverse continuam fora da regra geométrica. Outros containers usam append, não uma ordem geométrica inventada. Documento/transformações/clips/ciclos/revisões continuam validados. Sem nova inspeção manual Wasm: o revisor automático bloqueou a ação por limite de uso (não por considerar insegura); não houve tentativa de contorno. Backend/integrações reais não alterados. Próximo gate é conferir runtime browser após restabelecer cota e qualificar toque Android; não reiniciar a implementação concluída.

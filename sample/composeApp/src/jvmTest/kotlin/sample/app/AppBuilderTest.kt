@@ -20,10 +20,34 @@ import org.junit.Test
 import java.io.File
 import kotlin.test.*
 
+@OptIn(ExperimentalTestApi::class)
 class AppBuilderTest {
     @get:Rule val compose = createComposeRule()
     private val owner = object : LifecycleOwner { override val lifecycle = LifecycleRegistry(this) }
     @After fun closeOwner() { compose.runOnIdle { if (owner.lifecycle.currentState == Lifecycle.State.INITIALIZED) owner.lifecycle.currentState = Lifecycle.State.CREATED; owner.lifecycle.currentState = Lifecycle.State.DESTROYED } }
+
+    @Test fun builderSelectionDuringPointerCaptureDoesNotCancelMovingTextIntoButton() {
+        val initial = LegacyAuthoringCodec(initialNodeCatalog()).importDocument("""{"component":"layout:column","id":"root","properties":{"fillMaxSize":"1"},"children":[{"component":"layout:text","id":"moving","properties":{"text":"Texto para mover"}},{"component":"layout:button","id":"target","properties":{"width":"240","height":"80"},"children":[{"component":"layout:text","id":"label","properties":{"text":"Destino"}}]}]}""", "drag-project").requireValue()
+        var saved = ""
+        val files = object : StudioFiles {
+            override fun open(result: (StudioFileResult) -> Unit) = Unit
+            override fun download(name: String, content: String) { saved = content }
+        }
+        val mounted = mutableStateOf(true)
+        compose.runOnIdle { owner.lifecycle.currentState = Lifecycle.State.RESUMED }
+        compose.setContent { CompositionLocalProvider(LocalLifecycleOwner provides owner) { if (mounted.value) Box(Modifier.size(1400.dp, 950.dp)) { AppBuilder(files, initial) } } }
+        compose.waitUntil(5_000) { compose.onAllNodesWithText("Texto para mover", substring = false).fetchSemanticsNodes().isNotEmpty() }
+        val surface = compose.onNodeWithTag("studio-edit-surface")
+        val origin = surface.fetchSemanticsNode().boundsInRoot.topLeft
+        val start = compose.onNodeWithText("Texto para mover", substring = false).fetchSemanticsNode().boundsInRoot.center - origin
+        val end = compose.onNodeWithText("Destino", substring = false).fetchSemanticsNode().boundsInRoot.center - origin
+        surface.performMouseInput { moveTo(start); press(); moveTo(end, 500); release() }
+        compose.waitForIdle()
+        compose.onNodeWithText("Salvar projeto", substring = false).performClick()
+        val document = AppProjectCodec().decode(saved).requireValue().document
+        assertEquals("target", (document.nodes.getValue("moving").placement as Placement.Child).parentId)
+        compose.runOnIdle { mounted.value = false }
+    }
 
     @Test fun paletteCompositionsKeepTheirScopesIsolateIdsAndUndoAsOneDelivery() {
         for (entry in OfficialCatalog.components) {

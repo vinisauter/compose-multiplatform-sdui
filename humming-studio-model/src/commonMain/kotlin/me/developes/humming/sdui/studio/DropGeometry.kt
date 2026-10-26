@@ -3,6 +3,8 @@ package me.developes.humming.sdui.studio
 import me.developes.humming.sdui.common.NodeCatalog
 import me.developes.humming.sdui.common.NodeDiagnostic
 import me.developes.humming.sdui.common.NodeRole
+import me.developes.humming.sdui.common.NodeDefinition
+import me.developes.humming.sdui.common.PropertyKind
 import kotlin.math.abs
 
 data class Point2(val x: Double, val y: Double) {
@@ -55,6 +57,7 @@ data class MeasuredNode(
     val id: String, val rect: Rect2, val transform: Affine2 = Affine2(), val paintOrder: Int = 0,
     val clips: List<ClipRegion> = emptyList(), val visible: Boolean = true, val inFlow: Boolean = true,
     val container: ContainerBounds? = null,
+    val slots: List<ContainerBounds> = emptyList(),
 ) {
     fun contains(world: Point2): Boolean = visible && rect.hasArea && clips.all { it.contains(world) } &&
         transform.inverse()?.let { rect.contains(it.apply(world)) } == true
@@ -67,6 +70,9 @@ data class DropPlan(
 )
 
 object DropGeometry {
+    fun visualSlots(definition: NodeDefinition): List<String> =
+        (if (definition.childrenRole == NodeRole.COMPONENT) listOf("children") else emptyList()) +
+            definition.properties.filter { it.kind == PropertyKind.NODES && it.nodeRole == NodeRole.COMPONENT && it.editable }.map { it.name }
     fun hit(document: AuthoringDocument, layout: LayoutSnapshot, viewport: CanvasViewport, screen: Point2): String? {
         if (!current(document, layout)) return null
         val world = viewport.toWorld(screen)
@@ -92,20 +98,15 @@ object DropGeometry {
         val front = ordered(document, layout).firstOrNull { it.id !in excluded && it.contains(world) }
         val ancestors = generateSequence(front?.id) { id -> (document.nodes[id]?.placement as? Placement.Child)?.parentId }
             .mapNotNull { layout.nodes[it] }
-        val target = ancestors.firstOrNull { measured ->
-            val container = measured.container
-            val node = document.nodes[measured.id]
-            val axisSupported = when (container?.axis) {
-                FlowAxis.HORIZONTAL -> node?.definition == "layout:row"
-                FlowAxis.VERTICAL -> node?.definition == "layout:column"
-                FlowAxis.STACK -> node?.definition == "layout:box"
-                null -> false
-            }
-            val definition = node?.let { catalog[it.definition] }
-            measured.id !in excluded && container != null && axisSupported && container.content.hasArea &&
-                container.slot == "children" && definition?.childrenRole == NodeRole.COMPONENT && measured.contains(world)
-        } ?: return AuthoringResult(null, emptyList())
-        val container = target.container!!
+        val (target, container) = ancestors.flatMap { measured ->
+            val definition = document.nodes[measured.id]?.let { catalog[it.definition] }
+            val allowed = definition?.let(::visualSlots).orEmpty()
+            (listOfNotNull(measured.container) + measured.slots).distinct().asSequence().filter { candidate ->
+                val local = measured.transform.inverse()?.apply(world)
+                measured.id !in excluded && candidate.slot in allowed && candidate.content.hasArea && measured.contains(world) &&
+                    (candidate.slot == "children" || local?.let(candidate.content::contains) == true)
+            }.map { measured to it }
+        }.firstOrNull() ?: return AuthoringResult(null, emptyList())
         val inverse = target.transform.inverse() ?: return fail("SINGULAR_TRANSFORM", "Transformação de destino singular", target.id)
         val localPointer = inverse.apply(world)
         val all = indices.childrenByParentAndSlot[ParentSlot(target.id, container.slot)].orEmpty().filter { it.id != sourceId }

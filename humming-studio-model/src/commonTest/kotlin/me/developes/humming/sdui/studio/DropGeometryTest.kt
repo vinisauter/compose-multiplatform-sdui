@@ -4,6 +4,26 @@ import me.developes.humming.sdui.common.initialNodeCatalog
 import kotlin.test.*
 
 class DropGeometryTest {
+    @Test fun everySchemaVisualSlotAcceptsDropWithoutAContainerNameWhitelist() {
+        val base = document()
+        var checked = 0
+        for (definition in catalog.definitions) for (slot in DropGeometry.visualSlots(definition)) {
+            val target = base.nodes.getValue("a").copy(definition = definition.identifier)
+            val doc = base.copy(nodes = base.nodes + ("a" to target))
+            val bounds = layout(doc).copy(nodes = layout(doc).nodes + ("a" to MeasuredNode("a", Rect2(10.0, 10.0, 180.0, 180.0),
+                paintOrder = 100, container = ContainerBounds(FlowAxis.STACK, Rect2(10.0, 10.0, 180.0, 180.0), slot))))
+            val result = DropGeometry.plan(doc, bounds, viewport, "drag", Point2(50.0, 50.0), catalog).requireValue()
+            assertEquals("a", result.targetId, "${definition.identifier}/$slot")
+            assertEquals(slot, result.slot)
+            checked++
+        }
+        assertTrue(checked > 40)
+        val doc = base.copy(nodes = base.nodes + ("a" to base.nodes.getValue("a").copy(definition = "layout:button")))
+        val invalid = layout(doc).copy(nodes = layout(doc).nodes + ("root" to layout(doc).nodes.getValue("root").copy(
+            container = ContainerBounds(FlowAxis.STACK, Rect2(0.0, 0.0, 200.0, 200.0)))) + ("a" to MeasuredNode("a", Rect2(10.0, 10.0, 180.0, 180.0),
+            paintOrder = 100, container = ContainerBounds(FlowAxis.STACK, Rect2(10.0, 10.0, 180.0, 180.0), "onClick"))))
+        assertEquals("root", DropGeometry.plan(doc, invalid, viewport, "drag", Point2(50.0, 50.0), catalog).requireValue().targetId)
+    }
     @Test fun paletteInsertionUsesTheSameGapAndCommitsAtomicallyWithRevisionGuard() {
         val doc = document()
         val plan = DropGeometry.insertion(doc, layout(doc), viewport, Point2(15.0, 65.0), catalog).requireValue()

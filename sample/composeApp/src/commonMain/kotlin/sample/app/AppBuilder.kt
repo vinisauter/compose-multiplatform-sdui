@@ -63,6 +63,7 @@ fun AppBuilder(files: StudioFiles? = null, initialDocument: AuthoringDocument? =
     val controls = remember { PreviewControls().apply { editing.value = true } }
     val graphViewport = remember { mutableStateOf(CanvasViewport(zoom = .6)) }
     val palette = remember { PaletteDragState() }
+    var dropSlots by remember { mutableStateOf<Map<String, String>>(emptyMap()) }
     var selectedEdge by remember { mutableStateOf<String?>(null) }
     val assets = remember { mapOf("catalog-mark" to @Composable { painterResource(Res.drawable.ic_eye) }) }
     val screens = remember(document) { AuthoringIndices(document).roots.filter { it.kind == AuthorNodeKind.SCREEN } }
@@ -81,6 +82,7 @@ fun AppBuilder(files: StudioFiles? = null, initialDocument: AuthoringDocument? =
     fun load(project: AppProject) {
         workspace = LocalWorkspace(project.document); document = workspace.document
         title = project.name; viewport = project.viewport; names = project.screenNames.toMap()
+        dropSlots = emptyMap()
         screen = document.entryNodeId; selected = screen; step = 1
         lastExport = codec.encode(project).requireValue(); message = "Projeto aberto"
     }
@@ -96,7 +98,7 @@ fun AppBuilder(files: StudioFiles? = null, initialDocument: AuthoringDocument? =
         (if (definition.childrenRole == NodeRole.COMPONENT) listOf("children") else emptyList()) +
             definition.properties.filter { it.kind == PropertyKind.NODES && it.nodeRole == NodeRole.COMPONENT && it.editable }.map { it.name }
     }.orEmpty()
-    var chosenSlot by remember(selected) { mutableStateOf("children") }
+    var chosenSlot by remember(selected) { mutableStateOf(dropSlots[selected] ?: "children") }
     val insertSlot = chosenSlot.takeIf { it in slots } ?: slots.firstOrNull() ?: "children"
     val tree = remember(document, screen) { workspace.tree().filter { row ->
         var current = row.node
@@ -226,7 +228,7 @@ fun AppBuilder(files: StudioFiles? = null, initialDocument: AuthoringDocument? =
                                                 controls.editing.value = step != 3
                                             }
                                             key(document.documentId, document.revision, screen, step) {
-                                                EditablePreview(workspace, document, result.requireValue().sourceNodeIds, selected, { selected = it }, ::change, controls, showControls = false, palette = palette) {
+                                                EditablePreview(workspace, document, result.requireValue().sourceNodeIds, selected, { selected = it }, ::change, controls, showControls = false, palette = palette, preferredSlots = dropSlots) {
                                                     Box(Modifier.wrapContentSize(Alignment.TopStart, unbounded = true).requiredSize(viewport.width.dp, viewport.height.dp).clip(RoundedCornerShape(24.dp)).background(Color.White).border(5.dp, Color(0xFF202534), RoundedCornerShape(24.dp)).padding(12.dp)) {
                                                         CompiledPreview(result.requireValue())
                                                     }
@@ -241,7 +243,7 @@ fun AppBuilder(files: StudioFiles? = null, initialDocument: AuthoringDocument? =
                                 node?.let { item ->
                                     Text(item.definition, style = MaterialTheme.typography.titleSmall)
                                     if (inspector == "Propriedades") {
-                                        if (slots.isNotEmpty()) Choice("Adicionar em", insertSlot, slots) { chosenSlot = it }
+                                        if (slots.isNotEmpty()) Choice("Adicionar em", insertSlot, slots) { chosenSlot = it; dropSlots = dropSlots + (item.id to it) }
                                         if (item.kind == AuthorNodeKind.SCREEN) {
                                             var label by remember(item.id, names) { mutableStateOf(screenName(item.id)) }
                                             OutlinedTextField(label, { if (it.length <= 80) label = it }, label = { Text("Nome da tela") })

@@ -49,7 +49,7 @@ As quatro capturas abaixo foram produzidas pelo fluxo automatizado Compose/JVM, 
 
 ## Autoria por arraste no Wasm
 
-**+ Nova tela** fica sempre disponível. Em **Elementos**, clique ou arraste os cartões com preview para a tela. Em **Ações**, puxe uma bolinha azul de evento até outra tela. Solte para criar a navegação; Escape cancela. **Desfazer/Refazer** cobre as inserções e conexões. A guia rosa indica a ordem no Auto Layout. As telas desconectadas aparecem no grafo; conecte-as antes de exportar a jornada estrita.
+**+ Nova tela** fica sempre disponível. Em **Elementos**, clique ou arraste os cartões com preview para a tela. Em **Ações**, puxe uma bolinha azul de evento até outra tela. Solte para criar a navegação; Escape cancela. **Desfazer/Refazer** cobre as inserções e conexões. A guia rosa indica a ordem no Auto Layout. O drop também aceita Button e todos os containers que declaram filhos visuais no schema: arraste Text para dentro de Button, por exemplo. Para um slot específico/vazio, selecione o container e escolha **Adicionar em** antes do arraste. Row/Column ordenam por posição; outros containers acrescentam ao fim. As telas desconectadas aparecem no grafo; conecte-as antes de exportar a jornada estrita.
 
 As capturas abaixo são do navegador Wasm: terceira tela criada, texto/botão inseridos e reordenados por arraste, setas puxadas entre telas e execução da nova navegação.
 

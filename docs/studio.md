@@ -366,3 +366,7 @@ Desfazer último envio cria compensação do último comando próprio reconhecid
 ## Jornada de projeto
 
 O [criador de apps](app-builder.md) acrescenta metadados versionados e um shell de autoria sobre o mesmo documento e comandos. O envelope de projeto não substitui o formato autoral nem o pacote compilado.
+
+## Drop em containers declarados pelo schema
+
+DropGeometry.visualSlots deriva os destinos de childrenRole=COMPONENT e propriedades NODES/COMPONENT editáveis. PreviewGeometry fornece bounds e candidatos por slot; o planejamento usa o container compatível mais profundo. Row/Column continuam usando seus eixos e centros; outros containers/slots inserem no fim sem inventar um eixo de layout. Por exemplo, Text pode ser movido ou inserido dentro de Button. Nenhum filho é adicionado a uma propriedade de ação. Preferências de slot do Inspector são mantidas por nó, separadas da seleção durante o gesto.

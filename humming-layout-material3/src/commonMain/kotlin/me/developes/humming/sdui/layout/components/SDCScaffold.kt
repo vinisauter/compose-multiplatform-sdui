@@ -45,12 +45,12 @@ class SDCScaffold(
         }
     }
     private val loadTopBar: @Composable () -> Unit? = {
-        node.propertyNode("topBar")?.let { serverDrivenNode ->
+        node.propertyNodes("topBar").forEach { serverDrivenNode ->
             viewModel.loadComponent(node = serverDrivenNode)?.Content()
         }
     }
     private val loadBottomBar: @Composable () -> Unit? = {
-        node.propertyNode("bottomBar")?.let { serverDrivenNode ->
+        node.propertyNodes("bottomBar").forEach { serverDrivenNode ->
             viewModel.loadComponent(node = serverDrivenNode)?.Content()
         }
     }
@@ -58,6 +58,7 @@ class SDCScaffold(
     @Composable
     override fun Content() {
         Scaffold(
+            modifier = Modifier.observeNodeBounds(node),
             topBar = { loadTopBar.invoke() },
             bottomBar = { loadBottomBar.invoke() },
             snackbarHost = { node.propertyNodes("snackbarHost").forEach { viewModel.loadComponent(it)?.Content() } },

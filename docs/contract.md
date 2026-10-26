@@ -411,3 +411,7 @@ Os handlers legados action:remove/not/and/or/xor/equals/greaterThan/lessThan/gre
 layout:image aceita asset como chave de LocalImageSources do host; prioridade asset → lottieUrl → imageUrl. Chave ausente exibe MISSING_IMAGE_SOURCE com nó/caminho/operação. O documento não contém Painter ou código. animatedVisibility conserva state/visible e style conserva os campos de ColorScheme; schemas novos descrevem o wire sem alteração de versão dos contratos já modelados. Novos nomes de definição exigem capacidades correspondentes ao publicar.
 
 LocalWorkspace.availableMethods é cópia do conjunto dado pelo host. Exportar um documento com action:method não instala o método em outro cliente. O catálogo declara getPlatformName, já registrado por SDActions. O perfil local de publicação e o cliente do catálogo anunciam essa mesma capacidade; métodos nativos arbitrários permanecem ausentes.
+
+## Slots visuais do Scaffold
+
+O adapter Scaffold consome topBar e bottomBar com propertyNodes, conforme o schema NODES/COMPONENT: um nó ou uma lista ordenada. Isso permite inserir mais filhos no slot sem INVALID_SLOT_CARDINALITY. Payloads existentes com um único nó mantêm comportamento. O editor deriva slots de schema; não converte eventos/ações em filhos visuais.

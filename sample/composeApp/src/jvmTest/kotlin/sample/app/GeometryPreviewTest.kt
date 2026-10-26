@@ -29,6 +29,49 @@ import kotlin.test.*
 class GeometryPreviewTest {
     @get:Rule val compose = createComposeRule()
 
+    @Test fun selectedVisualSlotReceivesAnActualDragAndKeepsExistingSlotChildren() {
+        val workspace = LocalWorkspace().apply { importContract("""{"component":"layout:scaffold","id":"root","properties":{"topBar":{"component":"layout:text","id":"heading","properties":{"text":"Cabeçalho"}}},"children":[{"component":"layout:text","id":"moving","properties":{"text":"Novo no slot"}}]}""").requireValue() }
+        val document = mutableStateOf(workspace.document)
+        val controls = PreviewControls().apply { editing.value = true }
+        val mounted = mutableStateOf(true)
+        compose.setContent { if (mounted.value) Box(Modifier.size(700.dp, 500.dp)) {
+            val compiled = workspace.compile().requireValue()
+            EditablePreview(workspace, document.value, compiled.sourceNodeIds, "root", {}, { document.value = workspace.document },
+                controls, showControls = false, preferredSlots = mapOf("root" to "topBar")) { CompiledPreview(compiled) }
+        } }
+        awaitText("Novo no slot")
+        val surface = compose.onNodeWithTag("studio-edit-surface")
+        val origin = surface.fetchSemanticsNode().boundsInRoot.topLeft
+        val start = compose.onNodeWithText("Novo no slot", substring = false).fetchSemanticsNode().boundsInRoot.center - origin
+        val end = compose.onNodeWithText("Cabeçalho", substring = false).fetchSemanticsNode().boundsInRoot.center - origin
+        surface.performMouseInput { moveTo(start); press(); moveTo(end, 500); release() }
+        compose.waitUntil(5_000) { (workspace.document.nodes.getValue("moving").placement as? Placement.Child)?.slot == "topBar" }
+        assertEquals(listOf("heading", "moving"), AuthoringIndices(workspace.document).childrenByParentAndSlot.getValue(ParentSlot("root", "topBar")).map { it.id })
+        compose.onNodeWithText("Cabeçalho", substring = false).assertExists()
+        compose.onNodeWithText("Novo no slot", substring = false).assertExists()
+        assertTrue(workspace.compile().isSuccess)
+        compose.runOnIdle { assertTrue(workspace.undo().isSuccess); document.value = workspace.document; mounted.value = false }
+    }
+
+    @Test fun dragsTextInsideARealButtonWithoutExecutingItsActionAndUndoRestoresParent() {
+        val workspace = LocalWorkspace().apply { importContract("""{"component":"layout:column","id":"root","properties":{"width":"320","height":"300"},"children":[{"component":"layout:text","id":"moving","properties":{"text":"Texto arrastado"}},{"component":"layout:button","id":"target","properties":{"width":"240","height":"80","onClick":{"component":"action:update","id":"action","properties":{"state":"clicked","value":"sim"}}},"children":[{"component":"layout:text","id":"label","properties":{"text":"Botão destino"}}]},{"component":"layout:text","id":"result","properties":{"text":"Clique: #{clicked}"}}]}""").requireValue() }
+        val mounted = mutableStateOf(true)
+        compose.setContent { if (mounted.value) LocalStudio(workspace = workspace) }
+        awaitText("Texto arrastado")
+        compose.onNodeWithText("Modo edição").performClick()
+        val surface = compose.onNodeWithTag("studio-edit-surface")
+        val origin = surface.fetchSemanticsNode().boundsInRoot.topLeft
+        val start = compose.onNodeWithText("Texto arrastado", substring = false).fetchSemanticsNode().boundsInRoot.center - origin
+        val end = compose.onNodeWithText("Botão destino", substring = false).fetchSemanticsNode().boundsInRoot.center - origin
+        surface.performMouseInput { moveTo(start); press(); moveTo(end, 500); release() }
+        compose.waitUntil(5_000) { (workspace.document.nodes.getValue("moving").placement as? Placement.Child)?.parentId == "target" }
+        assertEquals(listOf("label", "moving"), children(workspace, "target"))
+        assertTrue(workspace.compile().isSuccess)
+        compose.onNodeWithText("Clique: ", substring = false).assertExists()
+        compose.onNodeWithText("Desfazer").performClick()
+        compose.runOnIdle { assertEquals("root", (workspace.document.nodes.getValue("moving").placement as Placement.Child).parentId); mounted.value = false }
+    }
+
     @Test fun observesActualOuterAndContentBoundsIncludingPaddingWithoutLayoutWrappers() {
         val workspace = LocalWorkspace().apply { importContract(DROP_EXAMPLE).requireValue() }
         val compiled = workspace.compile().requireValue()

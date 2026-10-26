@@ -273,3 +273,7 @@ Salvar solicita o arquivo, mas não confirma persistência no adapter atual: som
 ## Autoria gestual e visibilidade de telas
 
 A política estrita de exportação não deve esconder conteúdo durante a autoria. O canvas do criador reúne compilações REPORT de cada tela; o compilador de runtime não muda. Novas raízes ocupam a viewport por fillMaxSize fracionário, preservando documentos existentes. A paleta usa miniaturas reais das fixtures e captura ponteiros antes dos componentes decorativos. Inserções usam a geometria existente e um gap revisionado em uma transação; noodles criam ações/relações somente ao soltar em tela válida. Não se simula navegação apenas desenhando uma linha.
+
+## Containers e slots como destinos de views
+
+O schema determina quem pode receber filhos, sem whitelist de nomes. Row/Column mantêm geometria de ordem; outros containers/slots recebem append, pois seus eixos não são definidos pelo contrato. Slots usam regiões medidas ou preferência explícita por nó, independente da seleção durante captura. Scaffold consome listas em topBar/bottomBar para corresponder ao schema existente. Não alterar payloads para simular reparenting: publicar o comando autoral e validar seu resultado no renderer.

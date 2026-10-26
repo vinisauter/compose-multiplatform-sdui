@@ -44,8 +44,9 @@ internal class PreviewControls {
 internal fun EditablePreview(workspace: LocalWorkspace, document: AuthoringDocument, sourceIds: Map<String, String>,
                     selectedId: String, select: (String) -> Unit, commit: (EditOutcome) -> Unit,
                     controls: PreviewControls, showControls: Boolean = true, palette: PaletteDragState? = null,
+                    preferredSlots: Map<String, String> = emptyMap(),
                     content: @Composable () -> Unit) {
-    val geometry = remember(document) { PreviewGeometry(document, sourceIds) }
+    val geometry = remember(document, preferredSlots) { PreviewGeometry(document, sourceIds, workspace.catalog, preferredSlots) }
     val gesture = remember(document) { DropGesture() }
     val focus = remember { FocusRequester() }
     var editing by controls.editing
@@ -83,7 +84,7 @@ internal fun EditablePreview(workspace: LocalWorkspace, document: AuthoringDocum
             TextButton(onClick = { cancel(); view = view.copy(pan = Point2(view.pan.x, view.pan.y - 40), revision = view.revision + 1) }) { Text("Acima") }
             TextButton(onClick = { cancel(); view = view.copy(pan = Point2(view.pan.x, view.pan.y + 40), revision = view.revision + 1) }) { Text("Abaixo") }
         }
-        if (editing && showControls) Text("Arraste nós visuais. Escape cancela. Row/Column sem wrap; Box insere no fim.")
+        if (editing && showControls) Text("Arraste nós visuais. Escape cancela. Row/Column ordenam; outros containers inserem no fim.")
         if (diagnostic.isNotEmpty()) Text(diagnostic)
         Box(Modifier.weight(1f).fillMaxWidth().clipToBounds().onGloballyPositioned {
             geometry.placeViewport(it); surface = Rect(it.positionInRoot(), androidx.compose.ui.geometry.Size(it.size.width.toFloat(), it.size.height.toFloat()))

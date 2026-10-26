@@ -11,7 +11,7 @@ import me.developes.humming.sdui.common.ServerDrivenNode
 import me.developes.humming.sdui.layout.Layout
 
 
-class SDCAnimatedVisibility(node: ServerDrivenNode, private val viewModel: SDUIFormViewModel) :
+class SDCAnimatedVisibility(private val node: ServerDrivenNode, private val viewModel: SDUIFormViewModel) :
     Layout {
     private val modifier = Modifier.fromNode(node)
     private val propertyVisible = node.property("visible")
@@ -33,7 +33,7 @@ class SDCAnimatedVisibility(node: ServerDrivenNode, private val viewModel: SDUIF
     @Composable
     override fun Content() {
         val visible by visible.collectAsState()
-        AnimatedVisibility(visible, modifier = modifier) {
+        AnimatedVisibility(visible, modifier = modifier.observeNodeBounds(node)) {
             loadChildren.invoke()
         }
     }

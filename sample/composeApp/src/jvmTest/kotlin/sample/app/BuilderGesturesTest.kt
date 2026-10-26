@@ -21,6 +21,35 @@ class BuilderGesturesTest {
     private val target = TargetCapabilities(initialNodeCatalog().capabilities, providers = setOf("compiled-preview"),
         colorTokens = defaultPresentationTokens().colorNames, maskTokens = defaultPresentationTokens().maskNames)
 
+    @Test fun paletteTextCanBeDroppedInsideButtonChildren() {
+        val workspace = LocalWorkspace().apply { importContract("""{"component":"layout:column","id":"root","properties":{"width":"400","height":"500"},"children":[{"component":"layout:button","id":"target","properties":{"width":"240","height":"80"},"children":[{"component":"layout:text","id":"label","properties":{"text":"Destino"}}]}]}""").requireValue() }
+        var document by mutableStateOf(workspace.document)
+        val initial = document
+        val drag = PaletteDragState()
+        val controls = PreviewControls().apply { editing.value = true }
+        var mounted by mutableStateOf(true)
+        compose.setContent { if (mounted) MaterialTheme { Row(Modifier.size(900.dp, 600.dp)) {
+            Box(Modifier.width(220.dp)) { BuilderPaletteCard("text", drag, click = {}, drop = { name, plan ->
+                insertBuilderComponent(workspace, plan.targetId, plan.slot, name, plan).requireSuccess(); document = workspace.document
+            }) }
+            Box(Modifier.weight(1f)) { EditablePreview(workspace, document, workspace.compile().requireValue().sourceNodeIds,
+                "target", {}, {}, controls, showControls = false, palette = drag) { CompiledPreview(workspace.compile().requireValue()) } }
+        } } }
+        compose.waitUntil(5_000) { compose.onAllNodesWithText("Destino", substring = false).fetchSemanticsNodes().isNotEmpty() }
+        val card = compose.onNodeWithTag("builder-add-text")
+        val origin = card.fetchSemanticsNode().boundsInRoot.topLeft
+        val end = compose.onNodeWithText("Destino", substring = false).fetchSemanticsNode().boundsInRoot.center - origin
+        card.performMouseInput { moveTo(center); press(); moveTo(end, 500) }
+        compose.waitUntil(5_000) { drag.plan?.targetId == "target" }
+        assertEquals("children", drag.plan!!.slot)
+        assertEquals(initial, workspace.document)
+        card.performMouseInput { release() }
+        compose.waitUntil(5_000) { workspace.document.nodes.size == initial.nodes.size + 1 }
+        val added = workspace.document.nodes.values.single { it.id !in initial.nodes }
+        assertEquals("target", (added.placement as Placement.Child).parentId)
+        compose.runOnIdle { workspace.undo().requireSuccess(); document = workspace.document; assertEquals(initial.nodes, document.nodes); mounted = false }
+    }
+
     @Test fun actionFramesFollowSelectedViewportRatioAndKeepConnectionsMeasured() {
         val workspace = LocalWorkspace(journeyExample())
         val original = workspace.document
