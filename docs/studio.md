@@ -374,3 +374,7 @@ DropGeometry.visualSlots deriva os destinos de childrenRole=COMPONENT e propried
 ## Fluxo observado e guia
 
 NodeBoundsObserver pode receber NodeContentFlow do renderer. PreviewGeometry converte essa observação em eixo do container; o documento não persiste essa informação. Fluxo horizontal usa guia vertical; vertical usa horizontal. DropGuideKind.CONTAINER representa inclusão por contorno para destinos sem eixo linear conhecido. O mesmo DropPlan determina guia, gap e comando final.
+
+## Drag-and-drop estrutural na árvore
+
+TreeDrop calcula BEFORE/INSIDE/AFTER com base em AuthoringIndices e slots visuais de schema. O plano guarda documento/revisão e um MoveNode com âncoras de irmãos, excluindo a origem; commit aplica uma transação guardada e usa o histórico existente. Ciclos, ações como filhos de views e reparenting de raízes são rejeitados. EditorTree compartilha seleção, marcas, captura no viewport da lista, autoscroll e cancelamento entre AppBuilder e LocalStudio. A captura pertence à lista para sobreviver à virtualização da linha de origem.

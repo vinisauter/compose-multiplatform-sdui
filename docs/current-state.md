@@ -6,15 +6,15 @@ Pesquisa documental e inspeção estática parcial concluídas no recorte solici
 
 Este é o ponto de entrada para **continuar o desenvolvimento**. Reúne o estado observado, o rastreamento das etapas e a próxima ação. O [plano](development-plan.md) define dependências, escopo e critérios de aceite; este documento é a única fonte de status e retomada.
 
-Atualizado após T33 (2026-10-26): guia de drop coerente com o fluxo real. Button mostra guia vertical para filhos lado a lado; Card usa fluxo vertical; destinos sem eixo definido recebem contorno de inclusão. 360 casos JVM regulares sem falhas/erros/ignorados; metadata e builds JS/Android/Wasm aprovados. Captura da guia gerada e inspecionada em Compose/JVM; sem nova observação manual Wasm. Sem push/deploy.
+Atualizado após T35 (2026-10-26): seta da tela inicial e drag-and-drop nas árvores do criador/Studio. Bordas reordenam views; centro de container reparenta conforme schema/slot, com dica, marca, autoscroll, undo/redo e cancelamento. 367 casos JVM regulares sem falhas/erros/ignorados; metadata e builds JS/Android/Wasm aprovados. Sem nova observação manual Wasm. Sem push/deploy.
 
 ## Ponto de retomada
 
 | Campo | Registro atual |
 | --- | --- |
-| Última atualização | 2026-10-26; T31 e53ae76; T32 d93d5c5; T33 neste entregável; commits locais sem push |
-| Última entrega | T33: fluxo observado e marca coerente, teste por pixels antes do release e ordem real após drop |
-| Tarefa de implementação em execução | T35 — drag-and-drop na árvore de elementos |
+| Última atualização | 2026-10-26; T33 b4d74e5; T34 b594b79; T35 neste entregável; commits locais sem push |
+| Última entrega | T35: drag-and-drop estrutural na árvore compartilhada; seta da entrada T34 preservada |
+| Tarefa de implementação em execução | Nenhuma; T34/T35 concluídas no recorte testado |
 | Próxima tarefa | T26 — qualificação adicional por plataforma/recorte; futuras capacidades exigem aceite no plano |
 | Próxima ação concreta | Após restabelecer a cota do revisor, conferir os novos gestos/proporções no navegador sem descartar trabalho aberto; qualificar toque/arquivos em Android separadamente |
 | Critério para avançar | Registrar target e fluxo; não confundir APK compilado com gestos validados por toque |
@@ -71,6 +71,8 @@ Estados: **pronta**, **pendente**, **em execução**, **bloqueada**, **concluíd
 | T31 | Proporção do viewport em Ações | concluída | e53ae76; PHONE/TABLET/DESKTOP medidos em UI e builds; inspeção browser bloqueada por cota |
 | T32 | Drop em containers e slots visuais | concluída | 359 regulares; Text → Button, paleta → Button, slot Scaffold e seleção durante gesto, com undo; detalhes abaixo |
 | T33 | Marca de inserção coerente com o renderer | concluída | 360 regulares; pixels da guia vertical em Button e bounds finais lado a lado; detalhes abaixo |
+| T34 | Seta da tela inicial | concluída | b594b79; indicador deriva de entryNodeId, acompanha SetEntry/undo; sample74 e builds |
+| T35 | Drag-and-drop na árvore | concluída | 367 regulares; dois hosts, reparenting/ordem/undo/redo/Escape/fora/autoscroll; detalhes abaixo |
 
 Os requisitos completos e a ordem das dependências estão no [plano](development-plan.md). A numeração identifica tarefas; não significa executar T07–T12 antes de T13–T19. A prioridade inicial é base → schemas/fronteira → autoria local → manipulação visual; capacidades adicionais do cliente podem avançar em paralelo quando elegíveis.
 
@@ -450,3 +452,15 @@ Demais limites de T32 preservados. Sem nova tentativa de UI no navegador após o
 ## Fechamento T34 — seta da tela inicial — 2026-10-26
 
 O frame de entryNodeId mostra seta verde e rótulo Inicial no cabeçalho, com descrição acessível. É um indicador derivado, sem criar relação artificial. Teste altera SetEntry e desfaz, conferindo que somente a entrada atual tem seta. build/builder-t34-check.log BUILD SUCCESSFUL 45s: sample74, zero falhas/erros/ignorados; JS/APK/Wasm compilados. Sem nova observação manual browser. Próximo recorte solicitado: T35, arraste na árvore.
+
+## Fechamento T35 — drag-and-drop na árvore — 2026-10-26
+
+EditorTree é compartilhado por AppBuilder (aba Telas) e LocalStudio. Quarto superior/inferior da linha indica antes/depois; centro de container compatível indica dentro, preservando slots e filhos. Centro de folha resolve antes/depois conforme metade da linha. Linhas rosas/destaque e dica mostram a operação e o slot. Marcas não alteram alturas; dica ocupa altura reservada para não deslocar o alvo durante captura.
+
+TreeDrop planeja estruturalmente a partir de índices/schema, sem depender dos bounds do renderer. O plano guarda documento/revisão e um MoveNode com vizinhos, excluindo a origem. Commit usa LocalWorkspace.apply, transação/histórico existentes e guarda de revisão. Views contidas são móveis; telas raiz, ações, destinos inválidos e movimentos para si/descendentes são rejeitados. Na árvore do criador vale o slot preferido por nó, quando definido pelo Inspector.
+
+Captura de ponteiro na LazyColumn mantém a origem mesmo quando sua linha é virtualizada. Auto scroll nas bordas pode alcançar nós distantes; Escape/foco/perda de captura/multitoque/soltar fora cancelam sem editar. Clique/teclado continuam selecionando, incluindo edgeId de ações no Studio. O criador mostra a tela selecionada; Studio usa sua árvore completa. Não foi criado outro estado autoral persistido.
+
+Validação: build/builder-t35-compile.log BUILD SUCCESSFUL 17s; build/builder-t35-tests.log BUILD SUCCESSFUL 39s, modelo119 + sample77 = 196 casos dos módulos afetados. build/builder-t35-final.log BUILD SUCCESSFUL 3s, dez jvmTest e JS/APK/Wasm/metadata. Inventário regular367, zero falhas/erros/ignorados. Seis casos novos: plano/reparenting/ordem/undo/redo; ciclo/folha/raiz/stale; slot topBar; ponteiro no Studio com marca antes do release e cancelamentos; autoscroll de 40 linhas mantendo origem fora da composição; gesto no criador com arquivo exportado e undo. A execução intermediária builder-t35-check.log falhou por matcher exato da dica com sufixo de slot; matcher corrigido e suíte final aprovada.
+
+Limites: nós de ação/telas raiz usam seus controles próprios. A aba Telas do criador limita a árvore à página selecionada; a árvore completa é do Studio avançado. Sem nova observação manual no browser após a cota do revisor registrada anteriormente; execução UI deste recorte é Compose/JVM e os demais targets foram compilados. Backend não alterado; integrações reais anteriores não repetidas. Próxima ação permanece qualificação adicional T26, sem refazer T00–T35. Sem push/deploy.

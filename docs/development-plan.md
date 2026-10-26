@@ -318,3 +318,9 @@ A sequência começa por T00, sem alteração estrutural preventiva: inventariar
 - Dependências: T19, T29.
 - Trabalho: seta e rótulo acessível no frame correspondente a entryNodeId, sem relação de navegação artificial.
 - Aceite: só a entrada tem seta; mudar SetEntry e desfazer movem o indicador; teste UI e build Wasm.
+
+## T35 — drag-and-drop na árvore
+
+- Dependências: T14, T17, T32.
+- Trabalho: reordenar views nas bordas de linhas e reparentear no centro de containers; marca e slot explícitos, autoscroll, cancelamento e um comando por release. Compartilhar UI entre criador e Studio.
+- Aceite: arraste real na árvore para Button e entre irmãos, undo/redo, Escape/fora/ciclo/stale sem mutação; slots derivados do schema, seleção e ações preservadas.

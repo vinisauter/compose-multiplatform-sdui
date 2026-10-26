@@ -281,3 +281,7 @@ O schema determina quem pode receber filhos, sem whitelist de nomes. Row/Column 
 ## Coerência da marca de drop
 
 Quem renderiza fornece o fluxo conhecido de seus filhos, evitando inferir o eixo pela capacidade genérica de conter views. Button/variantes Row e Card/variantes Column usam suas disposições reais. Para destino sem eixo definido, o contorno comunica inclusão e preserva append. Não desenhar uma linha inferior que contradiga o resultado lado a lado. A observação é opt-in com método default, sem dependência do renderer no modelo autoral.
+
+## Arraste estrutural compartilhado
+
+A árvore usa o documento e seus comandos, sem inferir hierarquia dos bounds do canvas. Planos puros calculam slots/gaps e verificam revisão no commit. A captura de ponteiro fica na LazyColumn, permitindo autoscroll mesmo após a linha de origem sair da composição. Marcas são desenhadas sem mudar a altura das linhas e a dica tem altura reservada para evitar instabilidade geométrica. Ações/raízes não se tornam views reparentáveis.

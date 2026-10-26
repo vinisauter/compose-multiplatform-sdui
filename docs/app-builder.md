@@ -63,3 +63,11 @@ A marca representa a disposição dos filhos, não uma direção genérica de dr
 Quando o eixo não é definido, como em superfícies de sobreposição ou slots genéricos, o editor desenha um contorno rosa no destino para indicar inclusão; não exibe uma linha embaixo que sugira empilhamento vertical. O gesto e a paleta usam a mesma representação.
 
 O cabeçalho da tela inicial em Ações tem seta verde e rótulo Inicial, derivados de entryNodeId. Alterar a entrada ou desfazer atualiza o indicador sem criar outra conexão.
+
+## Arraste na árvore de elementos
+
+Na aba **Telas**, arraste uma view pela árvore: o quarto superior da linha insere antes e o inferior insere depois; o centro de um container compatível insere dentro. Em folhas, o centro resolve antes/depois conforme a metade da linha. Linha rosa marca a posição entre irmãos; destaque e dica **Dentro de … · slot** indicam reparenting. O schema e a preferência **Adicionar em** determinam o slot, preservando seus filhos existentes.
+
+O documento só muda ao soltar em um destino válido, em uma operação que pode ser desfeita/refeita. Escape, perda de foco/captura, multitoque ou soltar fora cancelam. Auto scroll nas bordas superior/inferior permite alcançar elementos fora da área visível sem perder a origem capturada. A seleção continua funcionando por clique e teclado.
+
+A árvore do criador mostra a tela selecionada. O Studio avançado usa a mesma interação sobre sua árvore completa. O arraste estrutural move views contidas, não telas raiz ou nós de ação; ações continuam pelo Inspector e conectores. Mover para si/descendentes e destinos sem filhos visuais é recusado; uma alteração concorrente do documento invalida o plano. Nenhum nó ou ordem é duplicado fora do documento autoral.

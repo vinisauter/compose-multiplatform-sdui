@@ -178,14 +178,8 @@ fun AppBuilder(files: StudioFiles? = null, initialDocument: AuthoringDocument? =
                                     }
                                     HorizontalDivider(Modifier.padding(vertical = 12.dp))
                                     Text("ÁRVORE DE ELEMENTOS", color = Color(0xFF94A3B8), style = MaterialTheme.typography.labelSmall)
-                                    LazyColumn(Modifier.weight(1f)) {
-                                        items(tree, key = { "${it.node.id}-${it.edgeId}" }) { row ->
-                                            Text(row.node.definition.substringAfter(':'), color = Color(0xFFE2E8F0), modifier = Modifier.fillMaxWidth()
-                                                .background(if (selected == row.node.id) Color(0xFF454371) else Color.Transparent, RoundedCornerShape(6.dp))
-                                                .clickable { selected = row.node.id }.padding(start = (8 + row.depth.coerceAtMost(8) * 10).dp, top = 9.dp, bottom = 9.dp)
-                                                .testTag("builder-node-${row.node.id}"))
-                                        }
-                                    }
+                                    EditorTree(workspace, document, tree, selected, { selected = it.node.id }, ::change,
+                                        Modifier.weight(1f), dark = true, tagPrefix = "builder-node-", treeTag = "builder-tree", preferredSlots = dropSlots)
                                 }
                                 TextButton(onClick = { advanced = true }) { Text("Studio avançado", color = Color(0xFFC4B5FD)) }
                             }

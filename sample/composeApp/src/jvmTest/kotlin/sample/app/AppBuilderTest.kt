@@ -26,6 +26,31 @@ class AppBuilderTest {
     private val owner = object : LifecycleOwner { override val lifecycle = LifecycleRegistry(this) }
     @After fun closeOwner() { compose.runOnIdle { if (owner.lifecycle.currentState == Lifecycle.State.INITIALIZED) owner.lifecycle.currentState = Lifecycle.State.CREATED; owner.lifecycle.currentState = Lifecycle.State.DESTROYED } }
 
+    @Test fun builderTreeDragIsSavedAndUndoRestoresTheOriginalParent() {
+        val initial = LegacyAuthoringCodec(initialNodeCatalog()).importDocument("""{"component":"layout:column","id":"root","properties":{"fillMaxSize":"1"},"children":[{"component":"layout:text","id":"moving","properties":{"text":"Mover pela árvore"}},{"component":"layout:button","id":"target","children":[{"component":"layout:text","id":"label","properties":{"text":"Destino"}}]}]}""", "tree-project").requireValue()
+        var saved = ""
+        val files = object : StudioFiles {
+            override fun open(result: (StudioFileResult) -> Unit) = Unit
+            override fun download(name: String, content: String) { saved = content }
+        }
+        val mounted = mutableStateOf(true)
+        compose.runOnIdle { owner.lifecycle.currentState = Lifecycle.State.RESUMED }
+        compose.setContent { CompositionLocalProvider(LocalLifecycleOwner provides owner) { if (mounted.value) Box(Modifier.size(1400.dp, 950.dp)) { AppBuilder(files, initial) } } }
+        val tree = compose.onNodeWithTag("builder-tree")
+        val origin = tree.fetchSemanticsNode().boundsInRoot.topLeft
+        val start = compose.onNodeWithTag("builder-node-moving").fetchSemanticsNode().boundsInRoot.center - origin
+        val end = compose.onNodeWithTag("builder-node-target").fetchSemanticsNode().boundsInRoot.center - origin
+        tree.performMouseInput { moveTo(start); press(); moveTo(end, 400) }
+        compose.onNodeWithTag("builder-tree-drop-hint").assertTextContains("Dentro de button", substring = true)
+        tree.performMouseInput { release() }
+        compose.onNodeWithText("Salvar projeto", substring = false).performClick()
+        assertEquals("target", (AppProjectCodec().decode(saved).requireValue().document.nodes.getValue("moving").placement as Placement.Child).parentId)
+        compose.onNodeWithText("Desfazer", substring = false).performClick()
+        compose.onNodeWithText("Salvar projeto", substring = false).performClick()
+        assertEquals("root", (AppProjectCodec().decode(saved).requireValue().document.nodes.getValue("moving").placement as Placement.Child).parentId)
+        compose.runOnIdle { mounted.value = false }
+    }
+
     @Test fun builderSelectionDuringPointerCaptureDoesNotCancelMovingTextIntoButton() {
         val initial = LegacyAuthoringCodec(initialNodeCatalog()).importDocument("""{"component":"layout:column","id":"root","properties":{"fillMaxSize":"1"},"children":[{"component":"layout:text","id":"moving","properties":{"text":"Texto para mover"}},{"component":"layout:button","id":"target","properties":{"width":"240","height":"80"},"children":[{"component":"layout:text","id":"label","properties":{"text":"Destino"}}]}]}""", "drag-project").requireValue()
         var saved = ""

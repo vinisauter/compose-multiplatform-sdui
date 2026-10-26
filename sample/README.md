@@ -267,3 +267,7 @@ O ponto de retomada e as evidências atuais ficam exclusivamente em [estado atua
 Button dispõe os filhos lado a lado: a guia de inserção é vertical. Fluxos verticais usam guia horizontal. Destinos sem eixo linear definido recebem contorno de inclusão, sem sugerir uma posição embaixo. A captura abaixo vem do teste Compose/JVM, antes do release; o teste também verifica o Text ao lado do rótulo após inserir.
 
 ![Guia vertical coerente com o conteúdo horizontal do Button](docs/images/button-drop-guide.png)
+
+## Drag-and-drop na árvore
+
+Na aba **Telas**, arraste os elementos na árvore: **borda superior/inferior** para antes/depois; **centro de um container** para colocar dentro. A marca e a dica mostram o destino e o slot. As bordas da lista rolam automaticamente durante o arraste. Soltar confirma; Escape ou soltar fora cancela. Use Desfazer/Refazer. O Studio avançado oferece a mesma interação na árvore completa. Telas raiz e ações continuam com seus controles próprios.

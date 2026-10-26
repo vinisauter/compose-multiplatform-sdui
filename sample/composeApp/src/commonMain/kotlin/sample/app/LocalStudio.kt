@@ -195,15 +195,8 @@ fun LocalStudio(files: StudioFiles? = null, workspace: LocalWorkspace = remember
             Row(Modifier.weight(1f).fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 Column(Modifier.weight(.28f).fillMaxHeight()) {
                     Text("Árvore", style = MaterialTheme.typography.titleMedium)
-                    LazyColumn(Modifier.fillMaxSize().testTag("studio-tree")) {
-                        itemsIndexed(treeRows) { _, row ->
-                            Text("${row.relation} · ${row.node.definition.substringAfter(':')} · ${row.node.id.take(8)}",
-                                Modifier.fillMaxWidth().background(if (selectedId == row.node.id) Color(0xFFE7E0EC) else Color.Transparent)
-                                    .clickable { selectedId = row.node.id; selectedEdge = row.edgeId }
-                                    .padding(start = (minOf(row.depth, 10) * 12).dp, top = 9.dp, bottom = 9.dp)
-                                    .testTag("studio-node-${row.node.id}"))
-                        }
-                    }
+                    EditorTree(workspace, document, treeRows, selectedId,
+                        { selectedId = it.node.id; selectedEdge = it.edgeId }, ::changed, Modifier.fillMaxSize(), showDetails = true)
                 }
                 Column(Modifier.weight(.34f).fillMaxHeight().verticalScroll(rememberScrollState())) {
                     Text("Inspector", style = MaterialTheme.typography.titleMedium)
