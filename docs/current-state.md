@@ -6,15 +6,15 @@ Pesquisa documental e inspeção estática parcial concluídas no recorte solici
 
 Este é o ponto de entrada para **continuar o desenvolvimento**. Reúne o estado observado, o rastreamento das etapas e a próxima ação. O [plano](development-plan.md) define dependências, escopo e critérios de aceite; este documento é a única fonte de status e retomada.
 
-Atualizado após T32 (2026-10-26): proporção do viewport em Ações e drop orientado pelo schema. Text pode entrar em Button e demais containers/slots visuais declarados, com undo e sem executar ações no modo edição. Relatórios regulares: 359 casos JVM sem falhas/erros/ignorados; metadata e builds JS/Android/Wasm passaram. Última inspeção manual Wasm continua sendo T30: nova tentativa em T31 foi bloqueada pelo revisor automático por limite de uso. Sem push/deploy.
+Atualizado após T33 (2026-10-26): guia de drop coerente com o fluxo real. Button mostra guia vertical para filhos lado a lado; Card usa fluxo vertical; destinos sem eixo definido recebem contorno de inclusão. 360 casos JVM regulares sem falhas/erros/ignorados; metadata e builds JS/Android/Wasm aprovados. Captura da guia gerada e inspecionada em Compose/JVM; sem nova observação manual Wasm. Sem push/deploy.
 
 ## Ponto de retomada
 
 | Campo | Registro atual |
 | --- | --- |
-| Última atualização | 2026-10-26; T30 44097fa; T31 e53ae76; T32 neste entregável; commits locais sem push |
-| Última entrega | T32: drop em containers/slots de schema, Text em Button e preferência de slot estável; proporções T31 preservadas |
-| Tarefa de implementação em execução | Nenhuma; T31/T32 concluídas no recorte testado |
+| Última atualização | 2026-10-26; T31 e53ae76; T32 d93d5c5; T33 neste entregável; commits locais sem push |
+| Última entrega | T33: fluxo observado e marca coerente, teste por pixels antes do release e ordem real após drop |
+| Tarefa de implementação em execução | Nenhuma; T33 concluída no recorte testado |
 | Próxima tarefa | T26 — qualificação adicional por plataforma/recorte; futuras capacidades exigem aceite no plano |
 | Próxima ação concreta | Após restabelecer a cota do revisor, conferir os novos gestos/proporções no navegador sem descartar trabalho aberto; qualificar toque/arquivos em Android separadamente |
 | Critério para avançar | Registrar target e fluxo; não confundir APK compilado com gestos validados por toque |
@@ -70,6 +70,7 @@ Estados: **pronta**, **pendente**, **em execução**, **bloqueada**, **concluíd
 | T30 | Paleta com previews/arraste e noodles gestuais | concluída | 353 regulares, 3 testes novos, Wasm real com três telas/setas/execução; ver fechamento abaixo |
 | T31 | Proporção do viewport em Ações | concluída | e53ae76; PHONE/TABLET/DESKTOP medidos em UI e builds; inspeção browser bloqueada por cota |
 | T32 | Drop em containers e slots visuais | concluída | 359 regulares; Text → Button, paleta → Button, slot Scaffold e seleção durante gesto, com undo; detalhes abaixo |
+| T33 | Marca de inserção coerente com o renderer | concluída | 360 regulares; pixels da guia vertical em Button e bounds finais lado a lado; detalhes abaixo |
 
 Os requisitos completos e a ordem das dependências estão no [plano](development-plan.md). A numeração identifica tarefas; não significa executar T07–T12 antes de T13–T19. A prioridade inicial é base → schemas/fronteira → autoria local → manipulação visual; capacidades adicionais do cliente podem avançar em paralelo quando elegíveis.
 
@@ -435,3 +436,13 @@ Slots ocupados usam bounds dos filhos; preferência Adicionar em pode fornecer �
 Validação: build/builder-t32-check.log BUILD SUCCESSFUL 46s; build/builder-t32-final.log BUILD SUCCESSFUL 46s; build/builder-t32-regression.log BUILD SUCCESSFUL 51s (dez jvmTest + metadata visual e builds JS/APK/Wasm); build/builder-t32-artifact-final.log BUILD SUCCESSFUL 44s após usar o índice estrutural para consultar filhos (sample73 e JS/APK/Wasm). Modelo115 + sample73 = 188 casos dos módulos afetados; inventário total359 regulares, zero falhas/erros/ignorados. Cinco casos novos: todos os destinos/slots declarados pelo catálogo e rejeição de porta de ação; gesto real Text → Button com undo e sem ação; inserção da paleta em Button; movimento para topBar com irmãos existentes; gesto no AppBuilder com seleção alterando durante captura. T31 acrescentou um caso de proporção.
 
 Limites: somente regiões visíveis/medidas recebem ponteiro; para conteúdo oculto é preciso mostrá-lo. Row/Column wrap/reverse continuam fora da regra geométrica. Outros containers usam append, não uma ordem geométrica inventada. Documento/transformações/clips/ciclos/revisões continuam validados. Sem nova inspeção manual Wasm: o revisor automático bloqueou a ação por limite de uso (não por considerar insegura); não houve tentativa de contorno. Backend/integrações reais não alterados. Próximo gate é conferir runtime browser após restabelecer cota e qualificar toque Android; não reiniciar a implementação concluída.
+
+## Fechamento T33 — marca de inserção coerente — 2026-10-26
+
+Relato do usuário: linha rosa embaixo do Button, mas Text inserido ao lado. Causa: T32 aceitava o Button pelo schema, porém tratava seu fluxo como append genérico e desenhava a guia inferior. Correção: NodeBoundsObserver recebe opcionalmente NodeContentFlow, sem dependência do renderer no modelo autoral nem alteração do payload. Button e variantes de conteúdo Row reportam HORIZONTAL; Card e variantes Column reportam VERTICAL. PreviewGeometry usa o fluxo observado para guia e gap do mesmo DropPlan.
+
+Fluxo horizontal desenha linha vertical; vertical desenha horizontal. Destinos sem eixo conhecido, incluindo slots genéricos/Box, exibem contorno rosa de inclusão (DropGuideKind.CONTAINER), evitando prometer inserção embaixo. Elegibilidade permanece derivada do schema. Método default do observer preserva implementadores existentes; bounds/fluxos são descartados junto com os nós.
+
+Validação: build/builder-t33-tasks.log; build/builder-t33-check.log BUILD SUCCESSFUL 1m1s, dez jvmTest, metadata visual e builds JS/APK/Wasm. build/builder-t33-final.log BUILD SUCCESSFUL 43s após atualizar a ajuda do editor (sample73 e builds JS/APK/Wasm). Modelo116 + sample73; inventário regular360, sem falhas/erros/ignorados. Caso novo verifica os cantos do contorno de inclusão. Regressão de UI ampliada segura o arraste, mede pixels rosa (linha vertical estreita, altura >10px), solta, confirma pai/ordem e bounds do Text ao lado do rótulo, sem executar onClick; undo restaura a origem. Captura build/reports/button-drop-guide.png inspecionada e copiada sem edição para sample/docs/images/button-drop-guide.png, no guia do app; evidência Compose/JVM, não browser.
+
+Demais limites de T32 preservados. Sem nova tentativa de UI no navegador após o bloqueio de cota registrado em T31; última inspeção manual Wasm é T30. PostgreSQL/HTTP não alterados, integrações anteriores não repetidas. Próxima ação continua sendo qualificação browser/toque por T26, sem reiniciar esta correção. Sem push/deploy.

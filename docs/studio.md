@@ -369,4 +369,8 @@ O [criador de apps](app-builder.md) acrescenta metadados versionados e um shell 
 
 ## Drop em containers declarados pelo schema
 
-DropGeometry.visualSlots deriva os destinos de childrenRole=COMPONENT e propriedades NODES/COMPONENT editáveis. PreviewGeometry fornece bounds e candidatos por slot; o planejamento usa o container compatível mais profundo. Row/Column continuam usando seus eixos e centros; outros containers/slots inserem no fim sem inventar um eixo de layout. Por exemplo, Text pode ser movido ou inserido dentro de Button. Nenhum filho é adicionado a uma propriedade de ação. Preferências de slot do Inspector são mantidas por nó, separadas da seleção durante o gesto.
+DropGeometry.visualSlots deriva os destinos de childrenRole=COMPONENT e propriedades NODES/COMPONENT editáveis. PreviewGeometry fornece bounds e candidatos por slot; o planejamento usa o container compatível mais profundo. Row/Column e containers com fluxo observado usam seus eixos e centros; destinos sem eixo definido inserem no fim sem inventar uma direção de layout. Por exemplo, Text pode ser movido ou inserido dentro de Button. Nenhum filho é adicionado a uma propriedade de ação. Preferências de slot do Inspector são mantidas por nó, separadas da seleção durante o gesto.
+
+## Fluxo observado e guia
+
+NodeBoundsObserver pode receber NodeContentFlow do renderer. PreviewGeometry converte essa observação em eixo do container; o documento não persiste essa informação. Fluxo horizontal usa guia vertical; vertical usa horizontal. DropGuideKind.CONTAINER representa inclusão por contorno para destinos sem eixo linear conhecido. O mesmo DropPlan determina guia, gap e comando final.

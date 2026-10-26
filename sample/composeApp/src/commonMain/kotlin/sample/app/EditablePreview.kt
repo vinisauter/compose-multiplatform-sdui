@@ -84,7 +84,7 @@ internal fun EditablePreview(workspace: LocalWorkspace, document: AuthoringDocum
             TextButton(onClick = { cancel(); view = view.copy(pan = Point2(view.pan.x, view.pan.y - 40), revision = view.revision + 1) }) { Text("Acima") }
             TextButton(onClick = { cancel(); view = view.copy(pan = Point2(view.pan.x, view.pan.y + 40), revision = view.revision + 1) }) { Text("Abaixo") }
         }
-        if (editing && showControls) Text("Arraste nós visuais. Escape cancela. Row/Column ordenam; outros containers inserem no fim.")
+        if (editing && showControls) Text("Arraste nós visuais. Escape cancela. Containers com fluxo ordenam; os demais recebem no fim.")
         if (diagnostic.isNotEmpty()) Text(diagnostic)
         Box(Modifier.weight(1f).fillMaxWidth().clipToBounds().onGloballyPositioned {
             geometry.placeViewport(it); surface = Rect(it.positionInRoot(), androidx.compose.ui.geometry.Size(it.size.width.toFloat(), it.size.height.toFloat()))
@@ -141,8 +141,11 @@ internal fun EditablePreview(workspace: LocalWorkspace, document: AuthoringDocum
                         androidx.compose.ui.geometry.Size((b.x - a.x).toFloat(), (b.y - a.y).toFloat()), style = Stroke(2f))
                 }
                 (palette?.plan ?: guide)?.takeIf { it.layoutRevision == snapshot.revision && it.viewportRevision == viewport.revision }?.let {
-                    drawLine(Color(0xFFB00070), Offset(it.guideStart.x.toFloat(), it.guideStart.y.toFloat()),
-                        Offset(it.guideEnd.x.toFloat(), it.guideEnd.y.toFloat()), strokeWidth = 3f)
+                    val start = Offset(it.guideStart.x.toFloat(), it.guideStart.y.toFloat())
+                    val end = Offset(it.guideEnd.x.toFloat(), it.guideEnd.y.toFloat())
+                    if (it.guideKind == DropGuideKind.CONTAINER) drawRect(Color(0xFFB00070), start,
+                        androidx.compose.ui.geometry.Size(end.x - start.x, end.y - start.y), style = Stroke(3f))
+                    else drawLine(Color(0xFFB00070), start, end, strokeWidth = 3f)
                 }
             }
         }

@@ -277,3 +277,7 @@ A política estrita de exportação não deve esconder conteúdo durante a autor
 ## Containers e slots como destinos de views
 
 O schema determina quem pode receber filhos, sem whitelist de nomes. Row/Column mantêm geometria de ordem; outros containers/slots recebem append, pois seus eixos não são definidos pelo contrato. Slots usam regiões medidas ou preferência explícita por nó, independente da seleção durante captura. Scaffold consome listas em topBar/bottomBar para corresponder ao schema existente. Não alterar payloads para simular reparenting: publicar o comando autoral e validar seu resultado no renderer.
+
+## Coerência da marca de drop
+
+Quem renderiza fornece o fluxo conhecido de seus filhos, evitando inferir o eixo pela capacidade genérica de conter views. Button/variantes Row e Card/variantes Column usam suas disposições reais. Para destino sem eixo definido, o contorno comunica inclusão e preserva append. Não desenhar uma linha inferior que contradiga o resultado lado a lado. A observação é opt-in com método default, sem dependência do renderer no modelo autoral.

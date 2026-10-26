@@ -4,6 +4,16 @@ import me.developes.humming.sdui.common.initialNodeCatalog
 import kotlin.test.*
 
 class DropGeometryTest {
+    @Test fun containmentGuideHighlightsTheRegionWithoutClaimingAVerticalInsertion() {
+        val doc = document()
+        val snapshot = layout(doc, FlowAxis.STACK)
+        val root = snapshot.nodes.getValue("root")
+        val result = plan(doc, snapshot.copy(nodes = snapshot.nodes + ("root" to root.copy(
+            container = root.container!!.copy(guideKind = DropGuideKind.CONTAINER)))))
+        assertEquals(DropGuideKind.CONTAINER, result.guideKind)
+        assertEquals(Point2(10.0, 10.0), result.guideStart)
+        assertEquals(Point2(190.0, 190.0), result.guideEnd)
+    }
     @Test fun everySchemaVisualSlotAcceptsDropWithoutAContainerNameWhitelist() {
         val base = document()
         var checked = 0

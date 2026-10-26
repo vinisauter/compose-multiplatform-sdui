@@ -53,7 +53,12 @@ internal class SDCMaterial3(internal val node: ServerDrivenNode, internal val vm
         val click = { if (enabled) invoker.invoke(node.propertyNodes("onClick")); Unit }
         val change = { invoker.invoke(node.propertyNodes("onChange")); Unit }
         val changeAndClick = { invoker.invoke(node.propertyNodes("onChange") + node.propertyNodes("onClick")); Unit }
-        val m = modifier.observeNodeBounds(node)
+        val flow = when (name) {
+            "elevatedButton", "filledTonalButton", "materialTextButton", "materialOutlinedButton" -> NodeContentFlow.HORIZONTAL
+            "card", "elevatedCard", "outlinedCard" -> NodeContentFlow.VERTICAL
+            else -> null
+        }
+        val m = modifier.observeNodeBounds(node, flow)
         val clickModifier = if (enabled) m else m.semantics { disabled() }
         when (name) {
             "elevatedButton" -> ElevatedButton(click, m, enabled) { children() }

@@ -13,6 +13,7 @@ import me.developes.humming.sdui.common.NodeCatalog
 import me.developes.humming.sdui.common.initialNodeCatalog
 import me.developes.humming.sdui.layout.components.NodeBoundary
 import me.developes.humming.sdui.layout.components.NodeBoundsObserver
+import me.developes.humming.sdui.layout.components.NodeContentFlow
 import me.developes.humming.sdui.studio.*
 
 /** Copies actual renderer measurements; LayoutCoordinates are never retained across frames. */
@@ -21,6 +22,7 @@ class PreviewGeometry(private val document: AuthoringDocument, private val sourc
                       private val preferredSlots: Map<String, String> = emptyMap()) : NodeBoundsObserver {
     private data class Measurement(val full: Rect, val clipped: Rect)
     private val measurements = mutableMapOf<Pair<String, NodeBoundary>, Measurement>()
+    private val flows = mutableMapOf<String, NodeContentFlow>()
     private val indices = AuthoringIndices(document)
     private val paint = LocalWorkspace(document).tree().mapIndexed { index, row -> row.node.id to index }.toMap()
     var revision by mutableLongStateOf(0)
@@ -43,6 +45,11 @@ class PreviewGeometry(private val document: AuthoringDocument, private val sourc
     override fun removed(nodeId: String) {
         val id = sourceIds[nodeId] ?: return
         if (measurements.keys.removeAll { it.first == id }) revision++
+        if (flows.remove(id) != null) revision++
+    }
+    override fun contentFlow(nodeId: String, flow: NodeContentFlow) {
+        val id = sourceIds[nodeId] ?: return
+        if (flows[id] != flow) { flows[id] = flow; revision++ }
     }
     fun snapshot(viewport: CanvasViewport): LayoutSnapshot {
         fun world(rect: Rect): Rect2 {
@@ -53,11 +60,15 @@ class PreviewGeometry(private val document: AuthoringDocument, private val sourc
         val nodes = document.nodes.values.mapNotNull { node ->
             val outer = measurements[node.id to NodeBoundary.OUTER] ?: return@mapNotNull null
             val inner = measurements[node.id to NodeBoundary.CONTENT] ?: return@mapNotNull null
-            val axis = when (node.definition) {
+            val axis = when (flows[node.id]) {
+                NodeContentFlow.HORIZONTAL -> FlowAxis.HORIZONTAL
+                NodeContentFlow.VERTICAL -> FlowAxis.VERTICAL
+                null -> when (node.definition) {
                 "layout:column" -> FlowAxis.VERTICAL
                 "layout:row" -> FlowAxis.HORIZONTAL
                 "layout:box" -> FlowAxis.STACK
                 else -> FlowAxis.STACK
+                }
             }
             val allowed = catalog[node.definition]?.let(DropGeometry::visualSlots).orEmpty()
             val preferred = preferredSlots[node.id]?.takeIf { it in allowed }
@@ -70,7 +81,9 @@ class PreviewGeometry(private val document: AuthoringDocument, private val sourc
                     allowed.size == 1 || preferred == null && slot == allowed.first() -> world(inner.full)
                     else -> null
                 }
-                region?.let { ContainerBounds(if (slot == "children") axis else FlowAxis.STACK, it, slot) }
+                val slotAxis = if (slot == "children") axis else FlowAxis.STACK
+                region?.let { ContainerBounds(slotAxis, it, slot,
+                    if (slotAxis == FlowAxis.STACK) DropGuideKind.CONTAINER else DropGuideKind.LINE) }
             }.sortedBy { if (it.slot == preferred) 0 else if (it.slot == "children") 2 else 1 }
             val clipped = world(outer.clipped)
             node.id to MeasuredNode(node.id, world(outer.full), paintOrder = paint[node.id] ?: 0,

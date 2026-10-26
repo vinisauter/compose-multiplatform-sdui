@@ -62,11 +62,33 @@ class GeometryPreviewTest {
         val surface = compose.onNodeWithTag("studio-edit-surface")
         val origin = surface.fetchSemanticsNode().boundsInRoot.topLeft
         val start = compose.onNodeWithText("Texto arrastado", substring = false).fetchSemanticsNode().boundsInRoot.center - origin
-        val end = compose.onNodeWithText("Botão destino", substring = false).fetchSemanticsNode().boundsInRoot.center - origin
-        surface.performMouseInput { moveTo(start); press(); moveTo(end, 500); release() }
+        val end = compose.onNodeWithText("Botão destino", substring = false).fetchSemanticsNode().boundsInRoot.center + Offset(30f, 0f) - origin
+        surface.performMouseInput { moveTo(start); press(); moveTo(end, 500) }
+        compose.waitForIdle()
+        val guideImage = surface.captureToImage()
+        val pixels = guideImage.toPixelMap()
+        val pink = buildList {
+            for (x in 0 until pixels.width) for (y in 0 until pixels.height) {
+                val color = pixels[x, y]
+                if (color.red > .6f && color.green < .2f && color.blue > .3f) add(x to y)
+            }
+        }
+        assertTrue(pink.isNotEmpty(), "A guia de inserção deve estar visível")
+        assertTrue(pink.maxOf { it.first } - pink.minOf { it.first } <= 5, "Button organiza horizontalmente: a guia deve ser vertical")
+        assertTrue(pink.maxOf { it.second } - pink.minOf { it.second } > 10)
+        val output = File("build/reports/button-drop-guide.png").apply { parentFile.mkdirs() }
+        Image.makeFromBitmap(guideImage.asSkiaBitmap()).use { image ->
+            requireNotNull(image.encodeToData(EncodedImageFormat.PNG)).use { output.writeBytes(it.bytes) }
+        }
+        surface.performMouseInput { release() }
         compose.waitUntil(5_000) { (workspace.document.nodes.getValue("moving").placement as? Placement.Child)?.parentId == "target" }
         assertEquals(listOf("label", "moving"), children(workspace, "target"))
         assertTrue(workspace.compile().isSuccess)
+        compose.waitForIdle()
+        val buttonBounds = compose.onNode(hasText("Botão destino", substring = true) and SemanticsMatcher.expectValue(SemanticsProperties.Role, Role.Button)).fetchSemanticsNode().boundsInRoot
+        val labelBounds = compose.onAllNodesWithText("Botão destino", substring = false, useUnmergedTree = true).fetchSemanticsNodes().single { buttonBounds.contains(it.boundsInRoot.center) }.boundsInRoot
+        val movedBounds = compose.onAllNodesWithText("Texto arrastado", substring = false, useUnmergedTree = true).fetchSemanticsNodes().single { buttonBounds.contains(it.boundsInRoot.center) }.boundsInRoot
+        assertTrue(movedBounds.left >= labelBounds.right - 1, "O texto deve aparecer ao lado, conforme a guia vertical")
         compose.onNodeWithText("Clique: ", substring = false).assertExists()
         compose.onNodeWithText("Desfazer").performClick()
         compose.runOnIdle { assertEquals("root", (workspace.document.nodes.getValue("moving").placement as Placement.Child).parentId); mounted.value = false }

@@ -306,3 +306,9 @@ A sequência começa por T00, sem alteração estrutural preventiva: inventariar
 - Dependências: T18, T30.
 - Trabalho: aceitar destinos com children/component e slots visuais editáveis; usar bounds e slot escolhido, sem whitelist de containers. Row/Column ordenam; outros inserem no fim.
 - Aceite: mover Text para Button com renderer real, inserir da paleta em Button, undo/cancelamento/ciclos; testes de todas as definições com slots e preservação de Row/Column.
+
+## T33 — orientação da guia de inserção
+
+- Dependências: T18, T32.
+- Trabalho: renderer informa fluxo de filhos; guia vertical para fluxo horizontal e horizontal para vertical. Destinos sem eixo definido indicam inclusão por contorno.
+- Aceite: marca vertical em Button antes do release, ordem lado a lado após drop, regressão Row/Column e destinos de schema, builds de plataforma.

@@ -52,7 +52,9 @@ data class ClipRegion(val rect: Rect2, val transform: Affine2 = Affine2()) {
     fun contains(world: Point2): Boolean = transform.inverse()?.let { rect.hasArea && rect.contains(it.apply(world)) } == true
 }
 enum class FlowAxis { HORIZONTAL, VERTICAL, STACK }
-data class ContainerBounds(val axis: FlowAxis, val content: Rect2, val slot: String = "children")
+enum class DropGuideKind { LINE, CONTAINER }
+data class ContainerBounds(val axis: FlowAxis, val content: Rect2, val slot: String = "children",
+                           val guideKind: DropGuideKind = DropGuideKind.LINE)
 data class MeasuredNode(
     val id: String, val rect: Rect2, val transform: Affine2 = Affine2(), val paintOrder: Int = 0,
     val clips: List<ClipRegion> = emptyList(), val visible: Boolean = true, val inFlow: Boolean = true,
@@ -67,6 +69,7 @@ data class DropPlan(
     val sourceId: String, val targetId: String, val slot: String, val targetIndex: Int,
     val previousId: String?, val nextId: String?, val guideStart: Point2, val guideEnd: Point2,
     val documentId: String, val documentRevision: Long, val layoutRevision: Long, val viewportRevision: Long,
+    val guideKind: DropGuideKind = DropGuideKind.LINE,
 )
 
 object DropGeometry {
@@ -131,12 +134,14 @@ object DropGeometry {
             index == bounds.size -> bounds.last().second
             else -> bounds[index - 1].second / 2 + bounds[index].first / 2
         }
-        val start = if (container.axis == FlowAxis.HORIZONTAL) Point2(guide, container.content.y) else Point2(container.content.x, guide)
-        val end = if (container.axis == FlowAxis.HORIZONTAL) Point2(guide, container.content.bottom) else Point2(container.content.right, guide)
+        val start = if (container.guideKind == DropGuideKind.CONTAINER) Point2(container.content.x, container.content.y)
+            else if (container.axis == FlowAxis.HORIZONTAL) Point2(guide, container.content.y) else Point2(container.content.x, guide)
+        val end = if (container.guideKind == DropGuideKind.CONTAINER) Point2(container.content.right, container.content.bottom)
+            else if (container.axis == FlowAxis.HORIZONTAL) Point2(guide, container.content.bottom) else Point2(container.content.right, guide)
         return AuthoringResult(DropPlan(sourceId, target.id, container.slot, index,
             all.getOrNull(completeIndex - 1)?.id, all.getOrNull(completeIndex)?.id,
             viewport.toScreen(target.transform.apply(start)), viewport.toScreen(target.transform.apply(end)),
-            document.documentId, document.revision, layout.revision, viewport.revision), emptyList())
+            document.documentId, document.revision, layout.revision, viewport.revision, container.guideKind), emptyList())
     }
 
     /** Plans a palette insertion with the same flow/clip rules as an existing-node move. */

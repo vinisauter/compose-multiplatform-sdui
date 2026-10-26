@@ -49,7 +49,7 @@ As quatro capturas abaixo foram produzidas pelo fluxo automatizado Compose/JVM, 
 
 ## Autoria por arraste no Wasm
 
-**+ Nova tela** fica sempre disponível. Em **Elementos**, clique ou arraste os cartões com preview para a tela. Em **Ações**, puxe uma bolinha azul de evento até outra tela. Solte para criar a navegação; Escape cancela. **Desfazer/Refazer** cobre as inserções e conexões. A guia rosa indica a ordem no Auto Layout. O drop também aceita Button e todos os containers que declaram filhos visuais no schema: arraste Text para dentro de Button, por exemplo. Para um slot específico/vazio, selecione o container e escolha **Adicionar em** antes do arraste. Row/Column ordenam por posição; outros containers acrescentam ao fim. As telas desconectadas aparecem no grafo; conecte-as antes de exportar a jornada estrita.
+**+ Nova tela** fica sempre disponível. Em **Elementos**, clique ou arraste os cartões com preview para a tela. Em **Ações**, puxe uma bolinha azul de evento até outra tela. Solte para criar a navegação; Escape cancela. **Desfazer/Refazer** cobre as inserções e conexões. A guia rosa indica a ordem no Auto Layout. O drop também aceita Button e todos os containers que declaram filhos visuais no schema: arraste Text para dentro de Button, por exemplo. Para um slot específico/vazio, selecione o container e escolha **Adicionar em** antes do arraste. Row/Column e containers com fluxo informado pelo renderer ordenam por posição; destinos sem eixo definido acrescentam ao fim. As telas desconectadas aparecem no grafo; conecte-as antes de exportar a jornada estrita.
 
 As capturas abaixo são do navegador Wasm: terceira tela criada, texto/botão inseridos e reordenados por arraste, setas puxadas entre telas e execução da nova navegação.
 
@@ -261,3 +261,9 @@ A auditoria de famílias Material é scripts/audit-material3.py: recebe o source
 | composeApp/.../DesktopCatalog.kt | Arquivos/HTTP desktop e configuração do ambiente |
 
 O ponto de retomada e as evidências atuais ficam exclusivamente em [estado atual](../docs/current-state.md). Este README ensina a executar e usar o app; não mantém um segundo status de desenvolvimento. Não há deploy automático, push ou distribuição implícita nestes comandos.
+
+## Orientação da marca de drop
+
+Button dispõe os filhos lado a lado: a guia de inserção é vertical. Fluxos verticais usam guia horizontal. Destinos sem eixo linear definido recebem contorno de inclusão, sem sugerir uma posição embaixo. A captura abaixo vem do teste Compose/JVM, antes do release; o teste também verifica o Text ao lado do rótulo após inserir.
+
+![Guia vertical coerente com o conteúdo horizontal do Button](docs/images/button-drop-guide.png)
