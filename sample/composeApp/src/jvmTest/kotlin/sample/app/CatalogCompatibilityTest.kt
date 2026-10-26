@@ -29,15 +29,14 @@ class CatalogCompatibilityTest {
     }
 
     @Test fun initialCapabilitiesAreVersionedAndUnmodeledRenderersStayOutsideTheEditableSubset() {
-        assertEquals(18 + me.developes.humming.sdui.layout.Material3Definitions.all.size + me.developes.humming.sdui.layout.LegacyMaterial3Definitions.all.size, catalog.capabilities.size)
+        assertEquals(18 + me.developes.humming.sdui.layout.Material3Definitions.all.size + me.developes.humming.sdui.layout.LegacyMaterial3Definitions.all.size + me.developes.humming.sdui.action.ActionDefinitions.legacy.size, catalog.capabilities.size)
         assertEquals(2, catalog.capabilities["layout:reactiveText"])
         assertEquals(2, catalog.capabilities["layout:validatedTextField"])
         assertTrue(catalog.capabilities.filterKeys { it !in setOf("layout:reactiveText", "layout:validatedTextField") }.values.all { it == 1 })
         assertTrue(catalog["layout:textField"] != null)
         assertTrue(SDLayoutMaterial3().getComponent("image") != null)
-        assertFalse("layout:image" in catalog.capabilities)
-        assertEquals(DiagnosticSeverity.ERROR,
-            catalog.validate(parseNode("""{"component":"layout:image"}"""), mode = ValidationMode.AUTHORING).single().severity)
+        assertTrue("layout:image" in catalog.capabilities)
+        assertEquals(emptyList(), catalog.validate(parseNode("""{"component":"layout:image","properties":{"asset":"catalog-mark"}}"""), mode = ValidationMode.AUTHORING))
     }
 
     @Test fun legacyFieldBindingsSlotsEnumsAndImeActionsRemainUnchanged() {

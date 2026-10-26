@@ -4,6 +4,14 @@ POC de um cliente de Server-Driven UI em Kotlin Multiplatform e Compose Multipla
 
 O repositório contém contrato puro, modelo autoral/compilador, runtime, bibliotecas, transporte HTTP opt-in e sample. O Studio local integra árvore/Inspector, arraste, canvas de interações e formulário reativo. Consulte o estado atual para evidências e limites por plataforma. Há também aplicação/host HTTP local opt-in com autorização por documento e adapter PostgreSQL. Publicações imutáveis e compatibilidade por capacidades são separadas dos dados de sessão. O Studio desktop tem conexão remota explícita, recuperação em arquivo, acompanhamento por journal, presença e undo conservador. O navegador permanece editor local; consulte a matriz de qualificação antes de anunciar suporte.
 
+## Catálogo oficial e app demonstrador
+
+O [README do app](sample/README.md) reúne todos os exemplos, prints reais e instruções de execução para catálogo, Studio, Android, serviços, publicação, BFF e colaboração.
+
+```powershell
+.\gradlew.bat :sample:composeApp:run --args=--catalog
+```
+
 ## Comece aqui
 
 - [Índice da documentação](docs/README.md): ordem de leitura e responsabilidade de cada documento.
@@ -32,13 +40,13 @@ O recorte local JVM de T00 já foi verificado. Para reproduzi-lo:
 
 O modo local carrega uma tela de formulário sem rede. O teste verifica edição, binding e ação registrada, gerando uma imagem em `sample/composeApp/build/reports/local-smoke.png`. O modo padrão continua disponível sem o argumento. Consulte o estado atual para a próxima tarefa e os limites da qualificação.
 
-## Editor local no navegador
+## Catálogo e editor no navegador
 
 ```powershell
 .\gradlew.bat :sample:composeApp:wasmJsBrowserDevelopmentRun
 ```
 
-Abrir http://127.0.0.1:8080 para o Studio: selecionar pela árvore, editar propriedades por schema, inserir/remover/ordenar, desfazer/refazer, importar JSON, salvar documento e exportar contrato. O preview executa somente capacidades locais. Exemplo de arraste + Modo edição habilitam seleção e movimentação entre containers; há zoom/pan, guia de inserção e cancelamento por Escape. O aceite visual desse recorte está no estado atual. Abrir documento usa o seletor do navegador; downloads exigem preservação pelo usuário. O modo anterior de fixture está em http://127.0.0.1:8080/?preview. Veja o [guia do Studio](docs/studio.md) e a [validação](docs/validation.md) para limites.
+Abrir http://127.0.0.1:8080 para o catálogo oficial; ?studio abre diretamente o Studio: selecionar pela árvore, editar propriedades por schema, inserir/remover/ordenar, desfazer/refazer, importar JSON, salvar documento e exportar contrato. O preview executa somente capacidades locais. Exemplo de arraste + Modo edição habilitam seleção e movimentação entre containers; há zoom/pan, guia de inserção e cancelamento por Escape. O aceite visual desse recorte está no estado atual. Abrir documento usa o seletor do navegador; downloads exigem preservação pelo usuário. O modo anterior de fixture está em http://127.0.0.1:8080/?preview. Veja o [guia do Studio](docs/studio.md) e a [validação](docs/validation.md) para limites.
 
 ## Catálogo Material 3
 

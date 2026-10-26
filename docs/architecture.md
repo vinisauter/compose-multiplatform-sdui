@@ -1,10 +1,10 @@
 # Arquitetura e evolução
 
-O [estado atual](current-state.md) descreve o código existente. Os desenhos abaixo orientam a evolução planejada; não representam módulos ou serviços já entregues. O objetivo é estabilizar o cliente, permitir autoria local compatível e só depois acrescentar serviços remotos.
+O [estado atual](current-state.md) registra evidências e limites do código existente. As fronteiras abaixo descrevem cliente, autoria local, catálogo e serviços opcionais; propostas de evolução não substituem essa evidência.
 
 ## Limites do produto
 
-O cliente interpreta contratos declarativos usando capacidades instaladas. O Studio edita documentos autorais e compila contratos. A aplicação opcional de servidor armazena rascunhos/revisões; publicação de snapshots e resolução de dados autorizados são extensões posteriores. Essas responsabilidades devem evoluir separadamente, com testes de fronteira.
+O cliente interpreta contratos declarativos usando capacidades instaladas. O Studio edita documentos autorais e compila contratos. A aplicação opcional de servidor armazena rascunhos/revisões, publica snapshots e resolve dados autorizados. Essas responsabilidades devem evoluir separadamente, com testes de fronteira.
 
 O núcleo compartilhável não conhece Material 3, banco de dados, endpoints de negócio ou credenciais. Ações não executam código arbitrário do payload. Regras do sample permanecem no host. Não é necessário construir servidor ou colaboração para demonstrar renderização, edição, importação e exportação locais.
 
@@ -18,9 +18,9 @@ Preservar a fachada `HummingSDUI`, os nomes `humming-*` e as extensões `SDLibra
 | Registro | `SDLibrary` com handlers e definições versionadas; subconjunto inicial acrescido de reactiveText opt-in | Ampliar definições sem acoplar seus metadados a tipos UI |
 | Renderização | Catálogo Material 3 | Continuar resolvendo no catálogo; um `when` local ao catálogo não acopla o core ao Material 3 |
 | Execução | Executor suspenso no core, contexto/política por execução e fachada de lançamento | Novos efeitos usam a mesma execução estruturada |
-| Estado | ViewModel textual; bindings frios no catálogo e descarte imperativo explícito | Stores tipados e escopos de tela/jornada |
+| Estado | Store tipado com projeção textual compatível; bindings frios e descarte explícito | Stores tipados e escopos de tela/jornada |
 | Navegação | Biblioteca atual | Adaptador sobre Compose Navigation, estado por entrada e snapshot fixado na jornada |
-| Transporte | Esboço/host | Cliente injetado, engines de plataforma e políticas explícitas; resultado por ação |
+| Transporte | humming-network opt-in, cliente/engines do host | Cliente injetado, engines de plataforma e políticas explícitas; resultado por ação |
 | Capacidades nativas | Host | Bridge suspensa registrada pelo host, com suporte e cancelamento por plataforma |
 
 A necessidade de um consumidor JVM sem UI justificou humming-contract. Ele contém modelo, JSON, diagnósticos e schemas, e depende somente de Kotlin/serialização. humming-core o exporta via api; ViewModel, efeitos, Color e os handlers visuais continuam no runtime. Bibliotecas e hosts apontam para o contrato, sem dependência inversa. Pacotes públicos foram preservados; a migração de facades JVM top-level requer recompilar consumidores, conforme contrato. O módulo puro usa toolchain 25 e bytecode JVM 17, consumível pelo core Android sem converter o contrato em módulo de UI.
@@ -146,3 +146,11 @@ O composition root desktop --remote-studio instala explicitamente o controller. 
 CollaborationApplication aplica autorização antes de acessar CollaborationRepository. PostgresDraftRepository serializa por documento entre instâncias. O feed pull consulta eventos persistidos em páginas limitadas, dispensando broker e broadcast em memória como autoridade. Falha entre commit e leitura não perde evento. History gap sinaliza ressincronização; não há rebase ou CRDT.
 
 RemoteStudioCollaborationApi é extensão opt-in do adapter JVM. O controller só adota feed quando está sem pendências, valida sequência e salva recuperação após mudança. Presença usa heartbeat e expiração no banco. Undo é compensação conservadora guardada pela postimagem completa, com intenção durável na mesma máquina de estados da outbox. Polling pertence à composição e termina ao desativar acompanhamento; saída abrupta depende do TTL. Cada editor precisa de arquivo de recuperação próprio; identidade de actor deve ser atribuída pelo autenticador do host, não por payload.
+
+## Catálogo oficial como consumidor de ponta a ponta
+
+OfficialCatalog mantém fixtures com IDs determinísticos no sample; não registra componentes paralelos. Cada exemplo importa pela LegacyAuthoringCodec, compila no ContractCompiler e é resolvido pelo provider do preview real. O shell permite abrir o documento correspondente no LocalStudio e exportar documentos/pacotes separadamente. Métodos permitidos são declarados pelo host; LocalWorkspace recebe esse conjunto explícito, sem derivá-lo do payload.
+
+CatalogServices é opt-in para HTTP loopback com endpoints registrados, e o composition root desktop fecha o HttpClient. A página publica rascunho existente ou cria a fixture somente quando ausente; fixa PublishedDefinition e abre um owner com ScreenInputs.server para dados de sessão. O plano BFF catalog-system é instalado apenas por --catalog-demo e lê relógio/JVM/actor reais. O renderer de publicação e o executor network:request são os módulos existentes. A entrada remota reutiliza RemoteStudioHost/HTTP/storage, sem um segundo protocolo de edição.
+
+LocalImageSources fornece painters por chaves do cliente. layout:image pode selecionar asset registrado sem converter string wire em código ou acesso arbitrário a arquivos. Tema/animação/imagem recebem schemas sem colocar UI no contrato puro. O README do app é a entrada de uso; status e provas permanecem no estado atual.

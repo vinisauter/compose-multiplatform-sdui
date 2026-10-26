@@ -21,6 +21,7 @@ import io.github.alexzhirkevich.compottie.rememberLottieComposition
 import io.github.alexzhirkevich.compottie.rememberLottiePainter
 import me.developes.humming.sdui.common.SDUIFormViewModel
 import me.developes.humming.sdui.common.ServerDrivenNode
+import me.developes.humming.sdui.common.sourcePath
 import me.developes.humming.sdui.common.toColor
 import me.developes.humming.sdui.layout.Layout
 
@@ -132,6 +133,15 @@ class SDCImage(
 
     @Composable
     override fun Content() {
+        node.property("asset")?.let { key ->
+            val source = LocalImageSources.current[key]
+            if (source == null) androidx.compose.material3.Text("MISSING_IMAGE_SOURCE | ${node.id} | ${node.sourcePath}.properties.asset | image")
+            else {
+                val invoker = rememberActionInvoker(viewModel)
+                Image(source(), contentDescription, modifier.clickable { invoker.invoke(actions) }, alignment, contentScale, alpha, colorFilter)
+            }
+            return
+        }
         lottieUrl?.let { url ->
             Lottie(url)
             return

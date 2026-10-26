@@ -101,5 +101,13 @@ object LegacyMaterial3Definitions {
         component("scaffold", listOf(slot("topBar"), slot("bottomBar"), slot("snackbarHost"), slot("floatingActionButton"),
             PropertyDefinition("verticalArrangement", PropertyKind.ENUM, enumValues = setOf("Top", "Center", "Bottom", "SpaceAround", "SpaceBetween", "SpaceEvenly")),
             PropertyDefinition("horizontalAlignment", PropertyKind.ENUM, enumValues = setOf("Start", "Center", "End"))), true),
+        component("animatedVisibility", listOf(text("state"), text("visible", true)), true),
+        component("image", listOf(text("asset"), text("imageUrl"), text("lottieUrl"), text("contentDescription"), event("onClick"),
+            PropertyDefinition("alpha", PropertyKind.FLOAT, defaultValue = "1", minimum = 0.0),
+            PropertyDefinition("alignment", PropertyKind.ENUM, enumValues = setOf("TopStart", "TopCenter", "TopEnd", "CenterStart", "Center", "CenterEnd", "BottomStart", "BottomCenter", "BottomEnd")),
+            PropertyDefinition("contentScale", PropertyKind.ENUM, enumValues = setOf("Fit", "Crop", "Inside", "FillBounds", "FillHeight", "FillWidth", "None")),
+            PropertyDefinition("filterQuality", PropertyKind.ENUM, enumValues = setOf("None", "Low", "Medium", "High")),
+            PropertyDefinition("colorFilter", PropertyKind.OPAQUE, editable = false))),
+        component("style", listOf("primary", "onPrimary", "primaryContainer", "onPrimaryContainer", "inversePrimary", "secondary", "onSecondary", "secondaryContainer", "onSecondaryContainer", "tertiary", "onTertiary", "tertiaryContainer", "onTertiaryContainer", "background", "onBackground", "surface", "onSurface", "surfaceVariant", "onSurfaceVariant", "surfaceTint", "inverseSurface", "inverseOnSurface", "error", "onError", "errorContainer", "onErrorContainer", "outline", "outlineVariant", "scrim", "surfaceBright", "surfaceContainer", "surfaceContainerHigh", "surfaceContainerHighest", "surfaceContainerLow", "surfaceContainerLowest", "surfaceDim").map { PropertyDefinition(it, PropertyKind.COLOR) }, true),
     ) }
 }

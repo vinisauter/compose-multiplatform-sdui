@@ -139,6 +139,17 @@ class LocalWorkspaceTest {
         assertTrue(workspace.compile().isSuccess)
     }
 
+    @Test fun methodCapabilitiesAreCopiedFromTheHostAndNeverGrantedByPayload() {
+        val allowed = mutableSetOf("getPlatformName")
+        val workspace = LocalWorkspace(methods = allowed)
+        allowed.clear(); allowed += "other"
+        workspace.importContract("""{"component":"layout:button","id":"root","properties":{"onClick":{"component":"action:method","id":"method","properties":{"invoke":"getPlatformName"}}}}""").requireValue()
+        assertTrue(workspace.compile().isSuccess)
+        assertTrue(workspace.putProperty("method", "invoke", JsonPrimitive("other")).isSuccess)
+        assertTrue(workspace.compile().diagnostics.any { it.code == "UNSUPPORTED_METHOD" && it.nodeId == "method" })
+        assertFalse(workspace.save().requireValue().contains("availableMethods"))
+    }
+
     private fun insert(workspace: LocalWorkspace, parent: String, definition: String): String {
         val before = workspace.document.nodes.keys
         assertTrue(workspace.insertVisual(parent, definition).isSuccess)

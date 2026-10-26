@@ -7,6 +7,7 @@ import sample.app.LocalStudio
 import sample.app.BrowserStudioFiles
 import sample.app.VersionedJourneyExample
 import sample.app.NativeCapabilityExample
+import sample.app.OfficialCatalogApp
 import me.developes.humming.sdui.common.NativeBridge
 import androidx.compose.runtime.remember
 
@@ -17,6 +18,7 @@ fun main() {
         if (window.location.search == "?native") NativeCapabilityExample(remember { NativeBridge(emptyMap()) })
         else if (window.location.search == "?journey") VersionedJourneyExample()
         else if (window.location.search == "?preview") LocalPreview()
-        else LocalStudio(files = remember { BrowserStudioFiles() })
+        else if (window.location.search == "?studio") LocalStudio(files = remember { BrowserStudioFiles() })
+        else OfficialCatalogApp(files = remember { BrowserStudioFiles() })
     }
 }

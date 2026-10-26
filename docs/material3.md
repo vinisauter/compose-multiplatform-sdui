@@ -6,7 +6,7 @@ Fontes de referência: [relação entre Compose e Compose Multiplatform](https:/
 
 ## Registro e fronteira
 
-[Material3Definitions](../humming-contract/src/commonMain/kotlin/me/developes/humming/sdui/layout/Material3Definitions.kt) declara 92 novos componentes e 7 schemas para wrappers existentes. LayoutDefinitions exporta o conjunto no catálogo puro; SDLayoutMaterial3 instala os handlers na biblioteca visual. O core não depende de Material. O namespace é layout e os nomes abaixo são case-sensitive. As versões dos novos schemas são 1; schemas antigos mantêm suas versões. O registro tem 111 handlers layout e 108 schemas: image, animatedVisibility e style conservam o caminho legado fora do subconjunto autoral. São extensões de mídia/animação/tema, não lacunas nas famílias visuais públicas Material 3.
+[Material3Definitions](../humming-contract/src/commonMain/kotlin/me/developes/humming/sdui/layout/Material3Definitions.kt) declara 92 novos componentes e 10 schemas para wrappers existentes. LayoutDefinitions exporta o conjunto no catálogo puro; SDLayoutMaterial3 instala os handlers na biblioteca visual. O core não depende de Material. O namespace é layout e os nomes abaixo são case-sensitive. As versões dos novos schemas são 1; schemas antigos mantêm suas versões. O registro tem 111 handlers layout e 111 schemas. image, animatedVisibility e style também possuem schemas para o catálogo autoral; propriedades opacas legadas como colorFilter não ganham edição irrestrita por esse acréscimo.
 
 ## Inventário API → wire
 
@@ -65,7 +65,7 @@ Refresh escreve true e chama onRefresh; a ação/host deve restaurar false ao te
 
 ## Compatibilidade e uso
 
-textButton, outlinedButton e iconButton legados mantêm sua apresentação histórica baseada em Button. Use materialTextButton, materialOutlinedButton e materialIconButton para as primitivas Material correspondentes. Não houve troca visual silenciosa de payloads antigos. As sete definições legadas acrescentam validação de seus formatos suportados; schemas novos não autorizam métodos arbitrários.
+textButton, outlinedButton e iconButton legados mantêm sua apresentação histórica baseada em Button. Use materialTextButton, materialOutlinedButton e materialIconButton para as primitivas Material correspondentes. Não houve troca visual silenciosa de payloads antigos. As definições legadas acrescentam validação de seus formatos suportados; schemas novos não autorizam métodos arbitrários.
 
 No Studio, **Exemplo Material 3** carrega uma galeria local editável com card, campo, seleção, chips, slider, progresso, abas e ação de salvar. Novas definições aparecem no Inspector e são exportadas pelo compilador genérico. MaterialTheme/style e ProvideTextStyle são configuração de tema/estilo, e objetos Defaults/State/Colors/Tokens, factories remember*, renderers internos e overloads obsoletos não são componentes wire distintos. A cobertura é das famílias visuais públicas da versão resolvida, não de toda função Kotlin nem de versões posteriores.
 
@@ -78,3 +78,7 @@ Ver o [estado atual](current-state.md) para resultados, regressões, plataformas
 3. Executar os testes de contrato e sample; montar os componentes com os parents exigidos, verificar estado/eventos/descartes e compilar common metadata, Android e Wasm. O nome da função não comprova funcionamento.
 
 A auditoria da versão 1.8.2 considera 100 nomes públicos top-level: 98 famílias visuais e duas configurações de estilo. O catálogo também inclui ExposedDropdownMenu do receiver. Os resultados correntes e exceções ficam no estado atual.
+
+## Catálogo oficial executável
+
+O [README do app](../sample/README.md) reúne um exemplo por handler layout e pelos handlers de ação. O catálogo mostra fonte SDUI, documento, pacote compilado e schema; abre o mesmo documento no Studio. Assets locais são capacidades explícitas em LocalImageSources: layout:image seleciona asset por chave registrada pelo host, sem path arbitrário do payload. A fixture usa catalog-mark; URLs legadas continuam opt-in pelo formato existente.

@@ -19,7 +19,8 @@ class AppActivity : ComponentActivity() {
         setContent {
             if (intent.getBooleanExtra("nativeExample", false)) {
                 NativeCapabilityExample(remember { androidNativeBridge() }, readOnStart = true)
-            } else App()
+            } else if (intent.getBooleanExtra("catalog", false)) OfficialCatalogApp(bridge = remember { androidNativeBridge() })
+            else App()
         }
     }
 }

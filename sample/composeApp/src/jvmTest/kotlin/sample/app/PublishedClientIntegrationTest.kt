@@ -6,6 +6,7 @@ import androidx.compose.runtime.key
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.ui.test.*
+import androidx.compose.ui.graphics.asSkiaBitmap
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.lifecycle.*
 import androidx.lifecycle.compose.LocalLifecycleOwner
@@ -41,6 +42,45 @@ import kotlin.test.*
 /** Opt-in real database test. No fixture implementation stands in for PostgreSQL, HTTP or the renderer. */
 class PublishedClientIntegrationTest {
     @get:Rule val compose = createComposeRule()
+
+    @Test fun officialCatalogRunsHttpPublicationAndLiveBffDataWithoutChangingTheSnapshot() {
+        val url = requireNotNull(System.getenv("HUMMING_TEST_DB_URL"))
+        val catalog = initialNodeCatalog()
+        val repo = PostgresDraftRepository(postgresDataSource(url, requireNotNull(System.getenv("HUMMING_TEST_DB_USER")),
+            requireNotNull(System.getenv("HUMMING_TEST_DB_PASSWORD"))), catalog)
+        val key = DocumentKey("catalog", "doc-${UUID.randomUUID()}")
+        val actor = Actor("catalog-test", Permission.entries.map { DocumentGrant(key, it) }.toSet())
+        val token = UUID.randomUUID().toString()
+        val publisher = publicationApplication(repo, repo, catalog)
+        runBlocking { repo.migrate() }
+        DraftHttpHost(DraftApplication(repo, ExactGrantAuthorizer, catalog, TargetCapabilities(catalog.capabilities)),
+            BearerAuthenticator(token, actor), publications = publisher, data = catalogDataApplication(publisher),
+            dataIdentity = { DataIdentity(it, "catalog-test-session") }).use { host ->
+            val client = io.ktor.client.HttpClient(io.ktor.client.engine.okhttp.OkHttp) { followRedirects = false; expectSuccess = false }
+            try {
+                val services = CatalogServices(client, key.document,
+                    "http://127.0.0.1:${host.port}/v1/tenants/${key.tenant}/documents/${key.document}", token)
+                compose.setContent { if (mounted.value) MaterialTheme { Surface {
+                    androidx.compose.foundation.layout.Box { CatalogServicesPanel(services) }
+                } } }
+                compose.onNodeWithText("Consultar rascunho por HTTP SDUI").performClick()
+                compose.waitUntil(15_000) { compose.onAllNodesWithText("NETWORK_HTTP_STATUS", substring = true).fetchSemanticsNodes().isNotEmpty() }
+                compose.onNodeWithText("Preparar e publicar").performClick()
+                compose.waitUntil(15_000) { compose.onAllNodesWithText("Runtime do servidor: aguardando dados").fetchSemanticsNodes().size == 1 }
+                val original = runBlocking { repo.find(key)!! }
+                compose.onNodeWithText("Carregar dados BFF").performClick()
+                compose.waitUntil(15_000) { compose.onAllNodesWithText("Runtime do servidor: ${System.getProperty("java.version")}").fetchSemanticsNodes().size == 1 }
+                compose.onNodeWithTag("material-name").performTextReplacement("Local da sessão")
+                compose.onNodeWithText("Salvar").performScrollTo().performClick()
+                compose.onNodeWithText("Salvo").assertExists()
+                assertEquals(original, runBlocking { repo.find(key) })
+                val output = java.io.File("build/reports/official-catalog/catalog-services.png").also { it.parentFile.mkdirs() }
+                org.jetbrains.skia.Image.makeFromBitmap(compose.onRoot().captureToImage().asSkiaBitmap()).use { image ->
+                    requireNotNull(image.encodeToData(org.jetbrains.skia.EncodedImageFormat.PNG)).use { output.writeBytes(it.bytes) }
+                }
+            } finally { compose.runOnIdle { mounted.value = false }; compose.waitForIdle(); client.close() }
+        }
+    }
     private val mounted = mutableStateOf(true)
     private val owner = object : ViewModelStoreOwner, LifecycleOwner {
         override val viewModelStore = ViewModelStore()

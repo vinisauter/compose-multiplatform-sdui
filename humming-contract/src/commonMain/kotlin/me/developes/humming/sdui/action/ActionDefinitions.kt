@@ -21,5 +21,11 @@ object ActionDefinitions {
         listOf(text("condition"), actions("invoke")))
     val event = NodeDefinition("action:event", NodeRole.COMPONENT,
         listOf(actions("onCreate"), actions("onStateChange")))
-    val all: List<NodeDefinition> = listOf(update, method, ifState, then, event)
+    // Existing legacy handlers retain their coercion/lookup semantics; schemas make them authorable.
+    val legacy: List<NodeDefinition> = listOf(NodeDefinition("action:remove", NodeRole.ACTION,
+        listOf(PropertyDefinition("state", PropertyKind.STRING_ARRAY, required = true)))) +
+        listOf("not", "and", "or", "xor", "equals", "greaterThan", "lessThan", "greaterThanOrEquals", "lessThanOrEquals", "isEmpty", "isNotEmpty").map {
+            NodeDefinition("action:$it", NodeRole.ACTION, listOf(text("state", true), text("param1"), text("param2")))
+        }
+    val all: List<NodeDefinition> = listOf(update, method, ifState, then, event) + legacy
 }

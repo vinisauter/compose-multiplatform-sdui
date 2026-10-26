@@ -14,7 +14,9 @@ class LocalWorkspace(
     initialDocument: AuthoringDocument = blankDocument(),
     val catalog: NodeCatalog = initialNodeCatalog(),
     val presentationTokens: PresentationTokens = defaultPresentationTokens(),
+    methods: Set<String> = emptySet(),
 ) {
+    val availableMethods = methods.toSet()
     var session: EditSession = EditSession(initialDocument, catalog)
         private set
     val document: AuthoringDocument get() = session.snapshot()
@@ -35,7 +37,7 @@ class LocalWorkspace(
     fun save(): AuthoringResult<String> = codec.encode(document)
     fun compile(): AuthoringResult<CompiledContracts> = ContractCompiler(catalog).compileTree(document,
         TargetCapabilities(catalog.capabilities.filterKeys { it.startsWith("layout:") || it.startsWith("action:") },
-            colorTokens = presentationTokens.colorNames, maskTokens = presentationTokens.maskNames))
+            methods = availableMethods, colorTokens = presentationTokens.colorNames, maskTokens = presentationTokens.maskNames))
     fun compilePreview(): AuthoringResult<CompiledContracts> = if (document.nodes.values.count { it.kind == AuthorNodeKind.SCREEN } > 1 ||
         document.nodes.values.any { it.definition.startsWith("navigation:") } || document.edges.values.any { it.role == EdgeRole.NAVIGATION })
         compileJourney("compiled-preview") else compile()
@@ -64,7 +66,7 @@ class LocalWorkspace(
         ContractCompiler(catalog).compileJourney(document,
             TargetCapabilities(catalog.capabilities.filterKeys {
                 it.startsWith("layout:") || it.startsWith("action:") || it.startsWith("navigation:")
-            }, providers = setOf(providerType), colorTokens = presentationTokens.colorNames,
+            }, methods = availableMethods, providers = setOf(providerType), colorTokens = presentationTokens.colorNames,
                 maskTokens = presentationTokens.maskNames), providerType)
 
     fun addScreen(position: CanvasPoint): EditOutcome = apply(listOf(EditOperation.InsertNode(

@@ -2,7 +2,7 @@
 
 Este é o ponto de entrada para **continuar o desenvolvimento**. Reúne o estado observado, o rastreamento das etapas e a próxima ação. O [plano](development-plan.md) define dependências, escopo e critérios de aceite; este documento é a única fonte de status e retomada.
 
-Atualizado após T27: catálogo Material 3 1.8.2 ampliado com 92 adapters e 7 schemas legados, galeria editável e auditoria reproduzível. Relatórios: 341 JVM regulares + 15 integrações reais, sem falhas/erros/ignorados. Metadata, Android e Wasm compilados; UI nova exercitada em Compose/JVM. Sem deploy público.
+Atualizado após T28 (2026-10-26): catálogo Material 3 1.8.2 ampliado com 92 adapters e 7 schemas legados, galeria editável e auditoria reproduzível. Relatórios: 341 JVM regulares + 15 integrações reais, sem falhas/erros/ignorados. Metadata, Android e Wasm compilados; UI nova exercitada em Compose/JVM. Sem deploy público.
 
 ## Ponto de retomada
 
@@ -10,7 +10,7 @@ Atualizado após T27: catálogo Material 3 1.8.2 ampliado com 92 adapters e 7 sc
 | --- | --- |
 | Última atualização | 2026-10-25; T25 em 6e3a1ae; T20–T24 em 42d6de8, dc51068, 4cdf7bc, 2f67dd9, 277ad71 e 681f91e; commits locais sem push |
 | Última entrega | T27: famílias visuais públicas Material 3 resolvido, galeria, schemas, auditoria e 356 casos no conjunto |
-| Tarefa de implementação em execução | Nenhuma; T27 concluída no recorte descrito abaixo |
+| Tarefa de implementação em execução | Nenhuma; T28 concluída; próximo recorte é o criador de apps solicitado |
 | Próxima tarefa | T26 para observação dos componentes novos em Android/browser, caso esses targets sejam anunciados; demais gates da matriz permanecem |
 | Próxima ação concreta | Abrir Exemplo Material 3 no Studio para QA browser; executar fluxo Android em ambiente compatível; não confundir compile com execução |
 | Critério para avançar | Novo recorte deve definir aceite e evidência; não anunciar browser remoto/Apple nem distribuição a partir desta conclusão local |
@@ -61,6 +61,7 @@ Estados: **pronta**, **pendente**, **em execução**, **bloqueada**, **concluíd
 | T25 | Múltiplos editores e conflitos | concluída | Journal/replay, dois hosts/controllers, presença e undo guardado; 342 casos; evidência abaixo |
 | T26 | Qualificação por plataforma e recorte | concluída | Somente recorte local identificado na matriz abaixo; Android/Wasm compilados, CI configurada sem execução remota; demais gates explícitos |
 | T27 | Catálogo Compose Material 3 | concluída | 92 adapters novos, 7 schemas legados, 341 JVM + 15 integrações; metadata/Android/Wasm; limites abaixo |
+| T28 | Catálogo oficial executável e README | concluída | 362 casos no conjunto, 111 componentes/16 ações, sete prints e browser real; detalhes abaixo |
 
 Os requisitos completos e a ordem das dependências estão no [plano](development-plan.md). A numeração identifica tarefas; não significa executar T07–T12 antes de T13–T19. A prioridade inicial é base → schemas/fronteira → autoria local → manipulação visual; capacidades adicionais do cliente podem avançar em paralelo quando elegíveis.
 
@@ -376,3 +377,11 @@ Evidência: build/material3-api-audit.log (scripts/audit-material3.py contra sou
 .\scripts\verify-postgres.ps1 -PublishedClient: build/material3-postgres.log e build/t21/{integration,after-restart,restart}.log, BUILD SUCCESSFUL antes/depois do restart, 17 registros preservados. 8 PostgreSQL + 2 HTTP + 5 publicação/controller/Compose = 15 integrações; zero falhas/erros/ignorados; fixture própria humming-t21-4bebf631f175 parada no finally. Total 356 casos distintos. Nenhum segredo versionado ou publicação/push.
 
 Captura sample/composeApp/build/reports/material3-gallery.png inspecionada: card, campo Ana, checkbox marcado, switch, slider/progresso, chips, abas e Salvo legíveis em Surface Material. Teste automatizado JVM, sem alegar nova inspeção manual browser/Android/Apple. O smoke monta os 92 adapters, mas não equivale a inspeção visual de cada popup aberto em cada plataforma. Fontes não atualizadas; avisos preexistentes de Kotlin/Skiko/deprecações permanecem. Uma falha incremental Wasm recuperou por fallback de recompilação; builds finais passaram sem alteração de dependências. Falhas intermediárias de matcher de data/hora foram corrigidas usando semântica da API, e a retenção real de TextFieldValue do TimeInput recebeu correção com teste externo. Links locais e diff revisados. Próximo gate é QA de runtime dos componentes novos nos demais targets, não reconstruir o catálogo.
+
+## Fechamento T28 — catálogo oficial — 2026-10-26
+
+Catálogo oficial de todos os componentes registrados, exemplos autorais compilados, cenários SDUI, documentação do app e capturas reais. Próxima ação: fixtures completas e host navegável; manter capacidades de plataforma/serviços explícitas.
+
+Catálogo concluído: 111 componentes e 16 ações; fixtures autorais, importação/compilação/providers/renderer reais, fontes/schemas, exportação e Studio. README completo em sample/README.md com sete prints reais. Percurso remoto cria somente se ausente, publica/fixa versão e injeta dados reais de JVM/relógio/actor no owner; preserva rascunho ao editar formulário.
+
+Validação executada: build/catalog-full-check.log (dez jvmTest, JS/Wasm e APK), build/catalog-artifact-final.log (app e bundle Wasm), build/catalog-method-capabilities.log (métodos copiados do host) e build/catalog-platform-final.log (JS/APK/metadata): BUILD SUCCESSFUL. Relatórios: 346 testes JVM regulares e 16 integrações (8 PostgreSQL + 2 HTTP + 6 publicação/Compose), sem falhas/erros/ignorados. build/catalog-final-integrations.log confirma execução antes/depois de restart, 18 registros preservados. Browser Wasm em localhost:8081 observado: campo Pessoa do catálogo, checkbox e Salvar → Salvo. Print catalog-wasm.png; demais prints Compose/JVM, incluindo largura compacta e BFF real. Sem nova execução visual Android/Apple ou CI remota. Servidor estático próprio na porta 8081 pode precisar ser reiniciado conforme sample/README.md; nenhum deploy/push.

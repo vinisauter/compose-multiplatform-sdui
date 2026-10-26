@@ -88,7 +88,7 @@ Exemplo mínimo do formato legado a caracterizar e usar no fluxo local:
 }
 ```
 
-Este exemplo ilustra a estrutura. T00 executou um payload local equivalente em forma de campo/binding/ação pelo catálogo, e T01 caracterizou eventos objeto/array e separação de conteúdo/ação. Isso não significa que cada exemplo deste documento foi executado literalmente. O catálogo inicial com schema está inventariado abaixo, e sua ampliação no inventário Material 3. image, animatedVisibility e style conservam o caminho legado fora do subconjunto autoral. Exemplos com integrações ausentes não são testes de aceitação.
+Este exemplo ilustra a estrutura. T00 executou um payload local equivalente em forma de campo/binding/ação pelo catálogo, e T01 caracterizou eventos objeto/array e separação de conteúdo/ação. Isso não significa que cada exemplo deste documento foi executado literalmente. O catálogo inicial com schema está inventariado abaixo, e sua ampliação no inventário Material 3. image, animatedVisibility e style também têm schemas na ampliação do catálogo. Exemplos com integrações ausentes não são testes de aceitação.
 
 ## Schemas do catálogo inicial
 
@@ -403,3 +403,11 @@ Checkpoint v2 guarda pendingUndo opcional, mutuamente exclusivo com edição pen
 ## Extensão do catálogo Material 3
 
 LayoutDefinitions agrega Material3Definitions e LegacyMaterial3Definitions sem dependência Compose. A extensão preserva os schemas anteriores e acrescenta nomes/slots/eventos descritos no [inventário Material 3](material3.md). stateKey, endStateKey e expandedStateKey são chaves literais. Variantes Material reais usam materialTextButton/materialOutlinedButton/materialIconButton para preservar os três wrappers legados. Consultar o inventário para receivers, defaults, faixas e fallback; a qualificação pertence ao estado atual.
+
+## Catálogo oficial e extensões de autoria
+
+Os handlers legados action:remove/not/and/or/xor/equals/greaterThan/lessThan/greaterThanOrEquals/lessThanOrEquals/isEmpty/isNotEmpty têm schemas e exemplos autorais, preservando coerções/lookup existentes. Consultar o README do app para a semântica desses operadores; não confundir equals booleano legado com igualdade da linguagem de expressões. Campos obrigatórios inválidos passam pelo diagnóstico de schema antes de chegar ao handler.
+
+layout:image aceita asset como chave de LocalImageSources do host; prioridade asset → lottieUrl → imageUrl. Chave ausente exibe MISSING_IMAGE_SOURCE com nó/caminho/operação. O documento não contém Painter ou código. animatedVisibility conserva state/visible e style conserva os campos de ColorScheme; schemas novos descrevem o wire sem alteração de versão dos contratos já modelados. Novos nomes de definição exigem capacidades correspondentes ao publicar.
+
+LocalWorkspace.availableMethods é cópia do conjunto dado pelo host. Exportar um documento com action:method não instala o método em outro cliente. O catálogo declara getPlatformName, já registrado por SDActions. O perfil local de publicação e o cliente do catálogo anunciam essa mesma capacidade; métodos nativos arbitrários permanecem ausentes.

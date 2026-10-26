@@ -255,3 +255,11 @@ Manter um workflow de validação com o wrapper do repositório e JDK 25, sem Gr
 ## Catálogo Material 3 da dependência resolvida
 
 A ampliação usa 1.8.2 efetivamente resolvido por compose.material3, sem conectar por engano a entrada não utilizada do catálogo. Famílias visuais públicas recebem handlers no módulo visual e metadados no contrato puro. Wrappers legados de botão mantêm aparência e nomes; variantes Material reais têm nomes explícitos. Receivers são fornecidos pelos pais com CompositionLocal e diagnósticos locais quando ausentes. APIs internas Expressive não são reconstruídas; helpers de tema/defaults não se tornam nós artificiais. TimeInput remonta seu subtree apenas para mudança externa porque a API 1.8.2 guarda TextFieldValue inicial. Inventário e regras em material3.md; estado/evidências em current-state.md.
+
+## Catálogo oficial e documentação executável
+
+Usar fixtures autorais determinísticas e os codecs/compilador/providers reais evita uma segunda galeria Compose que mascare falhas do runtime. Previews têm owners próprios; Reiniciar descarta somente estado de execução. Abrir no Studio mantém a definição, não serializa o formulário como documento. Arquivos e serviços são instalados pelo host; o browser padrão abre o catálogo e ?studio preserva acesso direto ao editor.
+
+Completar os três schemas de mídia/animação/tema e os schemas dos handlers legados de ação permite documentá-los pelo mesmo percurso. A semântica antiga dos operadores booleanos foi preservada e explicada, sem correção silenciosa no trabalho de catálogo. Imagem local usa chave registrada, sem requisição externa para ilustrar o componente.
+
+Publicação/BFF demonstram dados do processo real via plano opt-in catalog-system. A fixture só é criada quando o documento está ausente, preservando rascunhos existentes. Actors de duas instâncias locais são selecionados por configuração do host, sem campo de autoria no payload. Capturas de UI são geradas por execução Compose e copiadas sem edição para o README do app, com origem/plataforma declaradas.

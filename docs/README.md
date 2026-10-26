@@ -27,6 +27,8 @@ O [README do projeto](../README.md) é a apresentação resumida. `AGENTS.md` é
 
 ## Catálogos especializados
 
+- [App e catálogo oficial](../sample/README.md): como executar cada parte, fluxos completos e prints reais.
+
 - [Compose Material 3](material3.md): inventário API → wire, estado, eventos, slots e compatibilidade dos componentes.
 
 ## Autoridade e status

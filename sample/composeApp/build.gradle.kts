@@ -43,6 +43,7 @@ kotlin {
             implementation(project(":humming-navigation"))
             implementation(project(":humming-layout-material3"))
             implementation(project(":humming-studio-model"))
+            implementation(project(":humming-network"))
 
             implementation(libs.ktor.client.core)
             implementation(libs.ktor.client.content.negotiation)

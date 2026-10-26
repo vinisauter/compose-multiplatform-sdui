@@ -18,7 +18,7 @@ class HeadlessContractTest {
         assertEquals("form", restored.id)
         assertEquals(listOf("field", "submit"), restored.children!!.map { it.id })
         assertEquals("ok", restored.children!![1].propertyNodes("onClick").single().property("value"))
-        assertEquals(18 + me.developes.humming.sdui.layout.Material3Definitions.all.size + me.developes.humming.sdui.layout.LegacyMaterial3Definitions.all.size, catalog.capabilities.size)
+        assertEquals(18 + me.developes.humming.sdui.layout.Material3Definitions.all.size + me.developes.humming.sdui.layout.LegacyMaterial3Definitions.all.size + me.developes.humming.sdui.action.ActionDefinitions.legacy.size, catalog.capabilities.size)
     }
 
     @Test fun schemasReportInvalidPayloadFieldsWithoutViewModel() {

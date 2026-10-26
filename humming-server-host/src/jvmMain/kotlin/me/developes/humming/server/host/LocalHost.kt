@@ -316,10 +316,10 @@ class DraftHttpHost(
     }
 }
 
-fun main() {
+fun main(args: Array<String>) {
     val token = requireNotNull(System.getenv("HUMMING_LOCAL_TOKEN")) { "Set HUMMING_LOCAL_TOKEN (32..256 printable characters)" }
     val key = DocumentKey("local", "example")
-    val actor = Actor("local-author", Permission.entries.map { DocumentGrant(key, it) }.toSet())
+    val actor = Actor(System.getenv("HUMMING_LOCAL_ACTOR") ?: "local-author", Permission.entries.map { DocumentGrant(key, it) }.toSet())
     val catalog = initialNodeCatalog()
     val database = listOf("HUMMING_DB_URL", "HUMMING_DB_USER", "HUMMING_DB_PASSWORD").map(System::getenv)
     require(database.all { it == null } || database.all { !it.isNullOrBlank() }) { "Supply all three HUMMING_DB variables, or none for volatile mode" }
@@ -332,7 +332,12 @@ fun main() {
     val editing = (repository as? RevisionedDraftRepository)?.let { DraftEditingApplication(it, ExactGrantAuthorizer) }
     val publications = (repository as? PublicationRepository)?.let { publicationApplication(repository, it, catalog) }
     val collaboration = (repository as? CollaborationRepository)?.let { CollaborationApplication(it, ExactGrantAuthorizer) }
-    val host = DraftHttpHost(application, BearerAuthenticator(token, actor), editing = editing, publications = publications, collaboration = collaboration)
+    val catalogData = if ("--catalog-demo" in args) {
+        requireNotNull(publications) { "Catalog services require PostgreSQL configuration" }
+        catalogDataApplication(publications)
+    } else null
+    val host = DraftHttpHost(application, BearerAuthenticator(token, actor), editing = editing, publications = publications, collaboration = collaboration,
+        data = catalogData, dataIdentity = { if (catalogData != null) DataIdentity(it, "catalog-local") else null })
     Runtime.getRuntime().addShutdownHook(Thread { host.close() })
     println("Draft host: http://127.0.0.1:${host.port}/v1/tenants/local/documents/example (storage=${if (editing == null) "volatile" else "postgresql"})")
     CountDownLatch(1).await()
@@ -341,7 +346,7 @@ fun main() {
 /** Explicit profiles for this local composition root. Native methods remain unregistered. */
 fun publicationApplication(drafts: DraftRepository, publications: PublicationRepository, catalog: NodeCatalog): PublicationApplication {
     val tokens = defaultPresentationTokens()
-    val target = TargetCapabilities(catalog.capabilities, providers = setOf("published"),
+    val target = TargetCapabilities(catalog.capabilities, methods = setOf("getPlatformName"), providers = setOf("published"),
         colorTokens = tokens.colorNames, maskTokens = tokens.maskNames)
     return PublicationApplication(drafts, publications, ExactGrantAuthorizer, catalog, listOf(
         PublicationProfile("local-tree", target), PublicationProfile("local-journey", target, "published"),

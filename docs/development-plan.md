@@ -276,3 +276,9 @@ A sequência começa por T00, sem alteração estrutural preventiva: inventariar
 - Entradas: API Material 3 efetivamente resolvida, handlers layout, schemas puros e Studio.
 - Trabalho: inventariar famílias visuais públicas da versão resolvida, acrescentar handlers e schemas sem alterar os wrappers legados; conectar estado/eventos, slots e escopos de containers; documentar APIs auxiliares e limites.
 - Aceite: inventário API → wire → propriedades/slots; registro coerente com schema, validação de payloads, testes de UI com mudanças de estado/eventos e containers; compilação JVM/Android/Wasm. Sem upgrade de dependências ou promessa de paridade com versões futuras.
+
+## T28 — catálogo oficial executável
+
+- Dependências: T13–T27; exemplos reutilizam runtime/autoria existentes.
+- Trabalho: cobrir cada componente registrado com fixture determinística; autoria → compilação → provider → renderer; busca/categorias, código/schema, reset, exportação e abertura no Studio. Reunir cenários de ações/expressões/navegação/cache/nativo e conexão remota explícita. README do app com comandos e prints reais.
+- Aceite: cobertura de registro sem lacunas, todos os exemplos autorais compilados e montados; ações/overlays/escopos funcionais; cenários ponta a ponta com integrações reais quando exigirem serviço; comandos de entrada descobertos; prints inspecionados. Capacidades ausentes aparecem como indisponíveis, sem mock de sucesso.
