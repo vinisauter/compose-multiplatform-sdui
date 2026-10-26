@@ -32,13 +32,13 @@ import me.developes.humming.sdui.studio.*
 import org.jetbrains.compose.resources.painterResource
 import kotlin.uuid.Uuid
 
-internal fun insertBuilderComponent(workspace: LocalWorkspace, parent: String, slot: String, name: String): EditOutcome {
-    if ("layout:$name" in LocalWorkspace.visualDefinitions) return workspace.insertVisual(parent, "layout:$name", slot)
+internal fun insertBuilderComponent(workspace: LocalWorkspace, parent: String, slot: String, name: String, insertion: DropPlan? = null): EditOutcome {
+    if ("layout:$name" in LocalWorkspace.visualDefinitions) return workspace.insertVisual(parent, "layout:$name", slot, insertion)
     val prefix = "builder-${Uuid.random()}-"
     val source = CatalogFixture(name, stateOutput = false).source().replace("catalog-$name-", prefix)
     val imported = LegacyAuthoringCodec(workspace.catalog).importDocument(source, prefix).requireValue()
     val fragment = imported.copy(edges = imported.edges.values.associate { edge -> val copy = edge.copy(id = prefix + edge.id); copy.id to copy })
-    return workspace.insertFragment(fragment, parent, slot)
+    return workspace.insertFragment(fragment, parent, slot, insertion)
 }
 
 @Composable
@@ -62,6 +62,8 @@ fun AppBuilder(files: StudioFiles? = null, initialDocument: AuthoringDocument? =
     val codec = remember { AppProjectCodec() }
     val controls = remember { PreviewControls().apply { editing.value = true } }
     val graphViewport = remember { mutableStateOf(CanvasViewport(zoom = .6)) }
+    val palette = remember { PaletteDragState() }
+    var selectedEdge by remember { mutableStateOf<String?>(null) }
     val assets = remember { mapOf("catalog-mark" to @Composable { painterResource(Res.drawable.ic_eye) }) }
     val screens = remember(document) { AuthoringIndices(document).roots.filter { it.kind == AuthorNodeKind.SCREEN } }
     fun screenName(id: String) = names[id] ?: "Tela ${screens.indexOfFirst { it.id == id } + 1}"
@@ -88,6 +90,7 @@ fun AppBuilder(files: StudioFiles? = null, initialDocument: AuthoringDocument? =
     val preview = remember(document, screen) { ContractCompiler(workspace.catalog).compileJourney(document.copy(entryNodeId = screen), target,
         "compiled-preview", UnreachablePolicy.REPORT) }
     val output = remember(document) { workspace.compileJourney("compiled-preview") }
+    val graph = remember(document) { compileBuilderCanvas(workspace, target) }
     val node = document.nodes[selected]
     val slots = workspace.catalog[node?.definition.orEmpty()]?.let { definition ->
         (if (definition.childrenRole == NodeRole.COMPONENT) listOf("children") else emptyList()) +
@@ -111,7 +114,7 @@ fun AppBuilder(files: StudioFiles? = null, initialDocument: AuthoringDocument? =
             else Surface(Modifier.fillMaxSize(), color = Color(0xFFF3F5F9)) {
                 Column(Modifier.fillMaxSize()) {
                     FlowRow(Modifier.fillMaxWidth().background(Color.White).padding(horizontal = 16.dp, vertical = 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.Center) {
-                        Text("H", color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.headlineMedium, modifier = Modifier.padding(end = 8.dp))
+                        Text("H / Studio", color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(end = 8.dp))
                         OutlinedTextField(title, { if (it.length <= 80) title = it }, label = { Text("Nome do aplicativo") }, singleLine = true,
                             modifier = Modifier.width(210.dp).testTag("builder-title"))
                         TextButton(onClick = { request { newDialog = true } }) { Text("Novo") }
@@ -135,35 +138,41 @@ fun AppBuilder(files: StudioFiles? = null, initialDocument: AuthoringDocument? =
                         }
                         Text("${screens.size} telas • revisão ${document.revision}${if (dirty) " • alterações locais" else ""}", modifier = Modifier.padding(12.dp), style = MaterialTheme.typography.bodySmall)
                     }
+                    Text(if (palette.name != null) "Arrastando ${palette.name} — solte sobre um Auto Layout; Escape cancela" else "Design: arraste elementos • Ações: puxe as bolinhas azuis para conectar telas", Modifier.padding(horizontal = 12.dp), style = MaterialTheme.typography.bodySmall)
                     if (message.isNotEmpty()) Text(message, Modifier.fillMaxWidth().heightIn(max = 70.dp).verticalScroll(rememberScrollState()).padding(8.dp).testTag("builder-message"))
                     BoxWithConstraints(Modifier.weight(1f)) {
                         val narrow = maxWidth < 850.dp
                         Row(Modifier.fillMaxSize()) {
                             Column(Modifier.width(if (narrow) 185.dp else 235.dp).fillMaxHeight().background(Color(0xFF1E2433)).padding(12.dp)) {
+                                    Button(onClick = {
+                                        val before = document.nodes.keys; change(workspace.addScreen(CanvasPoint((screens.size % 3) * 400.0, (screens.size / 3) * 300.0)))
+                                        document.nodes.values.firstOrNull { it.id !in before && it.kind == AuthorNodeKind.SCREEN }?.let { screen = it.id; selected = it.id; if (step == 3 || step == 4) step = 1 }
+                                    }, modifier = Modifier.fillMaxWidth().testTag("builder-add-screen")) { Text("+ Nova tela") }
                                 Row { TextButton(onClick = { leftTab = "Telas" }) { Text("Telas", color = Color.White) }; TextButton(onClick = { leftTab = "Elementos" }) { Text("Elementos", color = Color.White) } }
                                 if (leftTab == "Elementos") {
                                     OutlinedTextField(search, { search = it }, placeholder = { Text("Buscar elemento") }, singleLine = true,
                                         colors = OutlinedTextFieldDefaults.colors(focusedTextColor = Color.White, unfocusedTextColor = Color.White), modifier = Modifier.fillMaxWidth().testTag("builder-search"))
                                     LazyColumn(Modifier.weight(1f)) {
                                         items(LayoutDefinitions.all.filter { it.identifier.contains(search, true) }, key = { it.identifier }) { definition ->
-                                            TextButton(onClick = {
+                                            BuilderPaletteCard(definition.identifier.substringAfter(':'), palette, click = {
                                                 val parent = node?.takeIf { slots.isNotEmpty() }?.id ?: screen
                                                 val before = document.nodes.keys
-                                                val result = insertBuilderComponent(workspace, parent, if (parent == selected) insertSlot else "children", definition.identifier.substringAfter(':'))
-                                                change(result)
-                                                if (result.isSuccess) selected = document.nodes.values.firstOrNull { it.id !in before && it.definition == definition.identifier }?.id ?: selected
-                                            }, modifier = Modifier.testTag("builder-add-${definition.identifier.substringAfter(':')}")) { Text("+ ${definition.identifier.substringAfter(':')}", color = Color(0xFFE2E8F0)) }
+                                                change(insertBuilderComponent(workspace, parent, if (parent == selected) insertSlot else "children", definition.identifier.substringAfter(':')))
+                                                selected = document.nodes.values.firstOrNull { it.id !in before && it.definition == definition.identifier }?.id ?: selected
+                                            }, drop = { name, plan ->
+                                                val before = document.nodes.keys
+                                                change(insertBuilderComponent(workspace, plan.targetId, plan.slot, name, plan))
+                                                selected = document.nodes.values.firstOrNull { it.id !in before && it.definition == "layout:$name" }?.id ?: selected
+                                            })
                                         }
                                     }
                                 } else {
-                                    Button(onClick = {
-                                        val before = document.nodes.keys; change(workspace.addScreen(CanvasPoint(screens.size * 420.0, 0.0)))
-                                        document.nodes.values.firstOrNull { it.id !in before && it.kind == AuthorNodeKind.SCREEN }?.let { screen = it.id; selected = it.id }
-                                    }, modifier = Modifier.fillMaxWidth().testTag("builder-add-screen")) { Text("+ Nova tela") }
+                                    Column(Modifier.heightIn(max = 180.dp).verticalScroll(rememberScrollState())) {
                                     screens.forEach { page ->
-                                        Text("${if (page.id == document.entryNodeId) "◉" else "○"} ${screenName(page.id)}", color = Color.White,
+                                        Text("${if (page.id == document.entryNodeId) "Inicial · " else ""}${screenName(page.id)}", color = Color.White,
                                             modifier = Modifier.fillMaxWidth().background(if (screen == page.id) Color(0xFF454371) else Color.Transparent, RoundedCornerShape(8.dp))
                                                 .clickable { screen = page.id; selected = page.id }.padding(10.dp).testTag("builder-screen-${page.id}"))
+                                    }
                                     }
                                     HorizontalDivider(Modifier.padding(vertical = 12.dp))
                                     Text("ÁRVORE DE ELEMENTOS", color = Color(0xFF94A3B8), style = MaterialTheme.typography.labelSmall)
@@ -196,8 +205,14 @@ fun AppBuilder(files: StudioFiles? = null, initialDocument: AuthoringDocument? =
                                         TextButton(enabled = files != null, onClick = { files?.download("humming-document.json", workspace.save().requireValue()) }) { Text("Exportar documento autoral") }
                                         Text("O pacote é consumido por um host HummingUI com as capacidades declaradas. Não é um APK/IPA nem um deploy.")
                                     }
-                                    2 -> if (preview.isSuccess) InteractionCanvas(document, preview.requireValue(), null,
-                                        select = { id, _ -> selected = id }, viewportState = graphViewport)
+                                    2 -> if (graph.isSuccess) InteractionCanvas(document, graph.requireValue(), selectedEdge,
+                                        select = { id, edge -> selected = id; selectedEdge = edge }, viewportState = graphViewport,
+                                        screenNames = screens.associate { it.id to screenName(it.id) },
+                                        connect = { source, port, destination ->
+                                            val duplicate = InteractionProjection.navigationLinks(document).value.orEmpty().any { it.sourceNodeId == source && it.targetScreenId == destination }
+                                            if (duplicate) message = "Essa conexão já existe"
+                                            else change(workspace.addAction(source, port, "navigation:goTo", destination))
+                                        }) else Column { graph.diagnostics.forEach { Text("${it.code}: ${it.message}") } }
                                     else -> {
                                         val result = if (step == 3) output else preview
                                         if (!result.isSuccess) Column { result.diagnostics.forEach { Text("${it.code}: ${it.message}") } }
@@ -210,7 +225,7 @@ fun AppBuilder(files: StudioFiles? = null, initialDocument: AuthoringDocument? =
                                                 controls.editing.value = step != 3
                                             }
                                             key(document.documentId, document.revision, screen, step) {
-                                                EditablePreview(workspace, document, result.requireValue().sourceNodeIds, selected, { selected = it }, ::change, controls, showControls = false) {
+                                                EditablePreview(workspace, document, result.requireValue().sourceNodeIds, selected, { selected = it }, ::change, controls, showControls = false, palette = palette) {
                                                     Box(Modifier.wrapContentSize(Alignment.TopStart, unbounded = true).requiredSize(viewport.width.dp, viewport.height.dp).clip(RoundedCornerShape(24.dp)).background(Color.White).border(5.dp, Color(0xFF202534), RoundedCornerShape(24.dp)).padding(12.dp)) {
                                                         CompiledPreview(result.requireValue())
                                                     }
@@ -232,7 +247,7 @@ fun AppBuilder(files: StudioFiles? = null, initialDocument: AuthoringDocument? =
                                             TextButton(onClick = { if (label.isNotBlank() && screens.filter { it.id != item.id }.none { screenName(it.id) == label }) names = names + (item.id to label) }) { Text("Renomear tela") }
                                             TextButton(onClick = { change(workspace.apply(listOf(EditOperation.SetEntry(item.id)))) }) { Text("Iniciar nesta tela") }
                                         }
-                                        Row { TextButton(onClick = { change(workspace.reorder(item.id, -1)) }) { Text("↑") }; TextButton(onClick = { change(workspace.reorder(item.id, 1)) }) { Text("↓") }
+                                        Row { TextButton(onClick = { change(workspace.reorder(item.id, -1)) }) { Text("Antes") }; TextButton(onClick = { change(workspace.reorder(item.id, 1)) }) { Text("Depois") }
                                             TextButton(enabled = item.id != document.entryNodeId, onClick = { change(workspace.remove(item.id)) }) { Text("Remover") } }
                                         PropertyInspector(item, workspace.catalog[item.definition]) { key, value -> change(workspace.putProperty(item.id, key, value)) }
                                     } else {

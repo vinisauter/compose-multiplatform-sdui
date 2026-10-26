@@ -26,8 +26,12 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import me.developes.humming.sdui.common.parseNode
+import me.developes.humming.sdui.common.PropertyKind
+import me.developes.humming.sdui.common.NodeRole
+import me.developes.humming.sdui.common.initialNodeCatalog
 import me.developes.humming.sdui.layout.components.LocalNodeBoundsObserver
 import me.developes.humming.sdui.studio.*
 import kotlin.math.roundToInt
@@ -41,15 +45,21 @@ internal data class DrawnConnection(val link: NavigationLink, val curve: CubicCo
 internal fun InteractionCanvas(document: AuthoringDocument, compiled: CompiledContracts,
                                selectedEdge: String?, select: (String, String?) -> Unit,
                                observe: (List<DrawnConnection>) -> Unit = {},
-                               viewportState: MutableState<CanvasViewport>? = null) {
+                               viewportState: MutableState<CanvasViewport>? = null,
+                               connect: ((String, String, String) -> Unit)? = null,
+                               screenNames: Map<String, String> = emptyMap(),
+                               observePorts: (List<Triple<String, String, Point2>>, Map<String, Rect2>) -> Unit = { _, _ -> }) {
     val localView = remember { mutableStateOf(CanvasViewport(zoom = .5)) }
     var view by (viewportState ?: localView)
     val viewport = view.copy(density = LocalDensity.current.density.toDouble())
     val geometry = remember(document, compiled) { PreviewGeometry(document, compiled.sourceNodeIds) }
     val frames = remember(document) { mutableStateMapOf<String, Rect>() }
     var origin by remember { mutableStateOf(Offset.Zero) }
+    var area by remember { mutableStateOf(IntSize.Zero) }
     var focused by remember { mutableStateOf(false) }
     var pressed by remember { mutableStateOf(false) }
+    var noodleStart by remember { mutableStateOf<Offset?>(null) }
+    var noodleEnd by remember { mutableStateOf<Offset?>(null) }
     val windowFocused = LocalWindowInfo.current.isWindowFocused
     val focus = remember { FocusRequester() }
     val projection = remember(document) { InteractionProjection.navigationLinks(document) }
@@ -71,24 +81,50 @@ internal fun InteractionCanvas(document: AuthoringDocument, compiled: CompiledCo
     val currentSnapshot by rememberUpdatedState(snapshot)
     val currentViewport by rememberUpdatedState(viewport)
     val currentSelect by rememberUpdatedState(select)
-    LaunchedEffect(windowFocused) { if (!windowFocused) pressed = false }
+    val currentConnect by rememberUpdatedState(connect)
+    val currentFrames by rememberUpdatedState(frames.toMap())
+    val currentOrigin by rememberUpdatedState(origin)
+    val catalog = remember { initialNodeCatalog() }
+    val handles = if (connect == null) emptyList() else snapshot.nodes.values.mapNotNull { measured ->
+        val node = document.nodes[measured.id] ?: return@mapNotNull null
+        val ports = catalog[node.definition]?.properties.orEmpty().filter { it.kind == PropertyKind.NODES && it.nodeRole == NodeRole.ACTION }
+        val port = ports.firstOrNull { it.name == "onClick" } ?: ports.firstOrNull() ?: return@mapNotNull null
+        if (!measured.visible) return@mapNotNull null
+        Triple(node.id, port.name, viewport.toScreen(Point2(measured.rect.right, measured.rect.y + measured.rect.height / 2)))
+    }
+    val currentHandles by rememberUpdatedState(handles)
+    SideEffect { observePorts(handles, frames.mapValues { (_, rect) -> Rect2((rect.left-origin.x).toDouble(), (rect.top-origin.y).toDouble(), rect.width.toDouble(), rect.height.toDouble()) }) }
+    val screens = document.nodes.values.filter { it.kind == AuthorNodeKind.SCREEN }.sortedWith(compareBy({ it.placement.orderKey }, { it.id }))
+    fun fitScreens() {
+        if (area.width == 0 || area.height == 0) return
+        val positions = screens.mapIndexed { index, node -> node.canvasPosition ?: CanvasPoint(index * 400.0, 0.0) }
+        val left = positions.minOfOrNull { it.x } ?: 0.0
+        val top = positions.minOfOrNull { it.y } ?: 0.0
+        val width = (positions.maxOfOrNull { it.x + 280 } ?: 280.0) - left
+        val height = (positions.maxOfOrNull { it.y + 240 } ?: 240.0) - top
+        val zoom = minOf((area.width - 32) / (width * viewport.density), (area.height - 32) / (height * viewport.density), .85).coerceAtLeast(.05)
+        view = CanvasViewport(zoom, Point2(16 - left * zoom * viewport.density, 16 - top * zoom * viewport.density), revision = view.revision + 1)
+    }
+    LaunchedEffect(screens.map { it.id }, area) { if (connect != null) fitScreens() }
+    LaunchedEffect(windowFocused) { if (!windowFocused) { pressed = false; noodleStart = null; noodleEnd = null } }
     Column(Modifier.fillMaxSize()) {
         FlowRow {
             TextButton(onClick = { pressed = false; view = view.copy(zoom=(view.zoom*1.25).coerceAtMost(3.0)) }) { Text("Canvas +") }
             TextButton(onClick = { pressed = false; view = view.copy(zoom=(view.zoom/1.25).coerceAtLeast(.15)) }) { Text("Canvas −") }
-            TextButton(onClick = { pressed = false; view = CanvasViewport(zoom=.5) }) { Text("Enquadrar") }
+            TextButton(onClick = { pressed = false; if (connect != null) fitScreens() else view = CanvasViewport(zoom=.5) }) { Text("Enquadrar") }
             TextButton(onClick = { pressed = false; view = view.copy(pan=Point2(view.pan.x-80,view.pan.y)) }) { Text("Canvas esquerda") }
             TextButton(onClick = { pressed = false; view = view.copy(pan=Point2(view.pan.x+80,view.pan.y)) }) { Text("Canvas direita") }
             TextButton(onClick = { pressed = false; view = view.copy(pan=Point2(view.pan.x,view.pan.y-80)) }) { Text("Canvas acima") }
             TextButton(onClick = { pressed = false; view = view.copy(pan=Point2(view.pan.x,view.pan.y+80)) }) { Text("Canvas abaixo") }
         }
-        Text("${connections.size} conexões possíveis • selecione curva ou componente; Escape cancela")
+        Text(if (connect == null) "${connections.size} conexões possíveis • selecione curva ou componente; Escape cancela"
+            else "${connections.size} conexões • puxe uma bolinha azul até outra tela • Escape cancela")
         projection.diagnostics.forEach { Text("${it.code}: ${it.message}") }
         if (projection.value.orEmpty().any { it.sourceNodeId == it.targetScreenId })
             Text("SELF_CONNECTION_UNSUPPORTED: autoconexão importada exige roteamento de loop")
         if (connections.any { !it.flattened.toleranceMet }) Text("CONNECTOR_TOLERANCE: limite de aproximação; seleção imprecisa desativada")
         Box(Modifier.weight(1f).fillMaxWidth().clipToBounds().background(Color(0xFFF1F0F5))
-            .onGloballyPositioned { origin = it.positionInRoot(); geometry.placeViewport(it) }) {
+            .onGloballyPositioned { origin = it.positionInRoot(); area = it.size; geometry.placeViewport(it) }) {
             CompositionLocalProvider(LocalNodeBoundsObserver provides geometry) {
                 Box(Modifier.fillMaxSize().graphicsLayer {
                     scaleX=viewport.zoom.toFloat(); scaleY=viewport.zoom.toFloat()
@@ -108,7 +144,7 @@ internal fun InteractionCanvas(document: AuthoringDocument, compiled: CompiledCo
                                     val rect = Rect(a,b)
                                     if (frames[screen.id] != rect) frames[screen.id] = rect
                                 }) {
-                                Text("Tela ${screen.id.take(8)}", Modifier.padding(6.dp))
+                                Text(screenNames[screen.id] ?: "Tela ${index + 1}", Modifier.padding(6.dp))
                                 Box(Modifier.fillMaxSize().clipToBounds()) { CompiledPreview(source) }
                             }
                         }
@@ -116,13 +152,17 @@ internal fun InteractionCanvas(document: AuthoringDocument, compiled: CompiledCo
                 }
             }
             Canvas(Modifier.fillMaxSize().testTag("studio-interaction-canvas").focusRequester(focus)
-                .onFocusChanged { focused = it.isFocused; if (!it.isFocused) pressed = false }.focusable()
-                .onPreviewKeyEvent { if (it.key == Key.Escape) { pressed=false; true } else false }
+                .onFocusChanged { focused = it.isFocused; if (!it.isFocused) { pressed = false; noodleStart = null; noodleEnd = null } }.focusable()
+                .onPreviewKeyEvent { if (it.key == Key.Escape) { pressed=false; noodleStart=null; noodleEnd=null; true } else false }
                 .pointerInput(document,geometry) {
                     awaitEachGesture {
                         val down = awaitFirstDown(false,PointerEventPass.Initial)
                         down.consume(); focus.requestFocus(); pressed=true
                         val start = down.position
+                        val handle = currentHandles.asReversed().firstOrNull { (_, _, point) ->
+                            (Offset(point.x.toFloat(), point.y.toFloat()) - start).getDistance() <= 12 * currentViewport.density.toFloat()
+                        }
+                        if (handle != null) { noodleStart = Offset(handle.third.x.toFloat(), handle.third.y.toFloat()); noodleEnd = start }
                         var moved = false
                         try {
                             while (true) {
@@ -130,8 +170,15 @@ internal fun InteractionCanvas(document: AuthoringDocument, compiled: CompiledCo
                                 if (event.changes.count { it.pressed } > 1) pressed=false
                                 val pointer = event.changes.firstOrNull { it.id == down.id } ?: break
                                 pointer.consume()
+                                if (handle != null && pressed) noodleEnd = pointer.position
                                 if ((pointer.position-start).getDistance() > viewConfiguration.touchSlop) moved=true
                                 if (!pointer.pressed) {
+                                    if (pressed && focused && moved && handle != null) {
+                                        val target = currentFrames.entries.firstOrNull { (id, rect) ->
+                                            id != handle.first && rect.contains(pointer.position + currentOrigin)
+                                        }?.key
+                                        if (target != null) currentConnect?.invoke(handle.first, handle.second, target)
+                                    }
                                     if (pressed && focused && !moved) {
                                         val point = Point2(pointer.position.x.toDouble(),pointer.position.y.toDouble())
                                         val connection = currentConnections.asReversed().firstOrNull { it.flattened.toleranceMet && it.flattened.hit(point) }
@@ -143,7 +190,7 @@ internal fun InteractionCanvas(document: AuthoringDocument, compiled: CompiledCo
                                     break
                                 }
                             }
-                        } finally { pressed=false }
+                        } finally { pressed=false; noodleStart=null; noodleEnd=null }
                     }
                 }) {
                 connections.forEach { connection ->
@@ -162,6 +209,18 @@ internal fun InteractionCanvas(document: AuthoringDocument, compiled: CompiledCo
                         moveTo(arrow.tip.x.toFloat(),arrow.tip.y.toFloat()); lineTo(arrow.left.x.toFloat(),arrow.left.y.toFloat())
                         lineTo(arrow.right.x.toFloat(),arrow.right.y.toFloat()); close()
                     },color) }
+                }
+                handles.forEach { (_, _, point) ->
+                    val center = Offset(point.x.toFloat(), point.y.toFloat())
+                    drawCircle(Color.White, 8f * viewport.density.toFloat(), center)
+                    drawCircle(Color(0xFF4F46E5), 6f * viewport.density.toFloat(), center)
+                }
+                val from = noodleStart; val to = noodleEnd
+                if (from != null && to != null) {
+                    val bend = maxOf(40f, kotlin.math.abs(to.x - from.x) / 2)
+                    drawPath(Path().apply { moveTo(from.x, from.y); cubicTo(from.x + bend, from.y, to.x - bend, to.y, to.x, to.y) },
+                        Color(0xFFE91E63), style = Stroke(3f))
+                    drawCircle(Color(0xFFE91E63), 5f, to)
                 }
             }
         }

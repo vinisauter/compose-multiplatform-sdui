@@ -1,21 +1,25 @@
 # Estado atual
 
+## Pesquisa Blup — 2026-10-26
+
+Pesquisa documental e inspeção estática parcial concluídas no recorte solicitado: [relatório](research/blup.md), [inventário](research/blup-static.json) e script `tools/research/Inspect-Blup.ps1` executado. REA identificou PE x86_64; decompilação bloqueada por `provider_unavailable` sem instalação/configuração adicional. UI observada em onboarding com diálogo de avaliação; editor e integrações do Blup não foram validados. Revisão de links locais e diff executada; sem build/testes porque não houve mudança funcional. Recomendações não foram implementadas nem promovidas ao plano. Alterações locais preexistentes de T30 preservadas; tarefa ativa e próxima ação da tabela abaixo permanecem sob seu recorte. Próxima ação específica da pesquisa: selecionar um recorte sugerido e definir dependências/aceite no plano; para aprofundar o Blup, obter acesso ao editor com projeto de teste e só então qualificar serialização e execução.
+
 Este é o ponto de entrada para **continuar o desenvolvimento**. Reúne o estado observado, o rastreamento das etapas e a próxima ação. O [plano](development-plan.md) define dependências, escopo e critérios de aceite; este documento é a única fonte de status e retomada.
 
-Atualizado após T29 (2026-10-26): catálogo oficial e criador local de apps integrados. Projeto → telas → design → ações → teste → exportação SDUI, com cinco capturas novas. Última verificação: 179 casos JVM dos módulos afetados, sem falhas/erros/ignorados; builds JS/Android/Wasm e metadata passaram. Jornada de ida/volta observada no browser. Inventário regular: 350 casos; 16 integrações reais de T28 mantêm sua evidência anterior e não foram repetidas em T29. Sem deploy público.
+Atualizado após T30 (2026-10-26): correção do criador visual Wasm. Nova tela sempre visível, paleta com miniaturas e arraste real, Auto Layout e criação de noodles por puxada. Três telas, inserção/reordenação, setas, undo/redo e execução da nova navegação observados no navegador. Relatórios regulares: 353 casos JVM, sem falhas/erros/ignorados; builds JS/Android/Wasm e metadata passaram. As 16 integrações de T28 não foram repetidas em T30. Sem deploy público.
 
 ## Ponto de retomada
 
 | Campo | Registro atual |
 | --- | --- |
-| Última atualização | 2026-10-26; T28 em e4e8160; T29 neste entregável; commits locais sem push |
-| Última entrega | T29: criador local, projeto versionado, 111 inserções, navegação/retorno, exportação e recuperação; ver fechamento abaixo |
-| Tarefa de implementação em execução | Nenhuma; T29 concluída no recorte local descrito abaixo |
-| Próxima tarefa | T26 — ampliar qualificação do criador por plataforma e percursos; futuras capacidades de produto exigem recorte no plano |
-| Próxima ação concreta | Executar criação/edição/arquivos na janela desktop e browser; qualificar Android com emulador antes de anunciar edição móvel. Manter o Inspector compacto como limite explícito |
-| Critério para avançar | Registrar target, fluxo e evidência; corrigir falhas encontradas sem reconstruir T00–T29 |
-| Bloqueio de implementação conhecido | Nenhum para evolução local; Apple exige host compatível. Inspector lateral oculto abaixo de 850 unidades lógicas |
-| Limite do próximo recorte | Qualificação e ajustes do criador; sem push, distribuição, deploy ou geração de APK/IPA pelo editor |
+| Última atualização | 2026-10-26; T28 e4e8160; T29 4577966; T30 neste entregável; commits locais sem push |
+| Última entrega | T30: autoria gestual, telas desconectadas, miniaturas e verificação real Wasm; detalhes abaixo |
+| Tarefa de implementação em execução | Nenhuma; T30 concluída no recorte desktop/Wasm descrito abaixo |
+| Próxima tarefa | T26 — qualificação adicional por plataforma/recorte; futuras capacidades exigem aceite no plano |
+| Próxima ação concreta | Qualificar interação por toque/arquivos no Android em emulador antes de anunciar edição móvel; Apple exige host compatível. Não reiniciar a implementação local concluída |
+| Critério para avançar | Registrar target e fluxo; não confundir APK compilado com gestos validados por toque |
+| Bloqueio de implementação conhecido | Nenhum para evolução local; Inspector lateral oculto abaixo de 850 unidades lógicas; Apple depende de host |
+| Limite do próximo recorte | Qualificação/adaptação de UI; sem push, deploy ou distribuição. Sem alegar roteamento arbitrário de obstáculos |
 
 ### Protocolo quando o pedido for “continue o desenvolvimento”
 
@@ -63,6 +67,7 @@ Estados: **pronta**, **pendente**, **em execução**, **bloqueada**, **concluíd
 | T27 | Catálogo Compose Material 3 | concluída | 92 adapters novos, 7 schemas legados, 341 JVM + 15 integrações; metadata/Android/Wasm; limites abaixo |
 | T28 | Catálogo oficial executável e README | concluída | e4e8160; 362 casos no conjunto, 111 componentes/16 ações, sete prints e browser real; detalhes abaixo |
 | T29 | Criador visual e jornada de projeto | concluída | Envelope v1, 111 inserções, UI/arquivos/navegação real; 179 testes afetados e builds; limites abaixo |
+| T30 | Paleta com previews/arraste e noodles gestuais | concluída | 353 regulares, 3 testes novos, Wasm real com três telas/setas/execução; ver fechamento abaixo |
 
 Os requisitos completos e a ordem das dependências estão no [plano](development-plan.md). A numeração identifica tarefas; não significa executar T07–T12 antes de T13–T19. A prioridade inicial é base → schemas/fronteira → autoria local → manipulação visual; capacidades adicionais do cliente podem avançar em paralelo quando elegíveis.
 
@@ -400,3 +405,17 @@ Novos testes: codec fechado/canônico, inserção atômica/colisão/undo/redo; c
 Browser real: bundle Wasm servido somente em loopback, porta 8082, rota ?builder. Executar app → Abrir segunda → Segunda tela → Voltar → Primeira tela observado; captura builder-wasm.png. Host estático próprio pode precisar reinício: python -m http.server 8082 --bind 127.0.0.1 --directory sample/composeApp/build/dist/wasmJs/developmentExecutable. Isso não valida todo o fluxo de arquivos do browser. Android gerou APK; sem nova execução visual Android, Apple ou CI remota.
 
 Limites: criador local, sem sincronização automática do envelope, autosave, importação proprietária ou geração/publicação de binários. Save solicita arquivo e mantém aviso porque o adapter não confirma persistência; reabrir estabelece base. Metadados de nome/viewport/rótulos não participam do undo autoral. Inspector de três painéis exige largura >=850; abaixo disso usar Studio avançado. T26 é o próximo gate para qualificação adicional; novas funções de dados/assets/temas precisam de aceite próprio. Sem push/deploy.
+
+## Fechamento T30 — Studio visual e gestos Wasm — 2026-10-26
+
+Pedido do usuário: criação de telas e setas difícil/inoperante, arraste da paleta ausente, previews junto aos componentes. Causas encontradas no código: Nova tela escondida pela aba Elementos; InteractionCanvas só selecionava relações existentes; compileJourney selecionava somente telas alcançáveis, ocultando telas novas no grafo. A validação T29 por Inspector não comprovava puxada de noodles nem arraste externo; essa lacuna agora tem testes próprios.
+
+Correções: Nova tela fica visível nas duas abas e cria posições em grade; lista de telas rola sem empurrar a árvore. Canvas reúne compilações individuais REPORT, mantendo exportação estrita e todas as telas visíveis/enquadradas. Bolinhas de eventos medidas pelo renderer iniciam curvas temporárias; soltar em tela cria ação goTo + relações num único comando; Escape/foco/perda de ponteiro/fora cancelam. Inspector mantém alternativa para escolher evento; gesto prefere onClick, senão o primeiro evento do schema. Conexão repetida é recusada pelo criador.
+
+Paleta lazy com miniaturas reais das fixtures, decorativas e isoladas, captura arraste/clique no cartão. Drop usa a geometria existente, guia e gap de ordem, validando revisão/documento/destino e aplicando uma transação para simples/composto. Raízes novas usam a fração fillMaxSize=1 para receber drops na área vazia; documentos antigos não são reescritos. Rótulos Antes/Depois e Inicial substituem glifos sem fonte no Wasm. Referência Blup: página pública analisada para widgets/canvas/estilos e imagem fornecida para composição de painéis; sem inspeção interna ou promessa de importação. Detalhes em app-builder.md.
+
+Validação: build/builder-t30-tasks.log descobriu tarefas; build/builder-t30-final.log BUILD SUCCESSFUL 53s (modelo/sample e plataformas); build/builder-t30-regression.log BUILD SUCCESSFUL 13s (dez jvmTest, JS, APK, distribuição Wasm e metadata). Relatórios: contrato54/core74/ações4/modelo114/rede7/navegação10/aplicação13/host8/PostgreSQL1/sample68 = 353, zero falhas/erros/ignorados. Módulos afetados somam 182 casos. Três casos novos cobrem gap/ordem/stale/undo, três telas desconectadas + conexão/cancelamento por ponteiro e arraste da paleta sem mutação antecipada + guia/undo/fora. Os testes de UI existentes continuam passando. Uma tentativa detectou semântica duplicada da miniatura; corrigida como conteúdo decorativo. Um valor inicial booleano de fillMaxSize foi rejeitado pelo contrato e corrigido para fração; nenhuma dependência atualizada.
+
+Browser Wasm real, loopback 8082, em nova aba sem descartar o trabalho que o usuário já tinha aberto: criação da terceira tela, arraste de botão e texto, inserção antes do botão, reordenação depois do botão (revisões 12→15); puxada da tela inicial à terceira e do botão da terceira à inicial; undo removeu uma seta e redo restaurou (até revisão19). Executar app → clique na tela inicial → terceira tela; botão Confirmar da terceira → primeira tela. Três capturas inspecionadas e salvas sem edição: sample/docs/images/builder-t30-{design,noodles,run}.png, incluídas no README do app. A aba de verificação foi preservada; servir o build exige manter/reiniciar o host loopback conforme guia.
+
+Limites mantidos: exportar exige telas alcançáveis; paleta gestual suporta Row/Column sem wrap/reverse e Box no fim. Outros slots usam clique/Inspector. Canvas usa roteamento geométrico existente, sem contornar obstáculos arbitrários. UI estreita/Android por toque/Apple e sincronização do envelope não qualificados nesta entrega. Backend não alterado; integrações reais T28 conservam evidência anterior. Sem push/deploy. Próximo gate é T26 adicional, não refazer T00–T30.

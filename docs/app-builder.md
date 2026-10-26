@@ -6,9 +6,9 @@ O criador reúne projeto, telas, componentes, edição, ações, teste e exporta
 
 1. Abra **Criador de apps** no catálogo, `?builder` no Wasm ou `--builder` no desktop.
 2. Em **Novo**, escolha nome e modelo: Em branco, Formulário ou Jornada. Substituir trabalho alterado pede confirmação.
-3. Em **Estrutura**, acrescente telas, escolha a entrada e renomeie páginas. A árvore seleciona os nós reais.
-4. Em **Design**, busque elementos e escolha o slot em **Adicionar em**. Edite propriedades conforme o schema. Arraste elementos, reordene, remova e desfaça/refaça. Escape cancela o gesto; os limites geométricos são os do [Studio](studio.md).
-5. No Inspector **Ações**, escolha um evento declarado. Acrescente atualização de estado, navegação para outra tela ou retorno. Selecione a ação conectada para editar suas propriedades. A etapa **Ações** mostra o grafo e seus conectores.
+3. **+ Nova tela** permanece visível nas abas Telas e Elementos, inclusive na etapa Ações. Em **Estrutura**, escolha a entrada e renomeie páginas. A árvore seleciona os nós reais.
+4. Em **Design**, a paleta mostra miniaturas reais SDUI ao lado dos nomes. Clique para inserir no slot escolhido em **Adicionar em**, ou arraste a miniatura para um Auto Layout medido. A linha rosa indica a posição antes de soltar; soltar fora não insere. Edite propriedades conforme o schema. Arraste elementos, reordene, remova e desfaça/refaça. Escape cancela o gesto; os limites geométricos são os do [Studio](studio.md).
+5. No Inspector **Ações**, escolha um evento declarado. Acrescente atualização de estado, navegação para outra tela ou retorno. Selecione a ação conectada para editar suas propriedades. A etapa **Ações** mostra todas as telas, mesmo desconectadas. Puxe uma bolinha azul da borda direita de um componente/tela até outra tela e solte para criar uma navegação. O gesto usa `onClick` quando declarado; caso contrário, o primeiro evento declarado no schema. Para outro evento, use o Inspector. Uma curva rosa acompanha o ponteiro; Escape, perda de foco ou soltar fora cancela. O comando só ocorre ao soltar e pode ser desfeito. Conexões repetidas para a mesma origem/destino são recusadas pelo criador.
 6. **Executar app** começa pela entrada do documento, com estado, handlers e navegação reais. Design começa pela tela selecionada. A sessão de execução é independente; editar ou mudar de etapa pode reiniciá-la.
 7. Em **Exportar**, corrija os diagnósticos, salve o projeto completo e exporte a jornada SDUI. Reabra o arquivo para continuar a autoria.
 
@@ -39,3 +39,11 @@ O adapter não confirma persistência do download: salvar não elimina o aviso d
 `AppProjectTest` cobre codec, validação, transação e undo/redo. `AppBuilderTest` compila as 111 inserções, testa isolamento e percorre criação de duas telas, propriedades, navegação/retorno, arquivo real, reabertura e pacote compilado. Prints Compose/JVM no guia não substituem qualificação nativa.
 
 O shell é destinado a janelas largas. Abaixo de 850 unidades lógicas o Inspector lateral é ocultado; use Studio avançado nesse tamanho. Novas funções de dados, assets próprios, tema de projeto, histórico persistente ou sincronização do envelope precisam de aceite específico no plano. Mantenha uma autoridade de documento e reutilize comandos, schemas e undo.
+
+## Canvas e inserção gestual
+
+O canvas compila cada tela com política REPORT e reúne seus artefatos somente para autoria. Isso evita esconder a tela nova antes de conectá-la. A exportação continua estrita: telas inalcançáveis precisam ser conectadas ou removidas. Enquadrar ajusta todas as telas; botões movem/alteram o zoom do canvas. Bolinhas usam os bounds reais do renderer; a seta permanente usa a geometria existente e pode ser selecionada. Não há roteamento de obstáculos arbitrários.
+
+A inserção da paleta reutiliza `DropGeometry` de movimento, incluindo clips, transformações, eixo, centros dos irmãos, ordenação e guia. Um nó apenas projetado serve para calcular o gap; nenhum nó é persistido durante o arraste. Inserção simples/composta aplica o gap e verifica revisão/documento/destino em uma única transação. Os destinos gestuais são Row/Column sem wrap/reverse e Box (fim da pilha); outros slots continuam disponíveis por clique/Inspector.
+
+Novas telas usam `fillMaxSize = "1"`, a fração definida pelo contrato, para aceitar drops na região vazia. Projetos anteriores não são reescritos: para expandir uma raiz antiga, selecione a tela e aplique a propriedade fillMaxSize com valor 1 no Inspector. Miniaturas são decorativas, renderizadas pelas fixtures existentes com owners isolados, sem disparo de eventos por clique; o cartão inteiro captura o gesto. A paleta é lazy e descarta owners fora da composição.

@@ -269,3 +269,7 @@ Publicação/BFF demonstram dados do processo real via plano opt-in catalog-syst
 O envelope AppProject versão 1 guarda nome, viewport e rótulos sobre AuthoringDocument, sem duplicar nós/histórico ou alterar o wire de runtime. O shell reaproveita LocalWorkspace, Inspector, geometria, grafo e CompiledPreview. Composições da paleta derivam das fixtures do catálogo e entram atomicamente, com IDs/arestas/chaves de estado exclusivos. Campos novos usam chave exclusiva; documentos antigos não são reescritos. Undo cobre operações autorais; metadados do projeto não têm histórico próprio.
 
 Salvar solicita o arquivo, mas não confirma persistência no adapter atual: somente reabrir estabelece uma nova base de recuperação. O criador local mantém separado o fluxo remoto já existente; não anuncia sincronização do envelope, geração de binários nativos ou deploy. Detalhes em [criador de apps](app-builder.md).
+
+## Autoria gestual e visibilidade de telas
+
+A política estrita de exportação não deve esconder conteúdo durante a autoria. O canvas do criador reúne compilações REPORT de cada tela; o compilador de runtime não muda. Novas raízes ocupam a viewport por fillMaxSize fracionário, preservando documentos existentes. A paleta usa miniaturas reais das fixtures e captura ponteiros antes dos componentes decorativos. Inserções usam a geometria existente e um gap revisionado em uma transação; noodles criam ações/relações somente ao soltar em tela válida. Não se simula navegação apenas desenhando uma linha.

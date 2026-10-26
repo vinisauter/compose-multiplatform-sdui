@@ -4,6 +4,24 @@ import me.developes.humming.sdui.common.initialNodeCatalog
 import kotlin.test.*
 
 class DropGeometryTest {
+    @Test fun paletteInsertionUsesTheSameGapAndCommitsAtomicallyWithRevisionGuard() {
+        val doc = document()
+        val plan = DropGeometry.insertion(doc, layout(doc), viewport, Point2(15.0, 65.0), catalog).requireValue()
+        assertEquals("root", plan.targetId)
+        assertEquals("hidden", plan.previousId)
+        assertEquals("b", plan.nextId)
+        val workspace = LocalWorkspace(doc)
+        assertTrue(workspace.insertVisual("root", "layout:text", insertion = plan).isSuccess)
+        val ids = AuthoringIndices(workspace.document).childrenByParentAndSlot.getValue(ParentSlot("root", "children")).map { it.id }
+        assertEquals(listOf("a", "hidden", "b", "drag"), ids.filter { it in doc.nodes })
+        assertEquals(2, ids.indexOfFirst { it !in doc.nodes })
+        val after = workspace.document
+        assertFalse(workspace.insertVisual("root", "layout:text", insertion = plan).isSuccess)
+        assertEquals(after, workspace.document)
+        assertTrue(workspace.undo().isSuccess)
+        assertEquals(doc.nodes, workspace.document.nodes)
+        assertNull(DropGeometry.insertion(doc, layout(doc), viewport, Point2(-30.0, -30.0), catalog).value)
+    }
     private val catalog = initialNodeCatalog()
     private val codec = LegacyAuthoringCodec(catalog)
     private val viewport = CanvasViewport()

@@ -47,6 +47,18 @@ As quatro capturas abaixo foram produzidas pelo fluxo automatizado Compose/JVM, 
 
 ![Criador Wasm executando a segunda tela no navegador](docs/images/builder-wasm.png)
 
+## Autoria por arraste no Wasm
+
+**+ Nova tela** fica sempre disponível. Em **Elementos**, clique ou arraste os cartões com preview para a tela. Em **Ações**, puxe uma bolinha azul de evento até outra tela. Solte para criar a navegação; Escape cancela. **Desfazer/Refazer** cobre as inserções e conexões. A guia rosa indica a ordem no Auto Layout. As telas desconectadas aparecem no grafo; conecte-as antes de exportar a jornada estrita.
+
+As capturas abaixo são do navegador Wasm: terceira tela criada, texto/botão inseridos e reordenados por arraste, setas puxadas entre telas e execução da nova navegação.
+
+![Paleta com previews e Auto Layout por arraste](docs/images/builder-t30-design.png)
+
+![Três telas e conectores criados por puxada no Wasm](docs/images/builder-t30-noodles.png)
+
+![Execução da terceira tela alcançada pela nova conexão](docs/images/builder-t30-run.png)
+
 ## Prints do catálogo
 
 As primeiras seis capturas são do app executado pelo renderer Compose/JVM, geradas pelos testes de UI e inspecionadas. A última mostra execução real Wasm no navegador. Não são mockups, nem prova de execução Android/Apple. A captura compacta é uma viewport estreita no teste JVM.

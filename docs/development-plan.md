@@ -288,3 +288,9 @@ A sequência começa por T00, sem alteração estrutural preventiva: inventariar
 - Dependências: T13–T28.
 - Trabalho: projeto local versionado com nome/viewport/telas sobre o documento autoral existente; fluxo criar → estruturar → editar → conectar → executar → exportar. Shell com páginas/árvore, canvas e Inspector, inspirado nas referências visuais fornecidas. Reutilizar comandos, schemas, bounds/drop e navegação; sem uma segunda autoridade de nós.
 - Aceite: criar projeto/tela, inserir e selecionar componentes, editar propriedades, conectar navegação, testar ida/volta, salvar/reabrir projeto e exportar jornada real. Capturas inspecionadas e testes de fluxo; viewport não é emulador nativo. Publicação/serviços reutilizam composição existente; sem deploy automático ou geração de APK prometida.
+
+## T30 — autoria gestual e usabilidade do criador
+
+- Dependências: T18, T19, T29.
+- Trabalho: nova tela sempre acessível, canvas de todas as telas inclusive desconectadas, puxada de conectores por evento até tela, paleta com miniaturas SDUI e arraste para Auto Layout. Reaproveitar geometria/comandos, sem mutação durante gesto.
+- Aceite: criar três telas; inserir por clique/arraste; guia e ordem Auto Layout; puxar/setar/cancelar conector; undo/redo e execução real da navegação. Testes de ponteiro e inspeção Wasm; arquivos e contratos preservados.

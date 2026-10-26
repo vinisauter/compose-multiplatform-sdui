@@ -22,6 +22,8 @@ import androidx.compose.ui.input.key.*
 import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionInRoot
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.LocalWindowInfo
@@ -41,7 +43,8 @@ internal class PreviewControls {
 @Composable
 internal fun EditablePreview(workspace: LocalWorkspace, document: AuthoringDocument, sourceIds: Map<String, String>,
                     selectedId: String, select: (String) -> Unit, commit: (EditOutcome) -> Unit,
-                    controls: PreviewControls, showControls: Boolean = true, content: @Composable () -> Unit) {
+                    controls: PreviewControls, showControls: Boolean = true, palette: PaletteDragState? = null,
+                    content: @Composable () -> Unit) {
     val geometry = remember(document) { PreviewGeometry(document, sourceIds) }
     val gesture = remember(document) { DropGesture() }
     val focus = remember { FocusRequester() }
@@ -50,6 +53,18 @@ internal fun EditablePreview(workspace: LocalWorkspace, document: AuthoringDocum
     val density = LocalDensity.current.density.toDouble()
     val viewport = view.copy(density = density)
     val currentViewport by rememberUpdatedState(viewport)
+    var surface by remember { mutableStateOf(Rect.Zero) }
+    DisposableEffect(palette, document, geometry) {
+        val resolver: (Offset) -> DropPlan? = { root ->
+            if (!editing || !surface.contains(root)) null else {
+                val point = root - surface.topLeft
+                DropGeometry.insertion(document, geometry.snapshot(currentViewport), currentViewport,
+                    Point2(point.x.toDouble(), point.y.toDouble()), workspace.catalog).value
+            }
+        }
+        palette?.resolve = resolver
+        onDispose { if (palette?.resolve === resolver) palette.resolve = null }
+    }
     val onSelect by rememberUpdatedState(select)
     val onCommit by rememberUpdatedState(commit)
     var guide by remember { mutableStateOf<DropPlan?>(null) }
@@ -70,7 +85,9 @@ internal fun EditablePreview(workspace: LocalWorkspace, document: AuthoringDocum
         }
         if (editing && showControls) Text("Arraste nós visuais. Escape cancela. Row/Column sem wrap; Box insere no fim.")
         if (diagnostic.isNotEmpty()) Text(diagnostic)
-        Box(Modifier.weight(1f).fillMaxWidth().clipToBounds().onGloballyPositioned(geometry::placeViewport)) {
+        Box(Modifier.weight(1f).fillMaxWidth().clipToBounds().onGloballyPositioned {
+            geometry.placeViewport(it); surface = Rect(it.positionInRoot(), androidx.compose.ui.geometry.Size(it.size.width.toFloat(), it.size.height.toFloat()))
+        }) {
             CompositionLocalProvider(LocalNodeBoundsObserver provides geometry, LocalLayoutDirection provides LayoutDirection.Ltr) {
                 Box(Modifier.graphicsLayer {
                     scaleX = viewport.zoom.toFloat(); scaleY = viewport.zoom.toFloat()
@@ -122,7 +139,7 @@ internal fun EditablePreview(workspace: LocalWorkspace, document: AuthoringDocum
                     drawRect(Color(0xFF6750A4), Offset(a.x.toFloat(), a.y.toFloat()),
                         androidx.compose.ui.geometry.Size((b.x - a.x).toFloat(), (b.y - a.y).toFloat()), style = Stroke(2f))
                 }
-                guide?.takeIf { it.layoutRevision == snapshot.revision && it.viewportRevision == viewport.revision }?.let {
+                (palette?.plan ?: guide)?.takeIf { it.layoutRevision == snapshot.revision && it.viewportRevision == viewport.revision }?.let {
                     drawLine(Color(0xFFB00070), Offset(it.guideStart.x.toFloat(), it.guideStart.y.toFloat()),
                         Offset(it.guideEnd.x.toFloat(), it.guideEnd.y.toFloat()), strokeWidth = 3f)
                 }

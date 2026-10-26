@@ -65,7 +65,7 @@ class AppBuilderTest {
         compose.onNodeWithTag("builder-back").performScrollTo().performClick()
         compose.onNodeWithText("Propriedades", substring = false).performClick()
         compose.onNodeWithText("Telas", substring = false).performClick()
-        compose.onNodeWithText("◉ Tela 1", substring = false).performClick()
+        compose.onNodeWithText("Inicial · Tela 1", substring = false).performClick()
         add("button")
         screenshot("builder-design.png", directory)
         compose.onNodeWithText("Ações", substring = false).performClick()

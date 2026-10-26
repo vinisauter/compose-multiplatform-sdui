@@ -138,6 +138,16 @@ object DropGeometry {
             document.documentId, document.revision, layout.revision, viewport.revision), emptyList())
     }
 
+    /** Plans a palette insertion with the same flow/clip rules as an existing-node move. */
+    fun insertion(document: AuthoringDocument, layout: LayoutSnapshot, viewport: CanvasViewport,
+                  screen: Point2, catalog: NodeCatalog): AuthoringResult<DropPlan> {
+        var id = "palette-insertion"
+        while (id in document.nodes) id += "-"
+        val node = AuthorNode(id, AuthorNodeKind.VISUAL, "layout:text", kotlinx.serialization.json.JsonObject(emptyMap()), Placement.Child(document.entryNodeId, "children", "V"))
+        val projected = document.copy(nodes = document.nodes + (id to node))
+        return plan(projected, layout, viewport, id, screen, catalog)
+    }
+
     private fun current(document: AuthoringDocument, layout: LayoutSnapshot) =
         document.documentId == layout.documentId && document.revision == layout.documentRevision &&
             layout.nodes.all { (id, node) -> id == node.id && id in document.nodes }

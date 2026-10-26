@@ -71,11 +71,13 @@ class LocalWorkspace(
 
     fun addScreen(position: CanvasPoint): EditOutcome = apply(listOf(EditOperation.InsertNode(
         AuthorNode(identity(), AuthorNodeKind.SCREEN, "layout:column",
-            JsonObject(mapOf("paddingAll" to JsonPrimitive("24"))), Placement.Root("V"), canvasPosition = position),
+            JsonObject(mapOf("paddingAll" to JsonPrimitive("24"), "fillMaxSize" to JsonPrimitive("1"))), Placement.Root("V"), canvasPosition = position),
         previousId = AuthoringIndices(document).roots.lastOrNull()?.id)))
 
     /** A uniquely identified composition is inserted in one undoable transaction. */
-    fun insertFragment(fragment: AuthoringDocument, parentId: String, slot: String = "children"): EditOutcome {
+    fun insertFragment(fragment: AuthoringDocument, parentId: String, slot: String = "children", insertion: DropPlan? = null): EditOutcome {
+        if (insertion != null && (insertion.documentId != document.documentId || insertion.documentRevision != document.revision || insertion.targetId != parentId || insertion.slot != slot))
+            return rejected("STALE_GESTURE", "Documento ou destino mudou durante a inserção", parentId)
         val errors = validateAuthoringDocument(fragment, catalog)
         if (errors.any { it.severity == DiagnosticSeverity.ERROR }) return EditOutcome(null, errors)
         if (fragment.nodes.keys.any { it in document.nodes } || fragment.edges.keys.any { it in document.edges } ||
@@ -100,7 +102,8 @@ class LocalWorkspace(
                 val before = inserted[key] ?: AuthoringIndices(document).childrenByParentAndSlot[key]?.lastOrNull()?.id
                 inserted[key] = node.id; before
             } else lastRoot.also { lastRoot = node.id }
-            operations += EditOperation.InsertNode(copy, previousId = previous)
+            operations += if (node.id == fragment.entryNodeId && insertion != null) EditOperation.InsertNode(copy, insertion.previousId, insertion.nextId)
+                else EditOperation.InsertNode(copy, previousId = previous)
         }
         for (group in AuthoringIndices(fragment).edgesBySourcePort.values) {
             var previous: String? = null
@@ -181,7 +184,9 @@ class LocalWorkspace(
         return apply(operations)
     }
 
-    fun insertVisual(parentId: String, definition: String, slot: String = "children"): EditOutcome {
+    fun insertVisual(parentId: String, definition: String, slot: String = "children", insertion: DropPlan? = null): EditOutcome {
+        if (insertion != null && (insertion.documentId != document.documentId || insertion.documentRevision != document.revision || insertion.targetId != parentId || insertion.slot != slot))
+            return rejected("STALE_GESTURE", "Documento ou destino mudou durante a inserção", parentId)
         if (definition !in visualDefinitions) return rejected("EDITOR_DEFINITION", "Componente indisponível no editor", parentId)
         val indices = AuthoringIndices(document)
         val id = identity()
@@ -198,7 +203,8 @@ class LocalWorkspace(
         }
         val node = AuthorNode(id, AuthorNodeKind.VISUAL, definition, JsonObject(properties), Placement.Child(parentId, slot, "V"))
         val operations = mutableListOf<EditOperation>(EditOperation.InsertNode(node,
-            previousId = indices.childrenByParentAndSlot[ParentSlot(parentId, slot)]?.lastOrNull()?.id))
+            previousId = if (insertion != null) insertion.previousId else indices.childrenByParentAndSlot[ParentSlot(parentId, slot)]?.lastOrNull()?.id,
+            nextId = insertion?.nextId))
         if (definition in setOf("layout:button", "layout:reactiveButton")) operations += EditOperation.InsertNode(AuthorNode(identity(), AuthorNodeKind.VISUAL,
             "layout:text", JsonObject(mapOf("text" to JsonPrimitive("Confirmar"))), Placement.Child(id, "children", "V")))
         return apply(operations)
@@ -319,7 +325,7 @@ class LocalWorkspace(
         private fun identity() = Uuid.random().toString()
         fun blankDocument(): AuthoringDocument {
             val root = AuthorNode(identity(), AuthorNodeKind.SCREEN, "layout:column",
-                JsonObject(mapOf("paddingAll" to JsonPrimitive("24"))), Placement.Root("V"))
+                JsonObject(mapOf("paddingAll" to JsonPrimitive("24"), "fillMaxSize" to JsonPrimitive("1"))), Placement.Root("V"))
             return AuthoringDocument(identity(), entryNodeId = root.id, nodes = mapOf(root.id to root))
         }
     }
