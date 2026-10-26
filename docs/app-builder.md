@@ -61,3 +61,5 @@ Scaffold, Style e AnimatedVisibility também informam bounds. Conteúdo invisív
 A marca representa a disposição dos filhos, não uma direção genérica de drop. Button e as variantes Material de conteúdo Row informam fluxo horizontal: a guia é vertical, indicando antes/depois na mesma linha. Cards informam fluxo vertical: a guia é horizontal. A orientação é observação derivada do renderer, sem propriedade nova no payload e sem mudar os critérios de quem aceita filhos. Row/Column mantêm suas regras.
 
 Quando o eixo não é definido, como em superfícies de sobreposição ou slots genéricos, o editor desenha um contorno rosa no destino para indicar inclusão; não exibe uma linha embaixo que sugira empilhamento vertical. O gesto e a paleta usam a mesma representação.
+
+O cabeçalho da tela inicial em Ações tem seta verde e rótulo Inicial, derivados de entryNodeId. Alterar a entrada ou desfazer atualiza o indicador sem criar outra conexão.

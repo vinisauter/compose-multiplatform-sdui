@@ -14,7 +14,7 @@ Atualizado após T33 (2026-10-26): guia de drop coerente com o fluxo real. Butto
 | --- | --- |
 | Última atualização | 2026-10-26; T31 e53ae76; T32 d93d5c5; T33 neste entregável; commits locais sem push |
 | Última entrega | T33: fluxo observado e marca coerente, teste por pixels antes do release e ordem real após drop |
-| Tarefa de implementação em execução | Nenhuma; T33 concluída no recorte testado |
+| Tarefa de implementação em execução | T35 — drag-and-drop na árvore de elementos |
 | Próxima tarefa | T26 — qualificação adicional por plataforma/recorte; futuras capacidades exigem aceite no plano |
 | Próxima ação concreta | Após restabelecer a cota do revisor, conferir os novos gestos/proporções no navegador sem descartar trabalho aberto; qualificar toque/arquivos em Android separadamente |
 | Critério para avançar | Registrar target e fluxo; não confundir APK compilado com gestos validados por toque |
@@ -446,3 +446,7 @@ Fluxo horizontal desenha linha vertical; vertical desenha horizontal. Destinos s
 Validação: build/builder-t33-tasks.log; build/builder-t33-check.log BUILD SUCCESSFUL 1m1s, dez jvmTest, metadata visual e builds JS/APK/Wasm. build/builder-t33-final.log BUILD SUCCESSFUL 43s após atualizar a ajuda do editor (sample73 e builds JS/APK/Wasm). Modelo116 + sample73; inventário regular360, sem falhas/erros/ignorados. Caso novo verifica os cantos do contorno de inclusão. Regressão de UI ampliada segura o arraste, mede pixels rosa (linha vertical estreita, altura >10px), solta, confirma pai/ordem e bounds do Text ao lado do rótulo, sem executar onClick; undo restaura a origem. Captura build/reports/button-drop-guide.png inspecionada e copiada sem edição para sample/docs/images/button-drop-guide.png, no guia do app; evidência Compose/JVM, não browser.
 
 Demais limites de T32 preservados. Sem nova tentativa de UI no navegador após o bloqueio de cota registrado em T31; última inspeção manual Wasm é T30. PostgreSQL/HTTP não alterados, integrações anteriores não repetidas. Próxima ação continua sendo qualificação browser/toque por T26, sem reiniciar esta correção. Sem push/deploy.
+
+## Fechamento T34 — seta da tela inicial — 2026-10-26
+
+O frame de entryNodeId mostra seta verde e rótulo Inicial no cabeçalho, com descrição acessível. É um indicador derivado, sem criar relação artificial. Teste altera SetEntry e desfaz, conferindo que somente a entrada atual tem seta. build/builder-t34-check.log BUILD SUCCESSFUL 45s: sample74, zero falhas/erros/ignorados; JS/APK/Wasm compilados. Sem nova observação manual browser. Próximo recorte solicitado: T35, arraste na árvore.

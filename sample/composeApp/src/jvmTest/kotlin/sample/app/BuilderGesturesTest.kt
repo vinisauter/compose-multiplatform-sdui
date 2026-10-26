@@ -21,6 +21,28 @@ class BuilderGesturesTest {
     private val target = TargetCapabilities(initialNodeCatalog().capabilities, providers = setOf("compiled-preview"),
         colorTokens = defaultPresentationTokens().colorNames, maskTokens = defaultPresentationTokens().maskNames)
 
+    @Test fun entryArrowFollowsTheActualEntryScreenAndUndo() {
+        val workspace = LocalWorkspace(journeyExample())
+        var document by mutableStateOf(workspace.document)
+        val first = document.entryNodeId
+        val second = document.nodes.values.first { it.kind == AuthorNodeKind.SCREEN && it.id != first }.id
+        var mounted by mutableStateOf(true)
+        compose.setContent { if (mounted) MaterialTheme { Box(Modifier.size(900.dp, 650.dp)) {
+            InteractionCanvas(document, compileBuilderCanvas(workspace, target).requireValue(), null, select = { _, _ -> },
+                screenNames = mapOf(first to "Início", second to "Detalhes"))
+        } } }
+        compose.onNodeWithTag("studio-entry-marker-$first").assertExists()
+        compose.onNodeWithContentDescription("Tela inicial: Início").assertExists()
+        compose.onNodeWithTag("studio-entry-marker-$second").assertDoesNotExist()
+        compose.runOnIdle { workspace.apply(listOf(EditOperation.SetEntry(second))).requireSuccess(); document = workspace.document }
+        compose.onNodeWithTag("studio-entry-marker-$first").assertDoesNotExist()
+        compose.onNodeWithContentDescription("Tela inicial: Detalhes").assertExists()
+        compose.runOnIdle { workspace.undo().requireSuccess(); document = workspace.document }
+        compose.onNodeWithTag("studio-entry-marker-$first").assertExists()
+        compose.onNodeWithTag("studio-entry-marker-$second").assertDoesNotExist()
+        compose.runOnIdle { mounted = false }
+    }
+
     @Test fun paletteTextCanBeDroppedInsideButtonChildren() {
         val workspace = LocalWorkspace().apply { importContract("""{"component":"layout:column","id":"root","properties":{"width":"400","height":"500"},"children":[{"component":"layout:button","id":"target","properties":{"width":"240","height":"80"},"children":[{"component":"layout:text","id":"label","properties":{"text":"Destino"}}]}]}""").requireValue() }
         var document by mutableStateOf(workspace.document)

@@ -26,6 +26,8 @@ import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
@@ -153,7 +155,21 @@ internal fun InteractionCanvas(document: AuthoringDocument, compiled: CompiledCo
                                     val rect = Rect(a,b)
                                     if (frames[screen.id] != rect) frames[screen.id] = rect
                                 }) {
-                                Text(screenNames[screen.id] ?: "Tela ${index + 1}", Modifier.padding(6.dp))
+                                val name = screenNames[screen.id] ?: "Tela ${index + 1}"
+                                Row(Modifier.padding(6.dp), verticalAlignment = Alignment.CenterVertically) {
+                                    if (screen.id == document.entryNodeId) Canvas(Modifier.size(26.dp, 18.dp)
+                                        .testTag("studio-entry-marker-${screen.id}").semantics { contentDescription = "Tela inicial: $name" }) {
+                                        val color = Color(0xFF15803D)
+                                        val middle = size.height / 2
+                                        drawLine(color, Offset(0f, middle), Offset(size.width - 5.dp.toPx(), middle), strokeWidth = 2.dp.toPx())
+                                        drawPath(Path().apply {
+                                            moveTo(size.width - 2.dp.toPx(), middle)
+                                            lineTo(size.width - 10.dp.toPx(), middle - 5.dp.toPx())
+                                            lineTo(size.width - 10.dp.toPx(), middle + 5.dp.toPx()); close()
+                                        }, color)
+                                    }
+                                    Text(if (screen.id == document.entryNodeId) "$name · Inicial" else name)
+                                }
                                 Box(Modifier.fillMaxSize().clipToBounds()) { CompiledPreview(source) }
                             }
                         }

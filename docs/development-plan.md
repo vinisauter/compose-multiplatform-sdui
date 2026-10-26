@@ -312,3 +312,9 @@ A sequência começa por T00, sem alteração estrutural preventiva: inventariar
 - Dependências: T18, T32.
 - Trabalho: renderer informa fluxo de filhos; guia vertical para fluxo horizontal e horizontal para vertical. Destinos sem eixo definido indicam inclusão por contorno.
 - Aceite: marca vertical em Button antes do release, ordem lado a lado após drop, regressão Row/Column e destinos de schema, builds de plataforma.
+
+## T34 — indicação da tela inicial
+
+- Dependências: T19, T29.
+- Trabalho: seta e rótulo acessível no frame correspondente a entryNodeId, sem relação de navegação artificial.
+- Aceite: só a entrada tem seta; mudar SetEntry e desfazer movem o indicador; teste UI e build Wasm.
