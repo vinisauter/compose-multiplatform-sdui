@@ -79,9 +79,6 @@ internal fun EditorTree(workspace: LocalWorkspace, document: AuthoringDocument, 
         }
     }
     Column(modifier) {
-        Text(hint.ifEmpty { "Arraste: bordas ordenam; centro insere no container" },
-            color = if (dark) Color(0xFFE9D5FF) else Color(0xFF6750A4),
-            modifier = Modifier.fillMaxWidth().height(40.dp).testTag("$treeTag-drop-hint"))
         LazyColumn(state = listState, modifier = Modifier.weight(1f).fillMaxWidth().testTag(treeTag)
             .onGloballyPositioned { area = it.boundsInRoot() }.focusRequester(focus).focusable()
             .onFocusChanged { if (!it.isFocused) cancel() }
