@@ -1,0 +1,93 @@
+{
+  "kind": "Analyst-selected summary of retained REA Evidence; full local record is build/blup/ghidra-croppy.json",
+  "evidenceId": "ev_b8945f55890f0de4a071bc245f685cdcd7687bcbf75a7db35668d320989d6f93",
+  "fullRecordSha256": "ef392fe0e8fdde022a4de5042d4353dddbd2533963afd223ce762981ab4f160a",
+  "artifact": {
+    "name": "croppy.dll",
+    "sha256": "428c01b519a59a2bd6996a1b83316dad0154647f61b62ed418027d9efeea4675",
+    "format": "pe",
+    "architecture": "x86_64"
+  },
+  "provider": {
+    "id": "ghidra",
+    "name": "Ghidra",
+    "version": "12.1.4"
+  },
+  "profileDigest": "d1ef4a8e485a8854f33defeb012737720975bbb957ee03648e82cf9d3f5f7f02",
+  "disabledAnalyzers": [
+    "WindowsResourceReference"
+  ],
+  "operation": "analyze_function",
+  "function": {
+    "name": "fit_polygon_in_quad_on_resize",
+    "address": "0x18000a2a0",
+    "body": {
+      "available": true,
+      "provenance": "ghidra-function-body-address-set",
+      "ranges": [
+        {
+          "start": "0x18000a2a0",
+          "end": "0x18000a2f9"
+        }
+      ],
+      "total_bytes": 90,
+      "span_bytes": 90,
+      "non_contiguous": false,
+      "contains_entry": true
+    },
+    "decompilerSignature": "double * __fastcall fit_polygon_in_quad_on_resize(double * param_1, undefined8 * param_2, int param_3, double param_4, char param_5, char param_6, char param_7, char param_8)"
+  },
+  "callees": [
+    {
+      "name": "FUN_180008de0",
+      "address": "0x180008de0",
+      "bodyBytes": 5255
+    }
+  ],
+  "observations": [
+    "Exported wrapper calls internal function at 0x180008de0",
+    "Decompiler output copies four numeric values to the result buffer"
+  ],
+  "limitations": [
+    "Pseudocode and inferred types are not original source",
+    "Only this exported wrapper was decompiled; the internal fitting algorithm was not analyzed",
+    "No runtime call or crop UI was observed",
+    "This PE library proof does not establish Dart ELF decompilation support"
+  ],
+  "mainExecutable": {
+    "evidenceId": "ev_6ae9159ca5dc694aafa74e1c662ded262f92b21e4356788fe83dd30e630f9528",
+    "fullRecordSha256": "1688c37debae244eadfed367421f92f80d54aac77ae6faee7a11de1dade07d83",
+    "artifactSha256": "d920c98cf56029d1757cfa25b890721da6fb624cd646e01a1f32ab0b0b0eedd9",
+    "provider": {
+      "id": "ghidra",
+      "name": "Ghidra",
+      "version": "12.1.4"
+    },
+    "profileDigest": "bfde9fb1858f9dea4c41196fda2f2a6f579bf0cfe6d56179a02ef9be56a30c91",
+    "disabledAnalyzers": [
+      "WindowsResourceReference"
+    ],
+    "operation": "analyze_function",
+    "name": "entry",
+    "address": "0x14066e960",
+    "bodyBytes": 18,
+    "callees": [
+      {
+        "name": "FUN_14066e7ec",
+        "address": "0x14066e7ec"
+      },
+      {
+        "name": "__security_init_cookie",
+        "address": "0x14066f66c"
+      }
+    ],
+    "observations": [
+      "Startup entry calls __security_init_cookie then FUN_14066e7ec"
+    ],
+    "limitations": [
+      "Only this startup function was analyzed; editor behavior and Dart functions remain unexamined",
+      "First attempt hit 330000 ms startup timeout; successful retry used 900000 ms and disabled WindowsResourceReference",
+      "Local snapshot retains queried Evidence; it is not a complete saved Ghidra database"
+    ]
+  }
+}

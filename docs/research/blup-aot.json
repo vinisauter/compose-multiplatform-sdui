@@ -1,0 +1,678 @@
+{
+  "method": "ELF64 section/dynamic-symbol parsing and literal URI probes inside isolate data",
+  "artifact": {
+    "bytes": 42058656,
+    "sha256": "d49387ab1a18c30d7be234226e8dd4b65c84cf238d2509d07618b9c690fad90f",
+    "machine": 62
+  },
+  "snapshots": [
+    {
+      "name": "_kDartVmSnapshotInstructions",
+      "address": "0xfb4000",
+      "fileOffset": 16465920,
+      "bytes": 27136,
+      "section": ".text",
+      "sha256": "5e06c451c8a09247a7d1755db177593072d357ef20a664bc3182d16fe57464e0"
+    },
+    {
+      "name": "_kDartIsolateSnapshotInstructions",
+      "address": "0xfbaa00",
+      "fileOffset": 16493056,
+      "bytes": 25550784,
+      "section": ".text",
+      "sha256": "831c4b9bb2685fc5e8858f719fe3242cca876411188b73cc00ff0dff4e0e7b10"
+    },
+    {
+      "name": "_kDartVmSnapshotData",
+      "address": "0x340",
+      "fileOffset": 832,
+      "bytes": 36560,
+      "section": ".rodata",
+      "sha256": "4c16a969d1cd65571afa4533a5c01a5591cfbd1f77ede3ad7ca93c1cd5378612"
+    },
+    {
+      "name": "_kDartIsolateSnapshotData",
+      "address": "0x9240",
+      "fileOffset": 37440,
+      "bytes": 16420496,
+      "section": ".rodata",
+      "sha256": "e246f1e97f872f5c2122df0d49e6354f33b93bfb979df854878e1fba405b0af2"
+    },
+    {
+      "name": "_kDartSnapshotBuildId",
+      "address": "0x1c8",
+      "fileOffset": 456,
+      "bytes": 32,
+      "section": ".note.gnu.build-id",
+      "sha256": "a2608507cb3b170119bce6443694e2957b90322b241ef9c28c4e2360a9ee22a7"
+    }
+  ],
+  "packageUriCount": 3931,
+  "packages": {
+    "package:visual_builder": 722,
+    "package:flutter": 452,
+    "package:highlight": 198,
+    "package:image": 155,
+    "package:lottie": 155,
+    "package:sentry": 127,
+    "package:ide": 99,
+    "package:blupsheets": 97,
+    "package:blup_dashboard": 90,
+    "package:youtube_explode_dart": 88,
+    "package:flutter_editor": 75,
+    "package:xml": 73,
+    "package:flutter_code_editor": 72,
+    "package:petitparser": 69,
+    "package:croppy": 64,
+    "package:drift": 59,
+    "package:dart_style": 57,
+    "package:sentry_flutter": 52,
+    "package:_fe_analyzer_shared": 47,
+    "package:markdown": 45,
+    "package:json_path": 44,
+    "package:analyzer": 37,
+    "package:puppeteer": 36,
+    "package:google_fonts": 33,
+    "package:zefyrka": 29,
+    "package:archive": 29,
+    "package:custom_widgets": 27,
+    "package:dio": 26,
+    "package:media_kit": 26,
+    "package:flutter_cache_manager": 22,
+    "package:vector_graphics_compiler": 21,
+    "package:cloud_firestore_platform_interface": 21,
+    "package:amazon_cognito_identity_dart_2": 21,
+    "package:sqlite3": 20,
+    "package:intl": 20,
+    "package:rxdart": 19,
+    "package:blup_login_widget": 19,
+    "package:media_kit_video": 19,
+    "package:blup_utils": 19,
+    "package:feedback": 18,
+    "package:blup_stripe": 17,
+    "package:vector_math": 16,
+    "package:material_color_utilities": 16,
+    "package:http": 16,
+    "package:file": 15,
+    "package:html": 14,
+    "package:super_native_extensions": 14,
+    "package:dart_mappable": 12,
+    "package:yaml": 12,
+    "package:drift_database": 11,
+    "package:notus_format": 11,
+    "package:collection": 10,
+    "package:firebase_core_platform_interface": 10,
+    "package:irondash_message_channel": 10,
+    "package:super_clipboard": 10,
+    "package:pub_api_client": 10,
+    "package:shared_aws_api": 10,
+    "package:csslib": 10,
+    "package:path": 10,
+    "package:aws_apis": 9,
+    "package:universal_html": 9,
+    "package:async": 9,
+    "package:logger": 9,
+    "package:tutorial_coach_mark": 9,
+    "package:source_span": 9,
+    "package:rfc_6901": 8,
+    "package:flutter_localizations": 8,
+    "package:win32": 8,
+    "package:diff_match_patch": 7,
+    "package:cloud_firestore": 7,
+    "package:type_plus": 7,
+    "package:bitsdojo_window_windows": 7,
+    "package:crypto": 6,
+    "package:stack_trace": 6,
+    "package:string_scanner": 6,
+    "package:uuid": 6,
+    "package:file_selector_platform_interface": 5,
+    "package:pubspec": 5,
+    "package:provider": 5,
+    "package:ide_theme": 5,
+    "package:lists": 5,
+    "package:flutter_markdown": 4,
+    "package:flutter_webrtc": 4,
+    "package:connectivity_plus_platform_interface": 4,
+    "package:flutter_svg": 4,
+    "package:desktop_drop": 4,
+    "package:pub_semver": 4,
+    "package:process": 4,
+    "package:vector_graphics": 4,
+    "package:web_socket_channel": 4,
+    "package:package_info_plus": 4,
+    "package:cached_network_image": 4,
+    "package:shared_preferences_platform_interface": 4,
+    "package:convert": 4,
+    "package:term_glyph": 4,
+    "package:bitsdojo_window": 4,
+    "package:characters": 4,
+    "package:bitsdojo_window_platform_interface": 4,
+    "package:http_parser": 4,
+    "package:audio_session": 4,
+    "package:ffi": 3,
+    "package:clock": 3,
+    "package:desktop_multi_window": 3,
+    "package:material_symbols_icons": 3,
+    "package:firebase_core": 3,
+    "package:scrollable_positioned_list": 3,
+    "package:ellipsized_text": 3,
+    "package:screen_brightness_platform_interface": 3,
+    "package:maybe_just_nothing": 3,
+    "package:animated_text_kit": 3,
+    "package:wakelock_platform_interface": 3,
+    "package:url_launcher": 3,
+    "package:equatable": 3,
+    "package:linkify": 3,
+    "package:iregexp": 3,
+    "package:package_info_plus_platform_interface": 3,
+    "package:wakelock_plus_platform_interface": 3,
+    "package:url_launcher_platform_interface": 3,
+    "package:path_provider_windows": 3,
+    "package:stream_channel": 3,
+    "package:octo_image": 3,
+    "package:logging": 3,
+    "package:quiver": 2,
+    "package:file_selector_windows": 2,
+    "package:vector_graphics_codec": 2,
+    "package:synchronized": 2,
+    "package:shared_preferences": 2,
+    "package:wakelock_plus": 2,
+    "package:json_annotation": 2,
+    "package:path_parsing": 2,
+    "package:url_launcher_windows": 2,
+    "package:sticky_headers": 2,
+    "package:platform": 2,
+    "package:autotrie": 2,
+    "package:scroll_to_index": 2,
+    "package:auto_size_text": 2,
+    "package:web_socket": 2,
+    "package:file_picker": 2,
+    "package:flutter_custom_cursor": 2,
+    "package:cross_file": 2,
+    "package:window_manager": 2,
+    "package:path_provider_platform_interface": 2,
+    "package:dotted_border": 2,
+    "package:auto_size_text_field": 2,
+    "package:just_audio_platform_interface": 2,
+    "package:shimmer_effect": 1,
+    "package:toast": 1,
+    "package:uri_parser": 1,
+    "package:percent_indicator": 1,
+    "package:aws_codecommit_api": 1,
+    "package:unicode": 1,
+    "package:plugin_platform_interface": 1,
+    "package:mixpanel_analytics": 1,
+    "package:aws_codepipeline_api": 1,
+    "package:fluttertoast": 1,
+    "package:device_info_plus": 1,
+    "package:tree_iterator": 1,
+    "package:connectivity_plus": 1,
+    "package:stroke_text": 1,
+    "package:editor_from_scratch": 1,
+    "package:image_picker_platform_interface": 1,
+    "package:intl_phone_number_input": 1,
+    "package:shared_preferences_windows": 1,
+    "package:analysis_server_lib": 1,
+    "package:linked_scroll_controller": 1,
+    "package:tuple": 1,
+    "package:font_awesome_flutter": 1,
+    "package:quill_format": 1,
+    "package:cached_network_image_platform_interface": 1,
+    "package:email_validator": 1,
+    "package:shimmer": 1,
+    "package:duration_picker_dialog_box": 1,
+    "package:zoom_notifier": 1,
+    "package:path_drawing": 1,
+    "package:keyboard_event": 1,
+    "package:flutter_screenutil": 1,
+    "package:event_bus": 1,
+    "package:b_dep": 1,
+    "package:image_picker_windows": 1,
+    "package:desktop_lifecycle": 1,
+    "package:typed_data": 1,
+    "package:awesome_ripple_animation": 1,
+    "package:safe_local_storage": 1,
+    "package:volume_controller": 1,
+    "package:flutter_linkify": 1,
+    "package:wakelock": 1,
+    "package:eva_icons_flutter": 1,
+    "package:nested": 1,
+    "package:screen_brightness": 1,
+    "package:path_provider": 1,
+    "package:_flutterfire_internals": 1,
+    "package:device_info_plus_platform_interface": 1,
+    "package:just_audio": 1,
+    "package:aws_codebuild_api": 1,
+    "package:aws_codestar_notifications_api": 1,
+    "package:aws_s3_api": 1,
+    "package:pool": 1
+  },
+  "selectedSourceUris": [
+    {
+      "uri": "package:visual_builder/utils/code_generation/cg_specific/cg_main_class_specific.dart",
+      "firstByteOffset": 12199712
+    },
+    {
+      "uri": "package:visual_builder/utils/code_generation/cg_specific/cg_new_page_specfic.dart",
+      "firstByteOffset": 11232240
+    },
+    {
+      "uri": "package:visual_builder/utils/code_generation/code_generation.dart",
+      "firstByteOffset": 10753648
+    },
+    {
+      "uri": "package:visual_builder/utils/code_generation/utils/code_generation_utils.dart",
+      "firstByteOffset": 12916624
+    },
+    {
+      "uri": "package:visual_builder/utils/code_generation/utils/imports.dart",
+      "firstByteOffset": 8627968
+    },
+    {
+      "uri": "package:visual_builder/utils/curl_operations/curl_upload_download.dart",
+      "firstByteOffset": 7512112
+    },
+    {
+      "uri": "package:visual_builder/utils/event_manager/events/on_blup_flie_load_complete.dart",
+      "firstByteOffset": 8749696
+    },
+    {
+      "uri": "package:visual_builder/widgets/blup_designer/components/components_utils/group/smart_layout_values.dart",
+      "firstByteOffset": 12713936
+    },
+    {
+      "uri": "package:visual_builder/widgets/blup_designer/components/components_utils/list/list_comp_codegen.dart",
+      "firstByteOffset": 11497168
+    },
+    {
+      "uri": "package:visual_builder/widgets/blup_designer/components/components_utils/list/list_comp_save_and_load_data.dart",
+      "firstByteOffset": 11285152
+    },
+    {
+      "uri": "package:visual_builder/widgets/blup_designer/components/components_utils/text/utils/code_gen.dart",
+      "firstByteOffset": 12300336
+    },
+    {
+      "uri": "package:visual_builder/widgets/blup_designer/components/components_utils/text/utils/text_comp_save_db.dart",
+      "firstByteOffset": 7415504
+    },
+    {
+      "uri": "package:visual_builder/widgets/blup_designer/download_sdk/download_andriodSDK.dart",
+      "firstByteOffset": 13247168
+    },
+    {
+      "uri": "package:visual_builder/widgets/blup_designer/download_sdk/extract_using_7z.dart",
+      "firstByteOffset": 12417328
+    },
+    {
+      "uri": "package:visual_builder/widgets/blup_designer/download_sdk/sdk_operations.dart",
+      "firstByteOffset": 10488832
+    },
+    {
+      "uri": "package:visual_builder/widgets/blup_designer/guiding_lines/AlwaysOnGuidingLines.dart",
+      "firstByteOffset": 11109312
+    },
+    {
+      "uri": "package:visual_builder/widgets/blup_designer/guiding_lines/CustomGuidingLinesUpadated.dart",
+      "firstByteOffset": 11250080
+    },
+    {
+      "uri": "package:visual_builder/widgets/blup_designer/guiding_lines/guidingLinesMain.dart",
+      "firstByteOffset": 10163616
+    },
+    {
+      "uri": "package:visual_builder/widgets/blup_designer/guiding_lines/modal/modalClasses.dart",
+      "firstByteOffset": 11600464
+    },
+    {
+      "uri": "package:visual_builder/widgets/blup_designer/guiding_lines/points_calculation_logic.dart",
+      "firstByteOffset": 9956288
+    },
+    {
+      "uri": "package:visual_builder/widgets/blup_designer/guiding_lines/utils/painter_utils.dart",
+      "firstByteOffset": 7588496
+    },
+    {
+      "uri": "package:visual_builder/widgets/blup_designer/library_widget/library_component.dart",
+      "firstByteOffset": 8364880
+    },
+    {
+      "uri": "package:visual_builder/widgets/blup_designer/library_widget/single_widgets/page.dart",
+      "firstByteOffset": 11313840
+    },
+    {
+      "uri": "package:visual_builder/widgets/blup_designer/library_widget/single_widgets/widgets/alertBox.dart",
+      "firstByteOffset": 11922400
+    },
+    {
+      "uri": "package:visual_builder/widgets/blup_designer/library_widget/single_widgets/widgets/androidDatePicker.dart",
+      "firstByteOffset": 9013424
+    },
+    {
+      "uri": "package:visual_builder/widgets/blup_designer/library_widget/single_widgets/widgets/androidTimePicker.dart",
+      "firstByteOffset": 8541792
+    },
+    {
+      "uri": "package:visual_builder/widgets/blup_designer/library_widget/single_widgets/widgets/appbar.dart",
+      "firstByteOffset": 9652464
+    },
+    {
+      "uri": "package:visual_builder/widgets/blup_designer/library_widget/single_widgets/widgets/bottomNavigationBar.dart",
+      "firstByteOffset": 12261376
+    },
+    {
+      "uri": "package:visual_builder/widgets/blup_designer/library_widget/single_widgets/widgets/camera.dart",
+      "firstByteOffset": 12276672
+    },
+    {
+      "uri": "package:visual_builder/widgets/blup_designer/library_widget/single_widgets/widgets/checkbox.dart",
+      "firstByteOffset": 11969728
+    },
+    {
+      "uri": "package:visual_builder/widgets/blup_designer/library_widget/single_widgets/widgets/dropdown_menu.dart",
+      "firstByteOffset": 9222528
+    },
+    {
+      "uri": "package:visual_builder/widgets/blup_designer/library_widget/single_widgets/widgets/fab.dart",
+      "firstByteOffset": 9685792
+    },
+    {
+      "uri": "package:visual_builder/widgets/blup_designer/library_widget/single_widgets/widgets/icon_wid.dart",
+      "firstByteOffset": 13253136
+    },
+    {
+      "uri": "package:visual_builder/widgets/blup_designer/library_widget/single_widgets/widgets/iosDatePicker.dart",
+      "firstByteOffset": 11468416
+    },
+    {
+      "uri": "package:visual_builder/widgets/blup_designer/library_widget/single_widgets/widgets/iosTimePicker.dart",
+      "firstByteOffset": 7930688
+    },
+    {
+      "uri": "package:visual_builder/widgets/blup_designer/library_widget/single_widgets/widgets/linear_progress_bar.dart",
+      "firstByteOffset": 7467808
+    },
+    {
+      "uri": "package:visual_builder/widgets/blup_designer/library_widget/single_widgets/widgets/lottie.dart",
+      "firstByteOffset": 12454784
+    },
+    {
+      "uri": "package:visual_builder/widgets/blup_designer/library_widget/single_widgets/widgets/map_view.dart",
+      "firstByteOffset": 8717728
+    },
+    {
+      "uri": "package:visual_builder/widgets/blup_designer/library_widget/single_widgets/widgets/multiChoiceDialog.dart",
+      "firstByteOffset": 11486032
+    },
+    {
+      "uri": "package:visual_builder/widgets/blup_designer/library_widget/single_widgets/widgets/progress_wheel.dart",
+      "firstByteOffset": 11255520
+    },
+    {
+      "uri": "package:visual_builder/widgets/blup_designer/library_widget/single_widgets/widgets/radio.dart",
+      "firstByteOffset": 7790448
+    },
+    {
+      "uri": "package:visual_builder/widgets/blup_designer/library_widget/single_widgets/widgets/slider.dart",
+      "firstByteOffset": 10289328
+    },
+    {
+      "uri": "package:visual_builder/widgets/blup_designer/library_widget/single_widgets/widgets/switch.dart",
+      "firstByteOffset": 7943568
+    },
+    {
+      "uri": "package:visual_builder/widgets/blup_designer/library_widget/single_widgets/widgets/text_button.dart",
+      "firstByteOffset": 12831760
+    },
+    {
+      "uri": "package:visual_builder/widgets/blup_designer/library_widget/single_widgets/widgets/utils/bl_utils.dart",
+      "firstByteOffset": 9844416
+    },
+    {
+      "uri": "package:visual_builder/widgets/blup_designer/library_widget/single_widgets/widgets/utils/single_outliner_widget.dart",
+      "firstByteOffset": 12260960
+    },
+    {
+      "uri": "package:visual_builder/widgets/blup_designer/library_widget/single_widgets/widgets/webview.dart",
+      "firstByteOffset": 9201696
+    },
+    {
+      "uri": "package:visual_builder/widgets/blup_designer/library_widget/wid_lib/components_widgets.dart",
+      "firstByteOffset": 9026752
+    },
+    {
+      "uri": "package:visual_builder/widgets/blup_designer/library_widget/wid_lib/save_dialog.dart",
+      "firstByteOffset": 8681456
+    },
+    {
+      "uri": "package:visual_builder/widgets/blup_designer/library_widget/wid_lib_resolver.dart",
+      "firstByteOffset": 12856608
+    },
+    {
+      "uri": "package:visual_builder/widgets/blup_designer/undo_redo/undo_redo.dart",
+      "firstByteOffset": 8696736
+    },
+    {
+      "uri": "package:visual_builder/widgets/blup_designer/undo_redo/utils/mixin_helpers.dart",
+      "firstByteOffset": 9713328
+    },
+    {
+      "uri": "package:visual_builder/widgets/blup_designer/undo_redo/utils/utils.dart",
+      "firstByteOffset": 11255888
+    },
+    {
+      "uri": "package:visual_builder/widgets/blup_designer/utils/bd_page_canvas_utils/utils/undo_redo_bd_page_canvas.dart",
+      "firstByteOffset": 8942752
+    },
+    {
+      "uri": "package:visual_builder/widgets/blup_designer/utils/resolvers/guiding_lines_resolver.dart",
+      "firstByteOffset": 13095760
+    },
+    {
+      "uri": "package:visual_builder/widgets/blup_designer/utils/resolvers/save_data_resolver.dart",
+      "firstByteOffset": 8183216
+    },
+    {
+      "uri": "package:visual_builder/widgets/blup_lightning/nodes/bl_node_function/bl_node_function_codegen.dart",
+      "firstByteOffset": 12292368
+    },
+    {
+      "uri": "package:visual_builder/widgets/blup_lightning/nodes/bl_node_function/bl_node_function_codegen_abstract.dart",
+      "firstByteOffset": 10444352
+    },
+    {
+      "uri": "package:visual_builder/widgets/blup_lightning/nodes/bl_node_function/bl_node_function_codegen_fake.dart",
+      "firstByteOffset": 10455472
+    },
+    {
+      "uri": "package:visual_builder/widgets/blup_lightning/nodes/bl_node_listview/utils/bl_lv_ex_code_gen.dart",
+      "firstByteOffset": 9264128
+    },
+    {
+      "uri": "package:visual_builder/widgets/blup_lightning/nodes/bl_node_listview/utils/bl_lv_fake_code_gens.dart",
+      "firstByteOffset": 10423280
+    },
+    {
+      "uri": "package:visual_builder/widgets/blup_lightning/nodes/bl_node_listview/utils/bl_lv_in_code_gen.dart",
+      "firstByteOffset": 8933744
+    },
+    {
+      "uri": "package:visual_builder/widgets/blup_lightning/nodes/firebase/firebase_storage/bl_node_storage_file_uploader.dart",
+      "firstByteOffset": 13120752
+    },
+    {
+      "uri": "package:visual_builder/widgets/blup_lightning/nodes/flow_control/bl_node_break.dart",
+      "firstByteOffset": 9082112
+    },
+    {
+      "uri": "package:visual_builder/widgets/blup_lightning/nodes/flow_control/bl_node_foreachloop.dart",
+      "firstByteOffset": 7715168
+    },
+    {
+      "uri": "package:visual_builder/widgets/blup_lightning/nodes/flow_control/bl_node_forloop.dart",
+      "firstByteOffset": 7408688
+    },
+    {
+      "uri": "package:visual_builder/widgets/blup_lightning/nodes/flow_control/bl_node_ifelse.dart",
+      "firstByteOffset": 8012416
+    },
+    {
+      "uri": "package:visual_builder/widgets/blup_lightning/nodes/flow_control/bl_node_switch.dart",
+      "firstByteOffset": 12707600
+    },
+    {
+      "uri": "package:visual_builder/widgets/blup_lightning/nodes/flow_control/bl_node_whileloop.dart",
+      "firstByteOffset": 11056208
+    },
+    {
+      "uri": "package:visual_builder/widgets/blup_lightning/nodes/functions/bl_node_file_uploader.dart",
+      "firstByteOffset": 10649328
+    },
+    {
+      "uri": "package:visual_builder/widgets/blup_lightning/nodes/variables/bl_node_bool.dart",
+      "firstByteOffset": 8724144
+    },
+    {
+      "uri": "package:visual_builder/widgets/blup_lightning/nodes/variables/bl_node_color.dart",
+      "firstByteOffset": 7378528
+    },
+    {
+      "uri": "package:visual_builder/widgets/blup_lightning/nodes/variables/bl_node_datetime.dart",
+      "firstByteOffset": 10082496
+    },
+    {
+      "uri": "package:visual_builder/widgets/blup_lightning/nodes/variables/bl_node_double.dart",
+      "firstByteOffset": 11345232
+    },
+    {
+      "uri": "package:visual_builder/widgets/blup_lightning/nodes/variables/bl_node_duration.dart",
+      "firstByteOffset": 9388576
+    },
+    {
+      "uri": "package:visual_builder/widgets/blup_lightning/nodes/variables/bl_node_icon.dart",
+      "firstByteOffset": 11706112
+    },
+    {
+      "uri": "package:visual_builder/widgets/blup_lightning/nodes/variables/bl_node_integer.dart",
+      "firstByteOffset": 11945792
+    },
+    {
+      "uri": "package:visual_builder/widgets/blup_lightning/nodes/variables/bl_node_string.dart",
+      "firstByteOffset": 9017296
+    },
+    {
+      "uri": "package:visual_builder/widgets/blup_lightning/utils/bl_bd_node_points_data.dart",
+      "firstByteOffset": 11698784
+    },
+    {
+      "uri": "package:visual_builder/widgets/blup_lightning/utils/bl_node_point_utils.dart",
+      "firstByteOffset": 11192544
+    },
+    {
+      "uri": "package:visual_builder/widgets/blup_lightning/utils/node_point/abstracts_n_mixins/mixins/np_error_analyser.dart",
+      "firstByteOffset": 12313728
+    },
+    {
+      "uri": "package:visual_builder/widgets/blup_lightning/utils/node_point/abstracts_n_mixins/node_point_abstract.dart",
+      "firstByteOffset": 8044000
+    },
+    {
+      "uri": "package:visual_builder/widgets/blup_lightning/utils/node_point/bl_node_point_wire_n_text.dart",
+      "firstByteOffset": 12700112
+    },
+    {
+      "uri": "package:visual_builder/widgets/blup_lightning/utils/node_point/node_point_utils/bl_code_gen.dart",
+      "firstByteOffset": 11419024
+    },
+    {
+      "uri": "package:visual_builder/widgets/blup_lightning/utils/node_point/node_point_utils/bl_node_color_schema.dart",
+      "firstByteOffset": 12016432
+    },
+    {
+      "uri": "package:visual_builder/widgets/blup_lightning/utils/node_point/node_point_utils/bl_np_wire_text_widget.dart",
+      "firstByteOffset": 12271952
+    },
+    {
+      "uri": "package:visual_builder/widgets/blup_lightning/utils/node_point/node_point_utils/bl_wire_painter.dart",
+      "firstByteOffset": 12443056
+    },
+    {
+      "uri": "package:visual_builder/widgets/blup_lightning/utils/node_point/node_point_utils/fake_node_point_code_uitls.dart",
+      "firstByteOffset": 10458704
+    },
+    {
+      "uri": "package:visual_builder/widgets/blup_lightning/utils/node_point/node_point_utils/models/np_models.dart",
+      "firstByteOffset": 12535360
+    },
+    {
+      "uri": "package:visual_builder/widgets/blup_lightning/utils/node_point/node_point_utils/node_point_code_utils.dart",
+      "firstByteOffset": 11428272
+    },
+    {
+      "uri": "package:visual_builder/widgets/blup_lightning/utils/node_point/node_point_utils/node_point_event_bus_converted.dart",
+      "firstByteOffset": 11708848
+    },
+    {
+      "uri": "package:visual_builder/widgets/blup_lightning/utils/undo_redo/undo_redo.dart",
+      "firstByteOffset": 10949264
+    },
+    {
+      "uri": "package:visual_builder/widgets/blup_on_file_loading/blup_on_file_loading.dart",
+      "firstByteOffset": 11592880
+    },
+    {
+      "uri": "package:visual_builder/widgets/blup_on_file_loading/file_load_settings_resolver.dart",
+      "firstByteOffset": 7510288
+    },
+    {
+      "uri": "package:visual_builder/widgets/blup_on_file_loading/settings.dart",
+      "firstByteOffset": 12693056
+    },
+    {
+      "uri": "package:visual_builder/widgets/blup_top_menu/devices/load_devices_isolate.dart",
+      "firstByteOffset": 11499520
+    },
+    {
+      "uri": "package:visual_builder/widgets/blup_top_menu/import_figma/figma_custom_tooltip.dart",
+      "firstByteOffset": 10164384
+    },
+    {
+      "uri": "package:visual_builder/widgets/blup_top_menu/import_figma/image_help_button.dart",
+      "firstByteOffset": 11776928
+    },
+    {
+      "uri": "package:visual_builder/widgets/blup_top_menu/import_figma/import_figma_api.dart",
+      "firstByteOffset": 7506848
+    },
+    {
+      "uri": "package:visual_builder/widgets/blup_top_menu/import_figma/import_figma_file.dart",
+      "firstByteOffset": 9685904
+    },
+    {
+      "uri": "package:visual_builder/widgets/blup_top_menu/import_figma/import_figma_utils.dart",
+      "firstByteOffset": 7572928
+    },
+    {
+      "uri": "package:visual_builder/widgets/blup_top_menu/import_figma/progress_indicator.dart",
+      "firstByteOffset": 8924464
+    },
+    {
+      "uri": "package:visual_builder/widgets/blup_top_menu/import_figma/smart_layout_alignment.dart",
+      "firstByteOffset": 9309968
+    },
+    {
+      "uri": "package:visual_builder/widgets/global_widgets/flutter_analyser/parser/visitors/variable.dart",
+      "firstByteOffset": 9579728
+    },
+    {
+      "uri": "package:visual_builder/widgets/real_time_collaboration/load_project_data.dart",
+      "firstByteOffset": 11305600
+    }
+  ],
+  "selectedSourceUriTotal": 105,
+  "limitations": [
+    "URIs are embedded byte-pattern observations, not recovered source files",
+    "Names do not prove execution, class semantics or dependency versions",
+    "This does not deserialize Dart snapshot clusters or decompile Dart functions"
+  ]
+}

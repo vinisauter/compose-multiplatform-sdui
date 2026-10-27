@@ -1,6 +1,6 @@
 # Blup: pesquisa e implicações para HummingUI
 
-Pesquisa solicitada em 2026-10-26 sobre o site e a instalação local. Este documento reúne fontes, limites e recomendações; status e retomada ficam em [estado atual](../current-state.md). Não altera contrato, roadmap aprovado ou implementação.
+Pesquisa solicitada em 2026-10-26 sobre o site e a instalação local, com complemento técnico em 2026-10-27. Este documento reúne fontes, limites e recomendações; status e retomada ficam em [estado atual](../current-state.md). Não altera contrato, roadmap aprovado ou implementação. A comparação inicial abaixo retrata T29/T30; o complemento ao final considera T36.
 
 ## Conclusão
 
@@ -105,3 +105,69 @@ Geração de Flutter, IDE completa, build em nuvem e envio às lojas ampliariam 
 | Blup usa protocolo SDUI remoto? | Não estabelecida | Contrato/tráfego ou fonte técnica primária específica; não inferir pela aparência |
 
 Não há base para alegar clone fiel, formato interoperável ou paridade funcional. As sugestões são decisões de design próprias para HummingUI, fundamentadas nas capacidades descritas e no código local.
+
+## Complemento: estrutura Dart AOT e revisão da comparação
+
+### Dois artefatos, duas rotas
+
+O executável `Blup.exe` é PE x86_64, mas `data/app.so` é **ELF64 little endian, máquina 62 (x86-64)**. A extensão não foi usada para decidir o formato: foram lidos o cabeçalho ELF, a tabela de seções e a tabela dinâmica de símbolos. O SHA-256 continua igual ao de L03. Logo, o suporte PE do Ghidra/REA no Windows não estabelece suporte à decompilação desse ELF. Os comandos `identify_flutter_build` e `inspect_dart_aot` anunciados pelo servidor recebem APK; não se passou um arquivo Windows/ELF como se fosse APK.
+
+O novo [script Python](../../tools/research/inspect_blup_aot.py) usa somente a biblioteca padrão, não executa o alvo e não precisa de pacotes instalados. Resolve os símbolos para regiões file-backed, valida seus limites e pesquisa URIs somente dentro de `_kDartIsolateSnapshotData`. Não é um desserializador do heap Dart nem um decompilador de funções. Resultados completos de metadados: [blup-aot.json](blup-aot.json).
+
+```powershell
+python tools/research/inspect_blup_aot.py "C:\Program Files (x86)\Blup\data\app.so" --output docs/research/blup-aot.json
+```
+
+| Símbolo observado em `.dynsym` | Offset no arquivo | Bytes | Seção |
+| --- | ---: | ---: | --- |
+| `_kDartVmSnapshotData` | 832 | 36.560 | .rodata |
+| `_kDartIsolateSnapshotData` | 37.440 | 16.420.496 | .rodata |
+| `_kDartVmSnapshotInstructions` | 16.465.920 | 27.136 | .text |
+| `_kDartIsolateSnapshotInstructions` | 16.493.056 | 25.550.784 | .text |
+| `_kDartSnapshotBuildId` | 456 | 32 | .note.gnu.build-id |
+
+Esses tamanhos são `st_size` dos símbolos, não quantidade de classes/funções recuperadas. O inventário inclui hashes por região, 3.931 URIs de pacote distintas e uma seleção de 105 referências relevantes, todas com primeiro offset. A presença literal de URI não prova que o arquivo foi executado ou que seu código está integralmente recuperável. `visual_builder` aparece em 722 URIs; `ide`, em 99. Não são versões nem árvores completas de dependências.
+
+### O que as referências acrescentam
+
+| Referência dentro de `package:visual_builder/` | Primeiro offset | Interpretação limitada e implicação para HummingUI |
+| --- | ---: | --- |
+| `widgets/blup_designer/components/components_utils/group/smart_layout_values.dart` | 12.713.936 | Referência a Smart Layout; priorizar regras explícitas de sizing/alinhamento e feedback de drop coerente |
+| `widgets/blup_designer/guiding_lines/points_calculation_logic.dart` | 9.956.288 | Referência a cálculo de guias; candidato a snapping e medidas de espaçamento derivadas de bounds, sem mutar durante gesto |
+| `widgets/blup_designer/undo_redo/undo_redo.dart` | 8.696.736 | Referência a undo/redo; HummingUI já possui comandos/histórico, portanto reutilizá-los |
+| `widgets/blup_designer/library_widget/wid_lib/save_dialog.dart` | 8.681.456 | Referência a salvar item de biblioteca; sugere investigar autoria de composições reutilizáveis além do catálogo oficial |
+| `widgets/blup_designer/components/components_utils/list/list_comp_save_and_load_data.dart` | 11.285.152 | Referência a persistência de dados da lista; não revela formato, atomicidade ou política de recuperação |
+| `widgets/blup_designer/components/components_utils/list/list_comp_codegen.dart` | 11.497.168 | Referência a geração de código da lista; reforça o cuidado em distinguir compilação de apps de distribuição SDUI |
+| `widgets/blup_lightning/utils/node_point/abstracts_n_mixins/mixins/np_error_analyser.dart` | 12.313.728 | Referência a analisador de erros de portas; oportunidade de diagnósticos de conexão antes do export |
+| `widgets/blup_lightning/utils/node_point/node_point_utils/bl_code_gen.dart` | 11.419.024 | Referência a codegen associado às portas; não estabelece algoritmo nem scheduling |
+| `widgets/blup_top_menu/import_figma/smart_layout_alignment.dart` | 9.309.968 | Referência a adaptação de layout na importação; um importador HummingUI precisaria converter semântica, não só coordenadas |
+
+As inferências acima orientam decisões próprias de produto. Não afirmam que os algoritmos do Blup foram decompilados. A associação entre nome do arquivo e responsabilidade é uma hipótese sustentada pelo nome, sem grafo de chamadas Dart.
+
+### Recomendações após T36
+
+O código atual de `PropertyInspector` já inclui busca, grupos, enum/boolean e preservação de bindings. O registro T36 documenta ampliação de Modifier e validação de brushes/filtros. A prioridade 1 original de Inspector está **parcialmente atendida** e não deve virar uma nova implementação duplicada. Restam interações especializadas como edição visual de cores/gradientes, sizing/alinhamento e seleção assistida de bindings; a qualificação visual por plataforma continua separada.
+
+Ordem sugerida para novos recortes:
+
+1. **Recuperação do projeto local.** O código/documentação atuais ainda distinguem download solicitado de gravação confirmada e não têm autosave. Manter a proposta de storage por projeto/revisão, arquivo corrompido preservado e falha de quota/IO explícita.
+2. **Console com foco no nó e estado da execução.** Reutilizar diagnósticos/executor e acrescentar correlação entre nó autoral, nó compilado, execução e entrada de navegação. Evitar logging de dados pessoais por padrão.
+3. **Biblioteca de composições do usuário.** Reutilizar `insertFragment`/comandos, com IDs e chaves remapeados. Aceite: salvar uma composição com estado/ações, inseri-la duas vezes sem colisão, desfazer/refazer e reabrir arquivo. Definir primeiro se inserções são cópias independentes ou instâncias vinculadas; não prometer atualização global sem esse contrato.
+4. **Bindings e listas com dados de exemplo identificados.** Editar tipos/escopos e simular vazio/loading/erro de forma explícita. Usar fontes registradas pelo host para execução real; dados de design não comprovam integração.
+5. **Guias, snapping e navegação no canvas.** Complementar as entregas T30–T35 com limiar estável em pixels de tela, zoom/densidade e cancelamento testados. Posição macro, layout executável e ordem de siblings continuam distintos.
+
+Nenhum desses recortes foi implementado pela pesquisa. A conta ausente impede demonstrar no Blup salvar/reabrir, comportamento do undo, biblioteca e importação; não se presume acesso nem se cria conta automaticamente.
+
+### Prova nativa do provedor
+
+Ghidra 12.1.4 foi instalado a partir do ZIP oficial com SHA-256 verificado, reutilizando o JDK existente. A configuração foi restrita ao servidor REA do Codex, com backup e sem substituição de skills. A sessão MCP posterior também reconheceu o provedor. Isso corrige a indisponibilidade original descrita em L01–L07, mas não torna todas as rotas de artefato suportadas.
+
+O próprio `Blup.exe` teve o ponto de entrada `0x14066e960` analisado com sucesso. O corpo observado tem 18 bytes; o pseudocódigo inicializa `__security_init_cookie` e chama `FUN_14066e7ec`. É código de inicialização, sem prova de regras do editor. Evidence ID: `ev_6ae9159ca5dc694aafa74e1c662ded262f92b21e4356788fe83dd30e630f9528`. A primeira execução atingiu timeout de 330.000 ms; a execução concluída usou prazo de 900.000 ms e exclusão de `WindowsResourceReference`, somente no ambiente daquele processo. Registro integral: `build/blup/ghidra-entry-optimized.json`; snapshot de evidências consultadas: `build/blup/ghidra-optimized.snapshot.json`. O snapshot não é um banco completo de análise Ghidra nem contém o código Dart recuperado. O [resumo nativo](blup-native-proof.json) registra IDs, hashes e perfil para as duas provas.
+
+A DLL `croppy.dll` da mesma instalação exporta `fit_polygon_in_quad` e `fit_polygon_in_quad_on_resize`, observadas na tabela de exports PE. O REA/Ghidra analisou a segunda em `0x18000a2a0`, corpo de 90 bytes, e produziu pseudocódigo e referência para `FUN_180008de0`. O pseudocódigo do wrapper encaminha os argumentos à função interna e copia quatro valores numéricos para o buffer de saída. A interpretação de tipos do decompilador não substitui o protótipo original. Não se analisou a função interna de ajuste nem se observou chamada durante uso do app.
+
+Evidence ID: `ev_b8945f55890f0de4a071bc245f685cdcd7687bcbf75a7db35668d320989d6f93`. SHA-256 da DLL: `428c01b519a59a2bd6996a1b83316dad0154647f61b62ed418027d9efeea4675`. [Resumo selecionado da evidência](blup-native-proof.json), com hash do registro integral retido localmente em `build/blup/ghidra-croppy.json`. Esse JSON resumido não é o bundle REA completo. Perfil: `ghidra-default+disabled:WindowsResourceReference`; tal exclusão é limitação da cobertura, não configuração padrão integral.
+
+A prova demonstra decompilação real de uma biblioteca PE distribuída com o produto. Não demonstra o algoritmo de recorte do Blup, sua interface de assets ou a decompilação das funções Dart em `app.so`. Crop/redimensionamento de mídia permanece uma oportunidade secundária de ferramentas de assets do host, sem colocar essa biblioteca nativa no core compartilhado.
+
+Verificação do extrator ELF: reprodução determinística do inventário, conferência dos 105 offsets selecionados contra os bytes originais e rejeição de três entradas inválidas (texto, cabeçalho truncado e tabela de seções ausente). Uma tentativa inicial de criar fixtures no diretório temporário do sandbox falhou por permissão; a execução final usou `build/blup` e passou. Registro: `build/blup/aot-validation.json`. Não foram executados Gradle, testes do runtime SDUI ou fluxos autenticados do Blup neste recorte.
