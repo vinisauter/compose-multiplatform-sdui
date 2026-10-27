@@ -17,7 +17,7 @@ class CompiledBundleCodec {
         if (errors.isNotEmpty()) return AuthoringResult(null, errors)
         val canonical = contracts.copy(artifacts = contracts.artifacts.entries.sortedBy { it.key }.associate { it.toPair() },
             sourceNodeIds = contracts.sourceNodeIds.entries.sortedBy { it.key }.associate { it.toPair() })
-        val source = json.encodeToString(Bundle(contracts = canonical))
+        val source = json.encodeToString(Bundle(formatVersion = if (canonical.designSystem == null) 1 else 2, contracts = canonical))
         return try {
             parseBoundedJson(source, limits)
             AuthoringResult(source, emptyList())
@@ -27,12 +27,13 @@ class CompiledBundleCodec {
     fun decode(source: String): AuthoringResult<CompiledContracts> = try {
         parseBoundedJson(source, limits)
         val bundle = json.decodeFromString<Bundle>(source)
-        val errors = if (bundle.formatVersion != 1) listOf(diagnostic("Versão do pacote não suportada")) else validate(bundle.contracts)
+        val errors = if (bundle.formatVersion !in 1..2 || (bundle.formatVersion == 1 && bundle.contracts.designSystem != null) || (bundle.formatVersion == 2 && bundle.contracts.designSystem == null)) listOf(diagnostic("Versão do pacote não suportada")) else validate(bundle.contracts)
         AuthoringResult(bundle.contracts.takeIf { errors.isEmpty() }, errors)
     } catch (error: PayloadException) { AuthoringResult(null, listOf(error.diagnostic))
     } catch (error: SerializationException) { AuthoringResult(null, listOf(diagnostic("Pacote inválido: ${error.message}"))) }
 
     private fun validate(contracts: CompiledContracts): List<NodeDiagnostic> {
+        contracts.designSystem?.diagnostics()?.takeIf { it.isNotEmpty() }?.let { return it }
         if (contracts.artifacts.isEmpty() || contracts.artifacts.size > 256 ||
             contracts.entryDestination !in contracts.artifacts || contracts.artifacts.keys.any {
                 !it.matches(Regex("screen\\.json|graph\\.json|screens/[0-9a-f]+\\.json"))

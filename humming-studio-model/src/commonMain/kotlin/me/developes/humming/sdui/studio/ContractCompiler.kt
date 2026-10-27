@@ -5,6 +5,7 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
+import me.developes.humming.sdui.common.DesignSystem
 import me.developes.humming.sdui.common.DiagnosticSeverity
 import me.developes.humming.sdui.common.NodeCatalog
 import me.developes.humming.sdui.common.NodeDiagnostic
@@ -44,6 +45,9 @@ data class CompiledContracts(
     val providerType: String?,
     val artifacts: Map<String, String>,
     val sourceNodeIds: Map<String, String>,
+    @OptIn(kotlinx.serialization.ExperimentalSerializationApi::class)
+    @kotlinx.serialization.EncodeDefault(kotlinx.serialization.EncodeDefault.Mode.NEVER)
+    val designSystem: DesignSystem? = null,
 )
 
 /** Pure compiler. Declared capabilities never install handlers, providers or effects. */

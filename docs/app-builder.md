@@ -22,7 +22,7 @@ O pacote exportado é SDUI para um host compatível. IA, importação proprietá
 
 ## Projeto e integridade
 
-`AppProject`/`AppProjectCodec` ficam no módulo puro `humming-studio-model`. O envelope fechado versão 1 contém exatamente `formatVersion`, `name`, `viewport`, `screenNames` e `document`. O último campo é o documento completo validado pelo codec autoral existente. Nós, relações, ordenação e entrada têm uma única autoridade. Histórico de undo e estado da execução não são serializados.
+`AppProject`/`AppProjectCodec` ficam no módulo puro `humming-studio-model`. O envelope fechado versão 1 contém exatamente `formatVersion`, `name`, `viewport`, `screenNames` e `document`. O último campo é o documento completo validado pelo codec autoral existente. Nós, relações, ordenação e entrada têm uma única autoridade. Histórico de undo e estado da execução não são serializados. Quando há Design System, o envelope é versão 2 e acrescenta designSystem; versões antigas sem tema continuam sendo lidas/escritas como v1.
 
 Nome e rótulos explícitos têm de 1 a 80 caracteres não vazios; rótulos são únicos e referem somente telas raiz existentes. Presets: PHONE 390×844, TABLET 820×1180, DESKTOP 1280×800, em unidades lógicas Compose. Não simulam plataforma, teclado, safe areas ou capacidades nativas. O codec rejeita versões/campos desconhecidos, referências inválidas e excesso de limites (8 milhões de caracteres e 200 mil valores JSON), com serialização canônica e diagnósticos estruturados.
 
@@ -38,7 +38,7 @@ O adapter não confirma persistência do download: salvar não elimina o aviso d
 
 `AppProjectTest` cobre codec, validação, transação e undo/redo. `AppBuilderTest` compila as 111 inserções, testa isolamento e percorre criação de duas telas, propriedades, navegação/retorno, arquivo real, reabertura e pacote compilado. Prints Compose/JVM no guia não substituem qualificação nativa.
 
-O shell é destinado a janelas largas. Abaixo de 850 unidades lógicas o Inspector lateral é ocultado; use Studio avançado nesse tamanho. Novas funções de dados, assets próprios, tema de projeto, histórico persistente ou sincronização do envelope precisam de aceite específico no plano. Mantenha uma autoridade de documento e reutilize comandos, schemas e undo.
+O shell é destinado a janelas largas. Abaixo de 850 unidades lógicas o Inspector lateral é ocultado; use Studio avançado nesse tamanho. Novas funções de dados, assets próprios, histórico persistente ou sincronização do envelope precisam de aceite específico no plano. Mantenha uma autoridade de documento e reutilize comandos, schemas e undo.
 
 ## Canvas e inserção gestual
 
@@ -75,3 +75,7 @@ A árvore do criador mostra a tela selecionada. O Studio avançado usa a mesma i
 ## Propriedades completas do schema
 
 Use Buscar propriedade e Grupo no Inspector para localizar campos do componente, Modifier e slots/eventos, mesmo ausentes. Aplicar/Remover passa pelo workspace e undo. Modificadores, brushes, filtros e cores seguem [Propriedades e Modifier](modifiers.md); relações usam os controles próprios.
+
+## Design System do projeto
+
+O criador possui configuração light/dark/sistema com cores, tipografia, formas, espaçamento e preview SDUI. Temas acompanham arquivos v2; projetos/pacotes v1 sem tema permanecem válidos. Procedimento, precedência e limites em [Design System](design-system.md).

@@ -1,5 +1,6 @@
 package me.developes.humming.sdui.layout.components
 
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import me.developes.humming.sdui.common.collectAsState
@@ -45,9 +46,9 @@ class SDCText(private val node: ServerDrivenNode, viewModel: SDUIFormViewModel) 
         Text(
             modifier = modifier.observeNodeBounds(node),
             text = text,
-            fontWeight = fontWeight,
+            fontWeight = if (LocalProjectDesignSystem.current != null && properties.property("fontWeight") == null) LocalTextStyle.current.fontWeight else fontWeight,
             textAlign = textAlign,
-            fontSize = fontSize,
+            fontSize = if (LocalProjectDesignSystem.current != null && properties.property("fontSize") == null) LocalTextStyle.current.fontSize else fontSize,
             color = color?.toColor() ?: Color.Unspecified
         )
     }

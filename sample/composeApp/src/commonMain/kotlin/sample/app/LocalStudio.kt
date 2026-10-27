@@ -35,6 +35,7 @@ import me.developes.humming.sdui.studio.*
 
 @Composable
 fun LocalStudio(files: StudioFiles? = null, workspace: LocalWorkspace = remember { LocalWorkspace() }, remoteHost: RemoteStudioHost? = null) {
+    val projectDesignSystem = LocalPreviewDesignSystem.current
     require(remoteHost == null || remoteHost.workspace === workspace)
     var document by remember(workspace) { mutableStateOf(workspace.document) }
     var openedVersion by remember(workspace) { mutableStateOf(0L) }
@@ -179,11 +180,11 @@ fun LocalStudio(files: StudioFiles? = null, workspace: LocalWorkspace = remember
                     val result = workspace.compilePreview()
                     messages = diagnostics(result.diagnostics)
                     result.value?.let { compiled ->
-                        if (compiled.providerType == null) {
+                        if (compiled.providerType == null && projectDesignSystem == null) {
                             files?.download("humming-contract.json", compiled.artifacts.getValue(compiled.entryDestination))
                             messages = "Download do contrato solicitado"
                         } else {
-                            val bundle = CompiledBundleCodec().encode(compiled)
+                            val bundle = CompiledBundleCodec().encode(compiled.copy(designSystem = projectDesignSystem))
                             messages = diagnostics(bundle.diagnostics)
                             bundle.value?.let { files?.download("humming-journey.json", it); messages = "Download da jornada completa solicitado" }
                         }
@@ -439,6 +440,8 @@ internal fun Choice(label: String, selected: String, values: List<String>, choos
     }
 }
 
+internal val LocalPreviewDesignSystem = staticCompositionLocalOf<DesignSystem?> { null }
+
 @Composable
 internal fun CompiledPreview(json: String) {
     CompiledPreview(CompiledContracts("preview", 0, "screen.json", null, mapOf("screen.json" to json), emptyMap()))
@@ -450,7 +453,7 @@ internal fun CompiledPreview(compiled: CompiledContracts, tokens: PresentationTo
     DisposableEffect(owner) { onDispose { owner.viewModelStore.clear() } }
     CompositionLocalProvider(LocalViewModelStoreOwner provides owner, LocalPresentationTokens provides tokens) {
         val provider = compiled.providerType ?: "compiled-preview"
-        HummingSDUI().Content(HummingSDUI.Config(provider, compiled.entryDestination, theme = Material3Theme(),
+        HummingSDUI().Content(HummingSDUI.Config(provider, compiled.entryDestination, theme = (compiled.designSystem ?: LocalPreviewDesignSystem.current)?.let { me.developes.humming.sdui.layout.components.ProjectTheme(it) } ?: Material3Theme(),
             screenStateMode = ScreenStateMode.ISOLATED_ENTRIES,
             placeholder = { Text("Carregando preview…") }, errorHandler = { error, vm -> Column {
                 Text("${error.code}: ${error.message}")

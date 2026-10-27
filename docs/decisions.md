@@ -289,3 +289,7 @@ A árvore usa o documento e seus comandos, sem inferir hierarquia dos bounds do 
 ## Inspector orientado pelo schema e modificadores declarativos
 
 Listar todo o schema evita esconder recursos ausentes no nó. Slots/eventos permanecem relações, enquanto brushes/filtros recebem tipos validados. ModifierProperties é uma superfície declarativa finita; callbacks, receivers e objetos de plataforma não viram código de payload. modifierAlpha preserva o alpha específico de Image. Novos campos opcionais não reescrevem documentos; seu uso requer host atualizado. Mapping/precedência em modifiers.md.
+
+## Design System local e adapter opt-in
+
+Separar configuração serializável pura do adapter Material preserva o core e os pontos de extensão. O tema é metadado do projeto/pacote, sem reescrever nós. Envelopes v2 tornam explícita a exigência de host atualizado, enquanto v1 sem tema conserva seu wire. Rascunho cancelável e históricos separados evitam mutação parcial de nós. Geração sRGB local tem nome/limites próprios; não se anuncia equivalência a HCT. Procedimento e precedência em design-system.md.

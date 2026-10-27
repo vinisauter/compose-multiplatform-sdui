@@ -51,6 +51,7 @@ object LayoutDefinitions {
             number("aspectRatio", minimum = Float.MIN_VALUE.toDouble()),
             PropertyDefinition("modifierAlpha", PropertyKind.FLOAT, minimum = 0.0, maximum = 1.0),
             color("borderColor"),
+            choice("paddingToken", "xs|sm|md|lg|xl"),
             number("widthInMax", minimum = 0.0).copy(minimumProperty = "widthInMin"),
             number("heightInMax", minimum = 0.0).copy(minimumProperty = "heightInMin"),
             number("requiredMaxWidth", minimum = 0.0).copy(minimumProperty = "requiredMinWidth"),

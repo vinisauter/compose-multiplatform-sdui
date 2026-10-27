@@ -209,8 +209,8 @@ class SDCTextField(val node: ServerDrivenNode, val viewModel: SDUIFormViewModel)
             singleLine = singleLine ?: false,
             maxLines = maxLines ?: Int.MAX_VALUE,
             minLines = minLines ?: 1,
-            textStyle = TextStyle(
-                fontSize = fontSize,
+            textStyle = (if (LocalProjectDesignSystem.current != null) androidx.compose.material3.MaterialTheme.typography.bodyLarge else TextStyle.Default).copy(
+                fontSize = if (LocalProjectDesignSystem.current != null && properties.property("fontSize") == null) androidx.compose.material3.MaterialTheme.typography.bodyLarge.fontSize else fontSize,
                 color = color?.toColor() ?: Color.Unspecified,
             ),
 //            prefix = ,

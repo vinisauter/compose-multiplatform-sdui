@@ -6,7 +6,7 @@ Slots visuais são editados pela árvore, paleta e **Adicionar em**; eventos pel
 
 ## Mapping declarativo
 
-`LayoutDefinitions.modifiers` define os **59 campos** compartilhados pelos 111 schemas visuais; `ModifierProperties` os aplica. As APIs foram conferidas nas fontes resolvidas Compose 1.8.2 (Size.kt, AspectRatio.kt, Offset.kt, Border.kt) e por compilação. Não são introduzidos tipos Compose no contrato puro.
+`LayoutDefinitions.modifiers` define os **60 campos** compartilhados pelos 111 schemas visuais; `ModifierProperties` os aplica. As APIs foram conferidas nas fontes resolvidas Compose 1.8.2 (Size.kt, AspectRatio.kt, Offset.kt, Border.kt) e por compilação. Não são introduzidos tipos Compose no contrato puro.
 
 | Campos | API / semântica |
 | --- | --- |
@@ -24,6 +24,7 @@ Slots visuais são editados pela árvore, paleta e **Adicionar em**; eventos pel
 | aspectRatio, aspectRatioMatchHeightConstraintsFirst | Razão positiva finita e prioridade de constraints de altura |
 | offsetX, offsetY | offset em dp, respeita direção de layout |
 | absoluteOffsetX, absoluteOffsetY | absoluteOffset em dp |
+| paddingToken | xs/sm/md/lg/xl do Design System; padding adicional antes dos valores literais |
 | paddingAll, paddingHorizontal, paddingVertical, paddingStart, paddingTop, paddingEnd, paddingBottom | dp; lado explícito precede eixo, que precede All |
 | modifierAlpha | alpha de 0 a 1; nome separado preserva Image.alpha |
 | rotation | rotate em graus |
@@ -41,7 +42,7 @@ Campos novos são opcionais. Dimensões novas são finitas e não negativas; asp
 
 ## Ordem da cadeia
 
-A ordem fixa é: size → requiredSize/Width/Height → ranges preferidos → ranges obrigatórios → wrapContentSize → máximos → aspectRatio → wrapContentWidth/Height → offset → absoluteOffset → zIndex → alpha → rotate → scale → shadow → clips → cadeia legada (width/height/defaultMinSize/fill/padding/gradient/background) → border → scroll. Ausência não acrescenta operações. A precedência das constraints segue essa ordem; evite combinar size/width ou outros tamanhos conflitantes. O Inspector não modifica outro campo silenciosamente.
+A ordem fixa é: size → requiredSize/Width/Height → ranges preferidos → ranges obrigatórios → wrapContentSize → máximos → aspectRatio → wrapContentWidth/Height → offset → absoluteOffset → zIndex → alpha → rotate → scale → shadow → clips → cadeia legada (width/height/defaultMinSize/fill/paddingToken/padding/gradient/background) → border → scroll. Ausência não acrescenta operações. A precedência das constraints segue essa ordem; evite combinar size/width ou outros tamanhos conflitantes. O Inspector não modifica outro campo silenciosamente.
 
 Transforms afetam desenho/bounds; esta extensão não qualifica hit-testing exato de contornos rotacionados ou não retangulares.
 
@@ -66,3 +67,5 @@ No TextField legado, textFieldColor agora controla o container; trailingIconColo
 Documentos/nomes antigos permanecem; campos novos exigem runtime atualizado. Versões base dos schemas/envelope não mudam por estes campos opcionais; capabilities não negocia cada propriedade. Não enviar campos novos a clientes antigos esperando efeito equivalente. As cores anteriormente inativas do TextField passam a aparecer e os filtros válidos de imagem passam a ser aplicados. Brushes/filtros malformados recebem diagnóstico.
 
 Modifier é uma interface extensível, sem lista fechada de propriedades. weight, align/alignBy de receiver, matchParentSize, menuAnchor, callbacks de pointerInput/layout/foco, animações, nestedScroll e objetos de plataforma precisam de adapters com escopo/lifecycle próprios. Não são campos JSON executáveis nesta superfície. Alguns componentes Material já possuem wrappers específicos; isso não equivale a modificadores universais. Cada extensão deve incluir schema, execução e teste, sem controles sem efeito.
+
+A configuração do projeto e o adapter visual de tema estão descritos em [Design System](design-system.md).

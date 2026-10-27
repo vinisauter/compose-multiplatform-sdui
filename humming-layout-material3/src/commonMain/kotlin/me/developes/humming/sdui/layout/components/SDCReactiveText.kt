@@ -30,7 +30,7 @@ class SDCReactiveText(private val node: ServerDrivenNode, viewModel: SDUIFormVie
         val result by values.collectAsState(ExpressionValue(value.fallback))
         Column(modifier.observeNodeBounds(node)) {
             Text((result.value as SduiValue.Text).value,
-                fontSize = (properties.property("fontSize")?.toFloatOrNull()?.takeIf { it.isFinite() } ?: 16f).sp,
+                fontSize = if (LocalProjectDesignSystem.current != null && properties.property("fontSize") == null) androidx.compose.material3.LocalTextStyle.current.fontSize else (properties.property("fontSize")?.toFloatOrNull()?.takeIf { it.isFinite() } ?: 16f).sp,
                 color = tokenColor?.toColor() ?: properties.property("color")?.toColor() ?: Color.Unspecified)
             if (colorName != null && tokenColor == null)
                 Text("UNKNOWN_COLOR_TOKEN: ${node.id} ${node.sourcePath}.properties.colorToken", color = Color.Red)

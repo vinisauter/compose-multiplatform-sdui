@@ -419,3 +419,7 @@ O adapter Scaffold consome topBar e bottomBar com propertyNodes, conforme o sche
 ## Extensão declarativa de Modifier
 
 Os schemas visuais compartilham os campos opcionais descritos em [Propriedades e Modifier](modifiers.md). GRADIENT e COLOR_FILTER validam JSON limitado com tipos/campos finitos; o Inspector não aceita código. PropertyDefinition declara maximum e minimumProperty para limites e ordem numérica; ranges fracionários inválidos são rejeitados em autoria/runtime. Novos campos exigem cliente atualizado; o mapa atual de capabilities não negocia cada propriedade opcional. O nome modifierAlpha evita colisão com Image.alpha. As cores antigas antes inativas de TextField e a interpretação de filtros Image foram corrigidas; payloads válidos passam a apresentar esses efeitos.
+
+## Tema do projeto
+
+DesignSystem v1 é configuração pura validada; AppProject e CompiledBundle usam v2 quando incluem tema e preservam emissão/leitura v1 sem tema. Clientes antigos não consomem v2; o documento autoral avulso não leva metadados de tema. O adapter ProjectTheme é opt-in no módulo visual; paddingToken resolve xs/sm/md/lg/xl, antes do padding literal. Detalhes de migração e host em [Design System](design-system.md).

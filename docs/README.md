@@ -27,6 +27,8 @@ O [README do projeto](../README.md) é a apresentação resumida. `AGENTS.md` é
 
 ## Catálogos especializados
 
+- [Design System](design-system.md): configuração light/dark/sistema, cores, tipografia, formas, espaçamento e arquivos versionados.
+
 - [Propriedades e Modifier](modifiers.md): campos do Inspector, mapping Compose, validação e limites de extensão.
 
 - [Pesquisa Blup](research/blup.md): evidências da instalação, fontes oficiais e funcionalidades candidatas para o Studio; não altera o roadmap de implementação.

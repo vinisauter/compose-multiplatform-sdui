@@ -96,14 +96,16 @@ class SDCStyle(val node: ServerDrivenNode, val viewModel: SDUIFormViewModel) : L
             surfaceContainerLowest = surfaceContainerLowest ?: currentTheme.surfaceContainerLowest,
             surfaceDim = surfaceDim ?: currentTheme.surfaceDim,
         )
-        MaterialTheme(
-            colorScheme = colorScheme,
-            content = {
-                Surface(modifier = Modifier.observeNodeBounds(node)) {
-                    loadChildren.invoke()
+        androidx.compose.runtime.CompositionLocalProvider(LocalThemeComposition provides colorScheme) {
+            MaterialTheme(
+                colorScheme = colorScheme,
+                content = {
+                    Surface(modifier = Modifier.observeNodeBounds(node)) {
+                        loadChildren.invoke()
+                    }
                 }
-            }
-        )
+            )
+        }
 
     }
 }

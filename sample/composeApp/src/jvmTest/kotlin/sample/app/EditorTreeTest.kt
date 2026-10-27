@@ -54,7 +54,7 @@ class EditorTreeTest {
         var start = relative(row("moving").center)
         var end = relative(row("button").center)
         tree.performMouseInput { moveTo(start); press(); moveTo(end, 400) }
-        compose.onNodeWithTag("studio-tree-drop-hint").assertTextContains("Dentro de button", substring = true)
+        compose.onNodeWithTag("studio-node-button").assert(SemanticsMatcher.expectValue(androidx.compose.ui.semantics.SemanticsProperties.StateDescription, "Dentro de button · children"))
         assertEquals(original, workspace.document)
         tree.performMouseInput { release() }
         compose.waitUntil(5_000) { (workspace.document.nodes.getValue("moving").placement as? Placement.Child)?.parentId == "button" }

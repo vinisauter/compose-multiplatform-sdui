@@ -27,6 +27,8 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.unit.dp
 import me.developes.humming.sdui.studio.*
 
@@ -127,7 +129,7 @@ internal fun EditorTree(workspace: LocalWorkspace, document: AuthoringDocument, 
                             selectedId == row.node.id -> if (dark) Color(0xFF454371) else Color(0xFFE8DEF8)
                             else -> Color.Transparent }, RoundedCornerShape(6.dp))
                             .clickable { latestSelect(row) }.padding(start = (8 + row.depth.coerceAtMost(8) * 10).dp, top = 9.dp, bottom = 9.dp)
-                            .testTag("$tagPrefix${row.node.id}"))
+                            .testTag("$tagPrefix${row.node.id}").semantics { if (target != null) stateDescription = hint })
                 }
             }
         }

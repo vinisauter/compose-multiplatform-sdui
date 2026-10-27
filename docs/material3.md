@@ -86,3 +86,7 @@ O [README do app](../sample/README.md) reúne um exemplo por handler layout e pe
 ## Campos de Modifier e propriedades estruturadas
 
 Os schemas visuais compartilham a superfície descrita em [Propriedades e Modifier](modifiers.md). O Inspector apresenta todo o schema e orienta edição de slots/eventos. backgroundGradient e Image.colorFilter possuem validadores puros e edição JSON. No TextField legado, textFieldColor/trailingIconColor/underLineColor controlam container/ícone final/indicador em todos os estados; ausência mantém defaults Material.
+
+## Design System do projeto
+
+O criador possui configuração light/dark/sistema com cores, tipografia, formas, espaçamento e preview SDUI. Temas acompanham arquivos v2; projetos/pacotes v1 sem tema permanecem válidos. Procedimento, precedência e limites em [Design System](design-system.md).

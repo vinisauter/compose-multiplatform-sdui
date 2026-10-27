@@ -8,20 +8,20 @@ Complemento em 2026-10-27: Ghidra 12.1.4 instalado/configurado sob autorização
 
 Este é o ponto de entrada para **continuar o desenvolvimento**. Reúne o estado observado, o rastreamento das etapas e a próxima ação. O [plano](development-plan.md) define dependências, escopo e critérios de aceite; este documento é a única fonte de status e retomada.
 
-Atualizado após T36 (2026-10-27): Inspector com busca/grupos e todo o schema, 59 campos compartilhados de Modifier, brushes/filtros tipados e cores reais do TextField. 378 casos JVM regulares sem falhas/erros/ignorados; metadata e builds JS/Android/Wasm aprovados. Sem nova observação manual Wasm. Sem push/deploy.
+Atualizado após T37 (2026-10-27): configuração de Design System light/dark/sistema, 36 cores por modo, 15 estilos, formas/espaçamentos e previews SDUI reais; projeto/pacote v2 com tema, v1 preservado sem tema. 387 casos JVM regulares aprovados; metadata, JS, Android e Wasm compilados. Captura Compose/JVM inspecionada; sem nova observação manual Wasm. Sem push/deploy.
 
 ## Ponto de retomada
 
 | Campo | Registro atual |
 | --- | --- |
-| Última atualização | 2026-10-27; T35 9f7503d; T36 neste entregável; commits locais sem push |
-| Última entrega | T36: propriedades do schema e superfície declarativa de Modifier no Inspector compartilhado |
-| Tarefa de implementação em execução | Nenhuma; T36 concluída no recorte declarativo documentado |
-| Próxima tarefa | T26 — qualificação adicional por plataforma; adapters de Modifier com callbacks/receivers precisam de recorte próprio |
-| Próxima ação concreta | Após restabelecer a cota do revisor, conferir os novos gestos/proporções no navegador sem descartar trabalho aberto; qualificar toque/arquivos em Android separadamente |
-| Critério para avançar | Registrar target e fluxo; não confundir APK compilado com gestos validados por toque |
+| Última atualização | 2026-10-27; T36 28d5ed0; base recebida inclui 817f6a6 e 61fcf0d; T37 neste entregável, commit local sem push |
+| Última entrega | T37 — configuração de Design System, provider visual e persistência/exportação versionada |
+| Tarefa de implementação em execução | Nenhuma; T37 concluída no recorte documentado |
+| Próxima tarefa | T26 — qualificação adicional por plataforma; geração HCT/fontes remotas/sincronização de tema exigem recorte próprio |
+| Próxima ação concreta | Salvar o projeto aberto e qualificar configuração/gestos no navegador quando disponível; validar SYSTEM com mudança real de preferência e toque/arquivos Android separadamente |
+| Critério para avançar | Registrar plataforma/fluxo e preferência do sistema; builds não comprovam interação por toque ou troca nativa de modo |
 | Bloqueio de implementação conhecido | Nenhum para código/testes locais; inspeção adicional no navegador bloqueada por limite de uso do revisor automático. Apple exige host compatível |
-| Limite do próximo recorte | Qualificação/adaptação de UI; sem push/deploy/distribuição. Sem alegar cobertura de todas as extensões Compose ou hit-test exato de formas rotacionadas |
+| Limite do próximo recorte | Qualificação/adaptação de UI, sem push/deploy; não anunciar HCT, extração de imagem, sincronização remota de tema ou todas as extensões Compose |
 
 ### Protocolo quando o pedido for “continue o desenvolvimento”
 
@@ -76,6 +76,7 @@ Estados: **pronta**, **pendente**, **em execução**, **bloqueada**, **concluíd
 | T34 | Seta da tela inicial | concluída | b594b79; indicador deriva de entryNodeId, acompanha SetEntry/undo; sample74 e builds |
 | T35 | Drag-and-drop na árvore | concluída | 367 regulares; dois hosts, reparenting/ordem/undo/redo/Escape/fora/autoscroll; detalhes abaixo |
 | T36 | Inspector completo do schema e Modifier declarativo | concluída | 378 casos regulares; 59 campos, ranges, medidas/pixels/undo/arquivo; builds e limites abaixo |
+| T37 | Design System do projeto | concluída | 387 regulares; configuração/cancelamento/arquivo v1-v2/pacote com tema, pixels/fontes/shapes/padding; evidência e limites abaixo |
 
 Os requisitos completos e a ordem das dependências estão no [plano](development-plan.md). A numeração identifica tarefas; não significa executar T07–T12 antes de T13–T19. A prioridade inicial é base → schemas/fronteira → autoria local → manipulação visual; capacidades adicionais do cliente podem avançar em paralelo quando elegíveis.
 
@@ -479,3 +480,17 @@ Evidência final: build/builder-t36-complete.log BUILD SUCCESSFUL 45s, dez jvmTe
 Execuções intermediárias tiveram erros corrigidos de assinatura/inferência, valor de teste hexadecimal que era válido e contagem manual (o inventário executado confirmou 59, não 60). A matriz final acima foi executada após as correções. Warnings existentes de APIs/depreciação/webpack não impediram os builds.
 
 Limites: Modifier é extensível; callbacks, receivers (weight/align/matchParentSize etc.) e objetos de plataforma não foram convertidos em campos arbitrários. Essa extensão universal continua fora deste recorte e exige adapters próprios; não anunciar cobertura total de androidx.compose.ui.Modifier. Sem observação manual nova do browser após o limite do revisor já registrado; UI observada automaticamente em Compose/JVM. APK compilado não comprova toque; Apple exige host compatível. Não foram repetidas integrações reais de backend, que não mudou. Salvar projeto aberto antes de recarregar o Wasm, pois não há autosave. Próxima ação: qualificação adicional T26, sem refazer T00–T36. Commit local, sem push/deploy.
+
+## T37 — Design System do projeto (2026-10-27)
+
+Concluída: botão Design System no criador com rascunho cancelável, geração local de light/dark, edição dos 36 papéis por modo, seleção LIGHT/DARK/SYSTEM, família tipográfica local e 15 estilos, cinco formas e cinco espaçamentos. Previews usam os mesmos contratos/providers/renderers SDUI, comparando componentes ou a tela selecionada. Aplicar modifica metadados do projeto; desfazer tema/ajuste tem histórico separado dos nós. Campo paddingToken amplia o catálogo comum de Modifier para 60 campos.
+
+DesignSystem/codec são puros em humming-contract. ProjectTheme instala MaterialTheme/locals/tokens, preservando cores e máscaras adicionais do host. Componentes legados herdam tipografia somente com tema ativo e ausência de overrides. layout:style conserva precedência e propaga a composição de cores aninhada. Modelo/artefatos do documento não mudam. AppProject/CompiledBundle v2 carregam tema; v1 sem tema mantém emissão/leitura anteriores. Importação/exportação avulsa usa JSON Humming DesignSystem v1. Advanced Studio mantém o tema na exportação do pacote quando aberto pelo criador.
+
+Validação final: build/design-system-t37-final.log BUILD SUCCESSFUL 53s, dez jvmTest + JS/APK/Wasm/metadata visual. build/design-system-t37-check.log BUILD SUCCESSFUL 1m53s também verificou metadata contrato/modelo. XMLs: contrato62/core74/ações4/modelo121/rede7/navegação10/server-application13/host8/postgres1/sample87 = 387, zero falhas/erros/ignorados. Nove casos novos: geração completa/determinística/contraste e tipos/limites; codecs/versões/rejeição; projeto v1/v2 e pacote; pixels reais de componente Material e preservação de estado após trocar modo; tipografia/shapes/padding e registros do host; configuração/aplicar/cancelar/salvar/reabrir/exportar; showcase real nos dois modos. Captura sample/docs/images/design-system.png gerada pelo teste, inspecionada e documentada no README; sem edição. Links locais alterados e git diff --check revisados.
+
+A regressão detectou testes antigos procurando a dica textual removida pelo commit recebido 61fcf0d. Instrumentação temporária confirmou plano válido durante o gesto; foi removida. A remoção visual foi preservada: destino agora expõe stateDescription acessível e os dois testes conferem essa semântica antes do release, continuando a verificar documento/undo. A medição de padding no teste foi corrigida para observar o limite externo. A matriz final passou após esses ajustes; warnings existentes de compilador/webpack/depreciação permanecem.
+
+Limites: geração Humming v1 usa interpolação sRGB e não HCT/CAM16, extração de imagem, harmonização ou wallpaper dinâmico. Avisos de contraste cobrem 12 pares de texto e não certificam acessibilidade integral. Overrides locais/formas fixas têm precedência. Configuração é local; protocolo remoto de documentos não sincroniza tema. Sem fontes remotas ou exportação Kotlin/CSS. SYSTEM usa a API de plataforma, mas não foi qualificado com mudança real da preferência do SO. Sem nova observação manual browser ou toque Android; Apple exige host compatível. Não foram repetidas as integrações reais de backend; as suítes JVM regulares passaram. Detalhes e procedimento em [Design System](design-system.md).
+
+Próxima ação: qualificação T26 por plataforma, preservando o arquivo do projeto antes de recarregar. Sem autosave/push/deploy. Não reiniciar T00–T37.

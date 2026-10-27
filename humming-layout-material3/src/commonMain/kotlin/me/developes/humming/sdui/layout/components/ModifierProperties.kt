@@ -200,6 +200,12 @@ class ModifierProperties(
             fillMaxWidth(it)
         }.ifNotNullThen(fillMaxHeight) {
             fillMaxHeight(it)
+        }.conditional(node.property("paddingToken") != null) {
+            composed {
+                val design = LocalProjectDesignSystem.current
+                val spacing = design?.spacing ?: me.developes.humming.sdui.common.DesignSystem().spacing
+                padding(spacing.getValue(node.property("paddingToken")!!).dp)
+            }
         }.conditional(
             paddingAll != null ||
                     paddingHorizontal != null ||

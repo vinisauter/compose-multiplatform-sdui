@@ -59,6 +59,9 @@ fun AppBuilder(files: StudioFiles? = null, initialDocument: AuthoringDocument? =
     var replace by remember { mutableStateOf<(() -> Unit)?>(null) }
     var newDialog by remember { mutableStateOf(false) }
     var advanced by remember { mutableStateOf(false) }
+    var designSystem by remember { mutableStateOf<DesignSystem?>(null) }
+    var configureTheme by remember { mutableStateOf(false) }
+    var themeHistory by remember { mutableStateOf<List<DesignSystem?>>(emptyList()) }
     val codec = remember { AppProjectCodec() }
     val controls = remember { PreviewControls().apply { editing.value = true } }
     val graphViewport = remember { mutableStateOf(CanvasViewport(zoom = .6)) }
@@ -68,7 +71,7 @@ fun AppBuilder(files: StudioFiles? = null, initialDocument: AuthoringDocument? =
     val assets = remember { mapOf("catalog-mark" to @Composable { painterResource(Res.drawable.ic_eye) }) }
     val screens = remember(document) { AuthoringIndices(document).roots.filter { it.kind == AuthorNodeKind.SCREEN } }
     fun screenName(id: String) = names[id] ?: "Tela ${screens.indexOfFirst { it.id == id } + 1}"
-    fun snapshot() = AppProject(title, viewport, names.filterKeys { id -> screens.any { it.id == id } }, document)
+    fun snapshot() = AppProject(title, viewport, names.filterKeys { id -> screens.any { it.id == id } }, document, designSystem)
     fun serialized() = codec.encode(snapshot())
     val dirty = serialized().value != lastExport
     fun change(result: EditOutcome) {
@@ -82,6 +85,7 @@ fun AppBuilder(files: StudioFiles? = null, initialDocument: AuthoringDocument? =
     fun load(project: AppProject) {
         workspace = LocalWorkspace(project.document); document = workspace.document
         title = project.name; viewport = project.viewport; names = project.screenNames.toMap()
+        designSystem = project.designSystem; themeHistory = emptyList()
         dropSlots = emptyMap()
         screen = document.entryNodeId; selected = screen; step = 1
         lastExport = codec.encode(project).requireValue(); message = "Projeto aberto"
@@ -89,9 +93,14 @@ fun AppBuilder(files: StudioFiles? = null, initialDocument: AuthoringDocument? =
     fun request(action: () -> Unit) { if (dirty) replace = action else action() }
     val target = remember { TargetCapabilities(initialNodeCatalog().capabilities, providers = setOf("compiled-preview"),
         colorTokens = defaultPresentationTokens().colorNames, maskTokens = defaultPresentationTokens().maskNames) }
-    val preview = remember(document, screen) { ContractCompiler(workspace.catalog).compileJourney(document.copy(entryNodeId = screen), target,
-        "compiled-preview", UnreachablePolicy.REPORT) }
-    val output = remember(document) { workspace.compileJourney("compiled-preview") }
+    val preview = remember(document, screen, designSystem) {
+        val result = ContractCompiler(workspace.catalog).compileJourney(document.copy(entryNodeId = screen), target, "compiled-preview", UnreachablePolicy.REPORT)
+        result.copy(value = result.value?.copy(designSystem = designSystem))
+    }
+    val output = remember(document, designSystem) {
+        val result = workspace.compileJourney("compiled-preview")
+        result.copy(value = result.value?.copy(designSystem = designSystem))
+    }
     val graph = remember(document) { compileBuilderCanvas(workspace, target) }
     val node = document.nodes[selected]
     val slots = workspace.catalog[node?.definition.orEmpty()]?.let { definition ->
@@ -110,7 +119,7 @@ fun AppBuilder(files: StudioFiles? = null, initialDocument: AuthoringDocument? =
         message = encoded.diagnostics.joinToString { "${it.code}: ${it.path}" }
         encoded.value?.let { files?.download("humming-app-project.json", it); message = "Exportação do projeto solicitada; preserve o arquivo. Reabra-o para confirmar a recuperação." }
     }
-    CompositionLocalProvider(LocalImageSources provides assets) {
+    CompositionLocalProvider(LocalImageSources provides assets, LocalPreviewDesignSystem provides designSystem) {
         MaterialTheme(colorScheme = lightColorScheme(primary = Color(0xFF4F46E5), secondary = Color(0xFF475569))) {
             if (advanced) Column { TextButton(onClick = { advanced = false; document = workspace.document }) { Text("Voltar ao criador") }; Box(Modifier.weight(1f)) { LocalStudio(files, workspace) } }
             else Surface(Modifier.fillMaxSize(), color = Color(0xFFF3F5F9)) {
@@ -128,6 +137,8 @@ fun AppBuilder(files: StudioFiles? = null, initialDocument: AuthoringDocument? =
                             }; result.error?.let { message = it }
                         } }) { Text("Abrir projeto") }
                         TextButton(enabled = files != null, onClick = ::exportProject) { Text("Salvar projeto") }
+                        TextButton(onClick = { configureTheme = true }, modifier = Modifier.testTag("builder-design-system")) { Text("Design System") }
+                        if (themeHistory.isNotEmpty()) TextButton(onClick = { designSystem = themeHistory.last(); themeHistory = themeHistory.dropLast(1) }) { Text("Desfazer tema") }
                         TextButton(enabled = workspace.session.canUndo, onClick = { change(workspace.undo()) }) { Text("Desfazer") }
                         TextButton(enabled = workspace.session.canRedo, onClick = { change(workspace.redo()) }) { Text("Refazer") }
                         Button(onClick = { step = 3 }) { Text("Executar app") }
@@ -273,6 +284,10 @@ fun AppBuilder(files: StudioFiles? = null, initialDocument: AuthoringDocument? =
                         }
                     }
                 }
+            }
+            if (configureTheme) DesignSystemEditor(designSystem, preview.value, files, close = { configureTheme = false }) { next ->
+                themeHistory = (themeHistory + listOf(designSystem)).takeLast(50); designSystem = next; configureTheme = false
+                message = "Design System aplicado ao aplicativo. Salve o projeto para preservar o tema."
             }
             if (newDialog) {
                 var name by remember { mutableStateOf("Novo aplicativo") }

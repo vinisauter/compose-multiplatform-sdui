@@ -154,3 +154,7 @@ OfficialCatalog mantém fixtures com IDs determinísticos no sample; não regist
 CatalogServices é opt-in para HTTP loopback com endpoints registrados, e o composition root desktop fecha o HttpClient. A página publica rascunho existente ou cria a fixture somente quando ausente; fixa PublishedDefinition e abre um owner com ScreenInputs.server para dados de sessão. O plano BFF catalog-system é instalado apenas por --catalog-demo e lê relógio/JVM/actor reais. O renderer de publicação e o executor network:request são os módulos existentes. A entrada remota reutiliza RemoteStudioHost/HTTP/storage, sem um segundo protocolo de edição.
 
 LocalImageSources fornece painters por chaves do cliente. layout:image pode selecionar asset registrado sem converter string wire em código ou acesso arbitrário a arquivos. Tema/animação/imagem recebem schemas sem colocar UI no contrato puro. O README do app é a entrada de uso; status e provas permanecem no estado atual.
+
+## Design System opt-in
+
+DesignSystem/DesignTextStyle e seu codec pertencem ao contrato puro. AppProject/CompiledBundle carregam a configuração em envelopes v2 sem alterar o documento autoral. ProjectTheme adapta a configuração para MaterialTheme/ThemeProvider no módulo visual; o core não depende de cores, fontes ou shapes Material. O host conserva seus registros adicionais de tokens/máscaras e seu lifecycle. A configuração local não entra implicitamente no protocolo remoto de documentos. Contrato e operação em [Design System](design-system.md).

@@ -271,3 +271,13 @@ Button dispõe os filhos lado a lado: a guia de inserção é vertical. Fluxos v
 ## Drag-and-drop na árvore
 
 Na aba **Telas**, arraste os elementos na árvore: **borda superior/inferior** para antes/depois; **centro de um container** para colocar dentro. A marca e a dica mostram o destino e o slot. As bordas da lista rolam automaticamente durante o arraste. Soltar confirma; Escape ou soltar fora cancela. Use Desfazer/Refazer. O Studio avançado oferece a mesma interação na árvore completa. Telas raiz e ações continuam com seus controles próprios.
+
+## Design System do aplicativo
+
+Abra o criador com ?builder e clique em **Design System**. Configure modo LIGHT/DARK/SYSTEM, gere/edite as duas paletas, tipografia, formas e espaçamentos. Compare os componentes SDUI ou a tela atual; Aplicar ao projeto confirma o rascunho e Cancelar o descarta. Use paddingToken no Inspector para consumir espaçamentos.
+
+Salvar projeto e Exportar jornada SDUI incluem o tema em envelopes v2. Projetos/pacotes v1 sem tema continuam válidos. Importação/exportação avulsa usa JSON Humming DesignSystem v1. O gerador local não implementa HCT/dynamic color de wallpaper. Detalhes, precedência e integração do host em [Design System](../docs/design-system.md).
+
+![Configuração de Design System com previews SDUI light e dark](docs/images/design-system.png)
+
+Captura real Compose/JVM produzida por DesignSystemUiTest, sem edição. Não é observação manual Wasm/Android. Para carregar uma versão nova no browser, salve o projeto aberto antes de recarregar: não há autosave.

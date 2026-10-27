@@ -6,7 +6,7 @@ import kotlin.test.*
 class ModifierDefinitionTest {
     @Test fun allVisualDefinitionsShareUniqueModifierPropertiesWithoutChangingImageAlpha() {
         val modifiers = LayoutDefinitions.modifiers.map { it.name }.toSet()
-        assertEquals(59, modifiers.size)
+        assertEquals(60, modifiers.size)
         LayoutDefinitions.all.forEach { definition ->
             assertTrue(definition.properties.map { it.name }.containsAll(modifiers), definition.identifier)
             assertEquals(definition.properties.size, definition.properties.map { it.name }.toSet().size)

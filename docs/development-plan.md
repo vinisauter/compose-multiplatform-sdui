@@ -330,3 +330,9 @@ A sequência começa por T00, sem alteração estrutural preventiva: inventariar
 - Dependências: T09, T27, T35.
 - Trabalho: tornar todo o schema descobrível, separar propriedades do componente/Modifier/slots, permitir busca e documentar campos preservados sem suporte autoral. Completar modificadores declarativos de tamanho, posicionamento e aparência com validação no contrato puro e aplicação real no renderer.
 - Aceite: testes de schema, Inspector, edição/undo/exportação e medidas do renderer; compilar os targets disponíveis. APIs Compose que exigem callbacks, receivers ou objetos de plataforma precisam de adapters próprios, sem campos fictícios.
+
+## T37 — Design System do projeto
+
+- Dependências: T09, T29, T36.
+- Trabalho: configuração light/dark/sistema, papéis de cores, tipografia, shapes e espaçamentos; geração local documentada, edição, preview SDUI real e persistência/exportação versionada. Preservar projetos/pacotes v1 sem tema.
+- Aceite: codecs/migração/rejeição, troca de tema e aplicação real nos componentes, arquivo reaberto/pacote consumido com tema, cancelamento de rascunho e builds disponíveis. Sem prometer algoritmo HCT/dynamic color nativo.

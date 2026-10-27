@@ -382,3 +382,7 @@ TreeDrop calcula BEFORE/INSIDE/AFTER com base em AuthoringIndices e slots visuai
 ## Inspector de propriedades
 
 O Inspector compartilhado lista todo o schema com busca e grupos Componente, Modifier e Slots e eventos. Campos ausentes são descobríveis. Escalares usam validação/histórico; brushes e filtros são JSON tipado. Relações continuam pela árvore/painel de ações. Mapping e limites em [Propriedades e Modifier](modifiers.md).
+
+## Design System do projeto
+
+O criador possui configuração light/dark/sistema com cores, tipografia, formas, espaçamento e preview SDUI. Temas acompanham arquivos v2; projetos/pacotes v1 sem tema permanecem válidos. Procedimento, precedência e limites em [Design System](design-system.md).

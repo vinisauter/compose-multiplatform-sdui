@@ -41,7 +41,7 @@ class AppBuilderTest {
         val start = compose.onNodeWithTag("builder-node-moving").fetchSemanticsNode().boundsInRoot.center - origin
         val end = compose.onNodeWithTag("builder-node-target").fetchSemanticsNode().boundsInRoot.center - origin
         tree.performMouseInput { moveTo(start); press(); moveTo(end, 400) }
-        compose.onNodeWithTag("builder-tree-drop-hint").assertTextContains("Dentro de button", substring = true)
+        compose.onNodeWithTag("builder-node-target").assert(SemanticsMatcher.expectValue(androidx.compose.ui.semantics.SemanticsProperties.StateDescription, "Dentro de button · children"))
         tree.performMouseInput { release() }
         compose.onNodeWithText("Salvar projeto", substring = false).performClick()
         assertEquals("target", (AppProjectCodec().decode(saved).requireValue().document.nodes.getValue("moving").placement as Placement.Child).parentId)
