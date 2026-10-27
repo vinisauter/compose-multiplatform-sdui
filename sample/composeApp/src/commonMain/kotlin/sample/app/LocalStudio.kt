@@ -359,40 +359,73 @@ fun LocalStudio(files: StudioFiles? = null, workspace: LocalWorkspace = remember
 @Composable
 internal fun PropertyInspector(node: AuthorNode, definition: NodeDefinition?, hiddenProperties: Set<String> = emptySet(),
                               change: (String, JsonElement?) -> Unit) {
-    val properties = definition?.properties.orEmpty().filter {
-        it.name !in hiddenProperties && it.editable && it.kind !in setOf(PropertyKind.NODES, PropertyKind.OPAQUE)
+    val all = definition?.properties.orEmpty()
+    val modifierNames = remember { me.developes.humming.sdui.layout.LayoutDefinitions.modifiers.map { it.name }.toSet() }
+    var query by remember(node.id) { mutableStateOf("") }
+    var group by remember(node.id) { mutableStateOf("Todas") }
+    OutlinedTextField(query, { query = it }, label = { Text("Buscar propriedade") },
+        modifier = Modifier.fillMaxWidth().testTag("studio-property-search"))
+    Choice("Grupo", group, listOf("Todas", "Componente", "Modifier", "Slots e eventos")) { group = it }
+    val properties = all.filter { property ->
+        property.name.contains(query, ignoreCase = true) && when (group) {
+            "Modifier" -> property.name in modifierNames
+            "Componente" -> property.name !in modifierNames && property.kind != PropertyKind.NODES
+            "Slots e eventos" -> property.kind == PropertyKind.NODES
+            else -> true
+        }
     }
+    Text("${properties.size} de ${all.size} propriedades")
     if (properties.isNotEmpty()) {
-        var name by remember(node.id) { mutableStateOf(
-            listOf("text", "state", "paddingAll").firstOrNull { candidate -> properties.any { it.name == candidate } } ?: properties.first().name
+        var selected by remember(node.id) { mutableStateOf(
+            listOf("text", "state", "paddingAll").firstOrNull { candidate -> all.any { it.name == candidate } } ?: all.first().name
         ) }
-        val property = properties.first { it.name == name }
+        val property = properties.firstOrNull { it.name == selected } ?: properties.first()
+        val name = property.name
         var text by remember(node.id, name, node.properties[name]) {
             mutableStateOf(node.properties[name]?.let { if (it is JsonPrimitive) it.content else it.toString() } ?: "")
         }
         var parseError by remember(node.id, name) { mutableStateOf("") }
-        Choice("Propriedade", name, properties.map { it.name }) { name = it }
+        Choice("Propriedade", name, properties.map { it.name }) { selected = it }
         Text("${property.kind}${if (property.required) " • obrigatória" else " • opcional"}${if (property.allowsBinding) " • aceita #{chave}" else ""}")
         property.defaultDescription?.let { Text("Padrão: $it") }
         property.defaultValue?.let { Text("Padrão quando ausente: $it") }
-        if (property.enumValues.isNotEmpty()) Text("Valores: ${property.enumValues.joinToString()}")
-        Text(if (name in node.properties) "Valor explícito" else "Propriedade ausente")
-        OutlinedTextField(text, { text = it }, label = { Text("Valor de $name") }, modifier = Modifier.fillMaxWidth().testTag("studio-property-value"))
-        Row {
-            Button(onClick = {
-                try {
-                    val value = if (property.kind in setOf(PropertyKind.STRING_ARRAY, PropertyKind.EXPRESSION_TEXT,
-                        PropertyKind.EXPRESSION_BOOLEAN)) parseBoundedJson(text) else JsonPrimitive(text)
-                    parseError = ""; change(name, value)
-                } catch (error: PayloadException) { parseError = "${error.diagnostic.code}: ${error.diagnostic.message}" }
-            }) { Text("Aplicar propriedade") }
-            TextButton(onClick = { change(name, null) }) { Text("Remover valor") }
+        property.minimum?.let { Text("Mínimo: $it") }
+        property.maximum?.let { Text("Máximo: $it") }
+        val editable = name !in hiddenProperties && property.editable && property.kind !in setOf(PropertyKind.NODES, PropertyKind.OPAQUE)
+        if (property.kind == PropertyKind.NODES) {
+            Text(if (property.nodeRole == NodeRole.ACTION) "Evento: configure as ações e conexões deste nó no painel de ações."
+                else "Slot visual: selecione este destino no controle de slots e arraste componentes pela paleta ou árvore.")
+        } else if (!editable) {
+            Text(if (name in hiddenProperties) "Valor controlado por uma relação: edite o conector de navegação."
+                else "Somente leitura: preservada no documento; este campo ainda não possui adapter de autoria.")
+            Text(node.properties[name]?.toString() ?: "Propriedade ausente")
+        } else {
+            Text(if (name in node.properties) "Valor explícito" else "Propriedade ausente")
+            if (property.enumValues.isNotEmpty()) Choice("Valor", text, property.enumValues.toList()) { text = it }
+            if (property.kind == PropertyKind.BOOLEAN && !property.allowsBinding)
+                Choice("Valor", text, listOf("true", "false")) { text = it }
+            if (property.invalidPolicy == InvalidPropertyPolicy.PRESENCE)
+                Text("Ativada por presença: use Remover valor para desativar, inclusive se o valor for false.")
+            OutlinedTextField(text, { text = it }, label = { Text("Valor de $name") }, modifier = Modifier.fillMaxWidth().testTag("studio-property-value"))
+            Row {
+                Button(onClick = {
+                    try {
+                        val value = if (property.kind in setOf(PropertyKind.STRING_ARRAY, PropertyKind.EXPRESSION_TEXT,
+                            PropertyKind.EXPRESSION_BOOLEAN, PropertyKind.GRADIENT, PropertyKind.COLOR_FILTER)) parseBoundedJson(text) else JsonPrimitive(text)
+                        parseError = ""; change(name, value)
+                    } catch (error: PayloadException) { parseError = "${error.diagnostic.code}: ${error.diagnostic.message}" }
+                }) { Text("Aplicar propriedade") }
+                TextButton(onClick = { change(name, null) }) { Text("Remover valor") }
+            }
+            if (parseError.isNotEmpty()) Text(parseError)
         }
-        if (parseError.isNotEmpty()) Text(parseError)
-    }
-    val readonly = node.properties.filterKeys { key -> properties.none { it.name == key } }
+    } else Text("Nenhuma propriedade encontrada.")
+    if (definition?.childrenRole != null && group in listOf("Todas", "Slots e eventos") &&
+        "children".contains(query, ignoreCase = true)) Text("children: conteúdo estrutural; edite pela árvore ou arrastando componentes.")
+    val readonly = node.properties.filterKeys { key -> all.none { it.name == key } && key !in hiddenProperties }
     if (definition == null) Text("Nó sem schema: preservado, somente leitura.")
     readonly.forEach { (key, value) -> Text("Somente leitura: $key = $value") }
+
 }
 
 @Composable

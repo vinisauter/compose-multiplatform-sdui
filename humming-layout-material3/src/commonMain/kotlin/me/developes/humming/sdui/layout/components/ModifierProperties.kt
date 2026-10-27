@@ -1,14 +1,12 @@
 package me.developes.humming.sdui.layout.components
 
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.draw.*
+import androidx.compose.ui.zIndex
 import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
-import androidx.compose.foundation.layout.defaultMinSize
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.CutCornerShape
@@ -35,9 +33,14 @@ fun Modifier.fromNode(
 ): Modifier = ModifierProperties(node, this).modifier
 
 class ModifierProperties(
-    node: ServerDrivenNode,
+    private val node: ServerDrivenNode,
     modifier: Modifier = Modifier
 ) {
+    init {
+        me.developes.humming.sdui.common.NodeDefinition(node.component,
+            me.developes.humming.sdui.common.NodeRole.COMPONENT,
+            me.developes.humming.sdui.layout.LayoutDefinitions.modifiers).parse(node).requireValid()
+    }
     private val width = node.property("width")?.dp
     private val height = node.property("height")?.dp
     private val minWidth = node.property("minWidth")?.dp
@@ -135,7 +138,54 @@ class ModifierProperties(
         }
     private val verticalScroll = node.property("verticalScroll")?.let { true }
     private val horizontalScroll = node.property("horizontalScroll")?.let { true }
-    val modifier = modifier
+    private val shape = backgroundShape.toShape(backgroundShapeSize, backgroundShapeTopStart,
+        backgroundShapeTopEnd, backgroundShapeBottomStart, backgroundShapeBottomEnd)
+    private fun number(name: String) = node.property(name)?.toFloatOrNull()?.takeIf { it.isFinite() }
+    private fun enabled(name: String) = node.property(name) == "true"
+
+    private fun Modifier.extendedLayout(): Modifier {
+        var result = this
+        number("size")?.let { result = result.size(it.dp) }
+        number("requiredSize")?.let { result = result.requiredSize(it.dp) }
+        number("requiredWidth")?.let { result = result.requiredWidth(it.dp) }
+        number("requiredHeight")?.let { result = result.requiredHeight(it.dp) }
+        if (number("widthInMin") != null || number("widthInMax") != null)
+            result = result.widthIn(number("widthInMin")?.dp ?: Dp.Unspecified, number("widthInMax")?.dp ?: Dp.Unspecified)
+        if (number("heightInMin") != null || number("heightInMax") != null)
+            result = result.heightIn(number("heightInMin")?.dp ?: Dp.Unspecified, number("heightInMax")?.dp ?: Dp.Unspecified)
+        if (listOf("requiredMinWidth", "requiredMinHeight", "requiredMaxWidth", "requiredMaxHeight").any { number(it) != null })
+            result = result.requiredSizeIn(number("requiredMinWidth")?.dp ?: Dp.Unspecified,
+                number("requiredMinHeight")?.dp ?: Dp.Unspecified, number("requiredMaxWidth")?.dp ?: Dp.Unspecified,
+                number("requiredMaxHeight")?.dp ?: Dp.Unspecified)
+        node.property("wrapContentSize")?.let { value -> result = result.wrapContentSize(when(value) {
+            "TopStart" -> Alignment.TopStart; "TopCenter" -> Alignment.TopCenter; "TopEnd" -> Alignment.TopEnd
+            "CenterStart" -> Alignment.CenterStart; "CenterEnd" -> Alignment.CenterEnd
+            "BottomStart" -> Alignment.BottomStart; "BottomCenter" -> Alignment.BottomCenter; "BottomEnd" -> Alignment.BottomEnd
+            else -> Alignment.Center
+        }, enabled("wrapContentUnbounded")) }
+        number("maxWidth")?.let { result = result.widthIn(max = it.dp) }
+        number("maxHeight")?.let { result = result.heightIn(max = it.dp) }
+        number("aspectRatio")?.let { result = result.aspectRatio(it, enabled("aspectRatioMatchHeightConstraintsFirst")) }
+        node.property("wrapContentWidth")?.let { value -> result = result.wrapContentWidth(
+            when(value) { "Start" -> Alignment.Start; "End" -> Alignment.End; else -> Alignment.CenterHorizontally }, enabled("wrapContentUnbounded")) }
+        node.property("wrapContentHeight")?.let { value -> result = result.wrapContentHeight(
+            when(value) { "Top" -> Alignment.Top; "Bottom" -> Alignment.Bottom; else -> Alignment.CenterVertically }, enabled("wrapContentUnbounded")) }
+        if (number("offsetX") != null || number("offsetY") != null)
+            result = result.offset((number("offsetX") ?: 0f).dp, (number("offsetY") ?: 0f).dp)
+        if (number("absoluteOffsetX") != null || number("absoluteOffsetY") != null)
+            result = result.absoluteOffset((number("absoluteOffsetX") ?: 0f).dp, (number("absoluteOffsetY") ?: 0f).dp)
+        number("zIndex")?.let { result = result.zIndex(it) }
+        number("modifierAlpha")?.let { result = result.alpha(it) }
+        number("rotation")?.let { result = result.rotate(it) }
+        if (number("scaleX") != null || number("scaleY") != null)
+            result = result.scale(number("scaleX") ?: 1f, number("scaleY") ?: 1f)
+        number("shadowElevation")?.let { result = result.shadow(it.dp, shape, enabled("shadowClip")) }
+        if (enabled("clipToBounds")) result = result.clipToBounds()
+        if (enabled("clip")) result = result.clip(shape)
+        return result
+    }
+
+    val modifier = modifier.extendedLayout()
         .ifNotNullThen(width) {
             width(it)
         }.ifNotNullThen(height) {
@@ -187,6 +237,8 @@ class ModifierProperties(
                     )
                 )
             }
+        }.conditional(number("borderWidth") != null) {
+            border(number("borderWidth")!!.dp, node.property("borderColor")?.toColor() ?: androidx.compose.ui.graphics.Color.Black, shape)
         }.conditional(verticalScroll) {
             composed {
                 val vScroll = rememberScrollState()
@@ -200,11 +252,7 @@ class ModifierProperties(
         }
 
     // ------------ Modifier Utils ------------
-    private fun String.tryFloat(default: Float): Float = try {
-        this.toFloat()
-    } catch (ignored: Throwable) {
-        default
-    }
+    private fun String.tryFloat(default: Float): Float = toFloatOrNull() ?: default
 
     private val String.dp: Dp
         get() = this.toFloat().dp

@@ -87,10 +87,10 @@ class CatalogCompatibilityTest {
         assertEquals("INVALID_NODE_ROLE", catalog.validate(button).single().code)
     }
 
-    @Test fun advancedBrushesArePreservedWithoutClaimingAuthoringSupport() {
+    @Test fun advancedBrushesAreValidatedForAuthoring() {
         val box = parseNode("""{"component":"layout:box","properties":{"backgroundGradient":{"type":"vertical","colors":["#000000","#ffffff"]}}}""")
         assertTrue(catalog.validate(box).isEmpty())
-        assertEquals("UNMODELED_PROPERTY", catalog.validate(box, mode = ValidationMode.AUTHORING).single().code)
+        assertTrue(catalog.validate(box, mode = ValidationMode.AUTHORING).isEmpty())
     }
 
     @Test fun fieldRangesColorsAndMissingOrDuplicateRoutesHaveFieldDiagnostics() {

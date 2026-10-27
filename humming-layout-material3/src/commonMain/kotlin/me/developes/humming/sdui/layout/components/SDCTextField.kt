@@ -5,6 +5,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import me.developes.humming.sdui.common.collectAsState
 import me.developes.humming.sdui.common.rememberActionInvoker
@@ -217,7 +218,20 @@ class SDCTextField(val node: ServerDrivenNode, val viewModel: SDUIFormViewModel)
 //            supportingText = ,
 //            interactionSource = ,
 //            shape =,
-//            colors =,
+            colors = TextFieldDefaults.colors(
+                focusedContainerColor = textFieldColor ?: Color.Unspecified,
+                unfocusedContainerColor = textFieldColor ?: Color.Unspecified,
+                disabledContainerColor = textFieldColor ?: Color.Unspecified,
+                errorContainerColor = textFieldColor ?: Color.Unspecified,
+                focusedTrailingIconColor = trailingIconColor ?: Color.Unspecified,
+                unfocusedTrailingIconColor = trailingIconColor ?: Color.Unspecified,
+                disabledTrailingIconColor = trailingIconColor ?: Color.Unspecified,
+                errorTrailingIconColor = trailingIconColor ?: Color.Unspecified,
+                focusedIndicatorColor = underLineColor ?: Color.Unspecified,
+                unfocusedIndicatorColor = underLineColor ?: Color.Unspecified,
+                disabledIndicatorColor = underLineColor ?: Color.Unspecified,
+                errorIndicatorColor = underLineColor ?: Color.Unspecified,
+            ),
         )
     }
 

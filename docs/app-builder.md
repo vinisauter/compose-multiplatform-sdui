@@ -71,3 +71,7 @@ Na aba **Telas**, arraste uma view pela árvore: o quarto superior da linha inse
 O documento só muda ao soltar em um destino válido, em uma operação que pode ser desfeita/refeita. Escape, perda de foco/captura, multitoque ou soltar fora cancelam. Auto scroll nas bordas superior/inferior permite alcançar elementos fora da área visível sem perder a origem capturada. A seleção continua funcionando por clique e teclado.
 
 A árvore do criador mostra a tela selecionada. O Studio avançado usa a mesma interação sobre sua árvore completa. O arraste estrutural move views contidas, não telas raiz ou nós de ação; ações continuam pelo Inspector e conectores. Mover para si/descendentes e destinos sem filhos visuais é recusado; uma alteração concorrente do documento invalida o plano. Nenhum nó ou ordem é duplicado fora do documento autoral.
+
+## Propriedades completas do schema
+
+Use Buscar propriedade e Grupo no Inspector para localizar campos do componente, Modifier e slots/eventos, mesmo ausentes. Aplicar/Remover passa pelo workspace e undo. Modificadores, brushes, filtros e cores seguem [Propriedades e Modifier](modifiers.md); relações usam os controles próprios.

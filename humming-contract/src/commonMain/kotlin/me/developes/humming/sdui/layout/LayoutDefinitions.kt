@@ -24,7 +24,7 @@ object LayoutDefinitions {
     private fun nodes(name: String, role: NodeRole) = PropertyDefinition(name, PropertyKind.NODES, nodeRole = role)
     private fun color(name: String) = PropertyDefinition(name, PropertyKind.COLOR)
 
-    val modifiers: List<PropertyDefinition> =
+    val modifiers: List<PropertyDefinition> by lazy {
         listOf("width", "height", "minWidth", "minHeight", "paddingAll", "paddingHorizontal",
             "paddingVertical", "paddingStart", "paddingEnd", "paddingTop", "paddingBottom").map { number(it) } +
         listOf("fillMaxSize", "fillMaxWidth", "fillMaxHeight").map {
@@ -32,13 +32,34 @@ object LayoutDefinitions {
         } + listOf(
             color("backgroundColor"),
             choice("backgroundShape", "CircleShape|RectangleShape|RoundedCornerShape|CutCornerShape", "RectangleShape", true),
-            PropertyDefinition("backgroundGradient", PropertyKind.OPAQUE, editable = false,
-                defaultDescription = "Legacy nested brush; preserved, not editable by this schema"),
+            PropertyDefinition("backgroundGradient", PropertyKind.GRADIENT,
+                defaultDescription = "JSON: type linear/radial/sweep/vertical/horizontal; colors array with at least two colors; optional tileMode and coordinates"),
         ) + listOf("backgroundShapeSize", "backgroundShapeTopStart", "backgroundShapeTopEnd",
             "backgroundShapeBottomStart", "backgroundShapeBottomEnd").map { number(it, PropertyKind.INTEGER, fallback = true) } +
         listOf("verticalScroll", "horizontalScroll").map {
             PropertyDefinition(it, invalidPolicy = InvalidPropertyPolicy.PRESENCE,
                 defaultDescription = "absent: disabled; any supplied non-null value enables scrolling")
+        } + extendedModifiers
+    }
+
+    /** Shared declarative Modifier surface. Alpha is namespaced to preserve Image.alpha. */
+    val extendedModifiers: List<PropertyDefinition> =
+        listOf("size", "maxWidth", "maxHeight", "requiredSize", "requiredWidth", "requiredHeight",
+            "borderWidth", "shadowElevation", "widthInMin", "heightInMin", "requiredMinWidth", "requiredMinHeight").map { number(it, minimum = 0.0) } +
+        listOf("offsetX", "offsetY", "absoluteOffsetX", "absoluteOffsetY", "rotation", "scaleX", "scaleY", "zIndex").map { number(it) } +
+        listOf(
+            number("aspectRatio", minimum = Float.MIN_VALUE.toDouble()),
+            PropertyDefinition("modifierAlpha", PropertyKind.FLOAT, minimum = 0.0, maximum = 1.0),
+            color("borderColor"),
+            number("widthInMax", minimum = 0.0).copy(minimumProperty = "widthInMin"),
+            number("heightInMax", minimum = 0.0).copy(minimumProperty = "heightInMin"),
+            number("requiredMaxWidth", minimum = 0.0).copy(minimumProperty = "requiredMinWidth"),
+            number("requiredMaxHeight", minimum = 0.0).copy(minimumProperty = "requiredMinHeight"),
+            choice("wrapContentSize", "TopStart|TopCenter|TopEnd|CenterStart|Center|CenterEnd|BottomStart|BottomCenter|BottomEnd"),
+            choice("wrapContentWidth", "Start|Center|End"),
+            choice("wrapContentHeight", "Top|Center|Bottom"),
+        ) + listOf("wrapContentUnbounded", "aspectRatioMatchHeightConstraintsFirst", "clipToBounds", "clip", "shadowClip").map {
+            PropertyDefinition(it, PropertyKind.BOOLEAN)
         }
 
     private fun component(name: String, properties: List<PropertyDefinition>, children: Boolean = false) =
@@ -72,9 +93,9 @@ object LayoutDefinitions {
         number("maxLines", PropertyKind.INTEGER, minimum = 1.0).copy(defaultDescription = "absent: 1 when singleLine, otherwise Int.MAX_VALUE"),
         number("minLines", PropertyKind.INTEGER, "1", minimum = 1.0),
         number("maxLength", PropertyKind.INTEGER, minimum = 0.0).copy(defaultDescription = "absent: count of # in visualMask; otherwise unlimited"),
-        color("textFieldColor").copy(editable = false, defaultDescription = "Parsed but not applied by the legacy renderer"),
-        color("trailingIconColor").copy(editable = false, defaultDescription = "Parsed but not applied by the legacy renderer"),
-        color("underLineColor").copy(editable = false, defaultDescription = "Parsed but not applied by the legacy renderer"), text("visualMask"),
+        color("textFieldColor").copy(defaultDescription = "Container color in every enabled/error/disabled state"),
+        color("trailingIconColor"),
+        color("underLineColor"), text("visualMask"),
         choice("capitalization", "None|Characters|Words|Sentences", "None"),
         choice("keyboardType", "Text|Ascii|Email|Number|NumberPassword|Decimal|Password|Phone|Uri", "Text"),
         choice("imeAction", "Default|Done|Go|Next|None|Previous|Search|Send", "Default"),

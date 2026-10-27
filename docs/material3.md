@@ -82,3 +82,7 @@ A auditoria da versão 1.8.2 considera 100 nomes públicos top-level: 98 famíli
 ## Catálogo oficial executável
 
 O [README do app](../sample/README.md) reúne um exemplo por handler layout e pelos handlers de ação. O catálogo mostra fonte SDUI, documento, pacote compilado e schema; abre o mesmo documento no Studio. Assets locais são capacidades explícitas em LocalImageSources: layout:image seleciona asset por chave registrada pelo host, sem path arbitrário do payload. A fixture usa catalog-mark; URLs legadas continuam opt-in pelo formato existente.
+
+## Campos de Modifier e propriedades estruturadas
+
+Os schemas visuais compartilham a superfície descrita em [Propriedades e Modifier](modifiers.md). O Inspector apresenta todo o schema e orienta edição de slots/eventos. backgroundGradient e Image.colorFilter possuem validadores puros e edição JSON. No TextField legado, textFieldColor/trailingIconColor/underLineColor controlam container/ícone final/indicador em todos os estados; ausência mantém defaults Material.

@@ -5,7 +5,7 @@ import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.contentOrNull
 
 enum class NodeRole { COMPONENT, ACTION, NAVIGATION_METADATA }
-enum class PropertyKind { TEXT, COLOR, BOOLEAN, INTEGER, LONG, FLOAT, ENUM, NODES, STRING_ARRAY, OPAQUE, EXPRESSION_TEXT, EXPRESSION_BOOLEAN, COLOR_TOKEN, MASK_TOKEN }
+enum class PropertyKind { TEXT, COLOR, BOOLEAN, INTEGER, LONG, FLOAT, ENUM, NODES, STRING_ARRAY, GRADIENT, COLOR_FILTER, OPAQUE, EXPRESSION_TEXT, EXPRESSION_BOOLEAN, COLOR_TOKEN, MASK_TOKEN }
 enum class InvalidPropertyPolicy { REJECT, LEGACY_FALLBACK, LEGACY_BOOLEAN, PRESENCE }
 enum class ValidationMode { LEGACY, AUTHORING }
 
@@ -29,6 +29,8 @@ data class PropertyDefinition(
     val nodeRole: NodeRole? = null,
     val minimum: Double? = null,
     val editable: Boolean = true,
+    val maximum: Double? = null,
+    val minimumProperty: String? = null,
 ) {
     init {
         require(name.isNotEmpty())
@@ -97,6 +99,13 @@ data class NodeDefinition(
                 else -> null
             }
             val valid = when (property.kind) {
+                PropertyKind.GRADIENT, PropertyKind.COLOR_FILTER -> try {
+                    val parsed = parsePayloadJson(value, node.origin.copy(path = path))
+                    if (property.kind == PropertyKind.GRADIENT) validGradient(parsed) else validColorFilter(parsed)
+                } catch (error: PayloadException) {
+                    diagnostics += error.diagnostic
+                    true
+                }
                 PropertyKind.COLOR -> value.removePrefix("#").let { hex ->
                     hex.length in setOf(3, 4, 6, 8) && hex.all { it in '0'..'9' || it in 'a'..'f' || it in 'A'..'F' }
                 }
@@ -117,6 +126,17 @@ data class NodeDefinition(
                 warning = property.invalidPolicy != InvalidPropertyPolicy.REJECT)
             if (numeric != null && property.minimum != null && numeric < property.minimum) {
                 report("PROPERTY_RANGE", "Value must be at least ${property.minimum}")
+            }
+        }
+        for (property in properties) {
+            val numeric = node.property(property.name)?.toDoubleOrNull()
+            val lower = property.minimumProperty?.let { node.property(it)?.toDoubleOrNull() }
+            if (numeric != null && lower != null && lower > numeric) diagnostics += node.diagnostic(
+                "PROPERTY_ORDER", "${property.name} must be at least ${property.minimumProperty}", "schema",
+                "${node.origin.path}.properties[${JsonPrimitive(property.name)}]")
+            if (numeric != null && property.maximum != null && numeric > property.maximum) {
+                diagnostics += node.diagnostic("PROPERTY_RANGE", "Value must be at most ${property.maximum}", "schema",
+                    "${node.origin.path}.properties[${JsonPrimitive(property.name)}]")
             }
         }
         for (name in node.properties.orEmpty().keys) if (name !in known) {

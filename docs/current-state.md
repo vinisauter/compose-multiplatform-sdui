@@ -6,20 +6,20 @@ Pesquisa documental e inspeção estática parcial concluídas no recorte solici
 
 Este é o ponto de entrada para **continuar o desenvolvimento**. Reúne o estado observado, o rastreamento das etapas e a próxima ação. O [plano](development-plan.md) define dependências, escopo e critérios de aceite; este documento é a única fonte de status e retomada.
 
-Atualizado após T35 (2026-10-26): seta da tela inicial e drag-and-drop nas árvores do criador/Studio. Bordas reordenam views; centro de container reparenta conforme schema/slot, com dica, marca, autoscroll, undo/redo e cancelamento. 367 casos JVM regulares sem falhas/erros/ignorados; metadata e builds JS/Android/Wasm aprovados. Sem nova observação manual Wasm. Sem push/deploy.
+Atualizado após T36 (2026-10-27): Inspector com busca/grupos e todo o schema, 59 campos compartilhados de Modifier, brushes/filtros tipados e cores reais do TextField. 378 casos JVM regulares sem falhas/erros/ignorados; metadata e builds JS/Android/Wasm aprovados. Sem nova observação manual Wasm. Sem push/deploy.
 
 ## Ponto de retomada
 
 | Campo | Registro atual |
 | --- | --- |
-| Última atualização | 2026-10-26; T33 b4d74e5; T34 b594b79; T35 neste entregável; commits locais sem push |
-| Última entrega | T35: drag-and-drop estrutural na árvore compartilhada; seta da entrada T34 preservada |
-| Tarefa de implementação em execução | Nenhuma; T34/T35 concluídas no recorte testado |
-| Próxima tarefa | T26 — qualificação adicional por plataforma/recorte; futuras capacidades exigem aceite no plano |
+| Última atualização | 2026-10-27; T35 9f7503d; T36 neste entregável; commits locais sem push |
+| Última entrega | T36: propriedades do schema e superfície declarativa de Modifier no Inspector compartilhado |
+| Tarefa de implementação em execução | Nenhuma; T36 concluída no recorte declarativo documentado |
+| Próxima tarefa | T26 — qualificação adicional por plataforma; adapters de Modifier com callbacks/receivers precisam de recorte próprio |
 | Próxima ação concreta | Após restabelecer a cota do revisor, conferir os novos gestos/proporções no navegador sem descartar trabalho aberto; qualificar toque/arquivos em Android separadamente |
 | Critério para avançar | Registrar target e fluxo; não confundir APK compilado com gestos validados por toque |
 | Bloqueio de implementação conhecido | Nenhum para código/testes locais; inspeção adicional no navegador bloqueada por limite de uso do revisor automático. Apple exige host compatível |
-| Limite do próximo recorte | Qualificação/adaptação de UI; sem push, deploy ou distribuição. Sem alegar roteamento arbitrário de obstáculos |
+| Limite do próximo recorte | Qualificação/adaptação de UI; sem push/deploy/distribuição. Sem alegar cobertura de todas as extensões Compose ou hit-test exato de formas rotacionadas |
 
 ### Protocolo quando o pedido for “continue o desenvolvimento”
 
@@ -73,6 +73,7 @@ Estados: **pronta**, **pendente**, **em execução**, **bloqueada**, **concluíd
 | T33 | Marca de inserção coerente com o renderer | concluída | 360 regulares; pixels da guia vertical em Button e bounds finais lado a lado; detalhes abaixo |
 | T34 | Seta da tela inicial | concluída | b594b79; indicador deriva de entryNodeId, acompanha SetEntry/undo; sample74 e builds |
 | T35 | Drag-and-drop na árvore | concluída | 367 regulares; dois hosts, reparenting/ordem/undo/redo/Escape/fora/autoscroll; detalhes abaixo |
+| T36 | Inspector completo do schema e Modifier declarativo | concluída | 378 casos regulares; 59 campos, ranges, medidas/pixels/undo/arquivo; builds e limites abaixo |
 
 Os requisitos completos e a ordem das dependências estão no [plano](development-plan.md). A numeração identifica tarefas; não significa executar T07–T12 antes de T13–T19. A prioridade inicial é base → schemas/fronteira → autoria local → manipulação visual; capacidades adicionais do cliente podem avançar em paralelo quando elegíveis.
 
@@ -464,3 +465,15 @@ Captura de ponteiro na LazyColumn mantém a origem mesmo quando sua linha é vir
 Validação: build/builder-t35-compile.log BUILD SUCCESSFUL 17s; build/builder-t35-tests.log BUILD SUCCESSFUL 39s, modelo119 + sample77 = 196 casos dos módulos afetados. build/builder-t35-final.log BUILD SUCCESSFUL 3s, dez jvmTest e JS/APK/Wasm/metadata. Inventário regular367, zero falhas/erros/ignorados. Seis casos novos: plano/reparenting/ordem/undo/redo; ciclo/folha/raiz/stale; slot topBar; ponteiro no Studio com marca antes do release e cancelamentos; autoscroll de 40 linhas mantendo origem fora da composição; gesto no criador com arquivo exportado e undo. A execução intermediária builder-t35-check.log falhou por matcher exato da dica com sufixo de slot; matcher corrigido e suíte final aprovada.
 
 Limites: nós de ação/telas raiz usam seus controles próprios. A aba Telas do criador limita a árvore à página selecionada; a árvore completa é do Studio avançado. Sem nova observação manual no browser após a cota do revisor registrada anteriormente; execução UI deste recorte é Compose/JVM e os demais targets foram compilados. Backend não alterado; integrações reais anteriores não repetidas. Próxima ação permanece qualificação adicional T26, sem refazer T00–T35. Sem push/deploy.
+
+## T36 — propriedades e Modifier (2026-10-27)
+
+Concluída no recorte declarativo: Inspector compartilhado com busca, grupos, campos ausentes e todos os schemas; slots/eventos e destinos controlados por conectores são visíveis com orientação de edição. Enums/booleanos têm escolhas, mantendo texto para bindings; defaults não são gravados automaticamente. T35 foi preservada no commit 9f7503d.
+
+LayoutDefinitions e ModifierProperties compartilham 59 campos (24 anteriores + 35 novos), com tamanho/ranges preferidos e obrigatórios, wrapContent, aspectRatio, offsets, opacidade sem colisão com Image.alpha, rotação/escala/zIndex, borda/clip/sombra. GRADIENT e COLOR_FILTER têm validação JSON pura. Corrigidos parsing dos filtros de imagem e aplicação das três cores antes inativas de TextField. O contrato/editor rejeita ranges invertidos fracionários e valores novos inválidos. Mapping, ordem e compatibilidade em [Propriedades e Modifier](modifiers.md).
+
+Evidência final: build/builder-t36-complete.log BUILD SUCCESSFUL 45s, dez jvmTest e JS/APK/Wasm/metadata visual; metadata do modelo também aprovada em builder-t36-final.log. XMLs: contrato59/core74/ações4/modelo119/rede7/navegação10/server-application13/host8/postgres1/sample83 = 378, zero falhas/erros/ignorados. Onze casos novos verificam inventário único por schema, preservação de Image.alpha, tipos/ranges/brushes/filtros, presença legada de scroll, busca/slots, workspace/undo/arquivo, medidas reais preferidas/obrigatórias e pixels de tint/container do TextField. O catálogo existente continua compilando/montando os 111 exemplos reais. Links locais dos documentos alterados e git diff --check revisados.
+
+Execuções intermediárias tiveram erros corrigidos de assinatura/inferência, valor de teste hexadecimal que era válido e contagem manual (o inventário executado confirmou 59, não 60). A matriz final acima foi executada após as correções. Warnings existentes de APIs/depreciação/webpack não impediram os builds.
+
+Limites: Modifier é extensível; callbacks, receivers (weight/align/matchParentSize etc.) e objetos de plataforma não foram convertidos em campos arbitrários. Essa extensão universal continua fora deste recorte e exige adapters próprios; não anunciar cobertura total de androidx.compose.ui.Modifier. Sem observação manual nova do browser após o limite do revisor já registrado; UI observada automaticamente em Compose/JVM. APK compilado não comprova toque; Apple exige host compatível. Não foram repetidas integrações reais de backend, que não mudou. Salvar projeto aberto antes de recarregar o Wasm, pois não há autosave. Próxima ação: qualificação adicional T26, sem refazer T00–T36. Commit local, sem push/deploy.

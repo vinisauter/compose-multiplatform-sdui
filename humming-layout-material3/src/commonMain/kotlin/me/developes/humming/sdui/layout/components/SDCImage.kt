@@ -1,5 +1,9 @@
 package me.developes.humming.sdui.layout.components
 
+import kotlinx.serialization.json.jsonPrimitive
+import kotlinx.serialization.json.jsonArray
+import kotlinx.serialization.json.float
+
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import me.developes.humming.sdui.common.rememberActionInvoker
@@ -29,6 +33,7 @@ class SDCImage(
     val node: ServerDrivenNode,
     val viewModel: SDUIFormViewModel,
 ) : Layout {
+    init { me.developes.humming.sdui.layout.LayoutDefinitions.all.first { it.identifier == "layout:image" }.parse(node).requireValid() }
     private val modifier = Modifier.fromNode(node)
     private val actions = node.propertyNodes("onClick")
     private val imageUrl: String? = node.property("imageUrl")
@@ -58,11 +63,11 @@ class SDCImage(
     }
     private val alpha: Float = node.property("alpha")?.toFloatOrNull() ?: DefaultAlpha
     private val colorFilter: ColorFilter? = node.propertyJsonObject("colorFilter")?.let {
-        it["type"]?.toString()?.let { type ->
+        it["type"]?.jsonPrimitive?.content?.let { type ->
             when (type) {
                 "tint" -> {
-                    val color = it["color"].toString().toColor()
-                    val blendModeStr = it["blendMode"]?.toString()
+                    val color = it["color"]!!.jsonPrimitive.content.toColor()
+                    val blendModeStr = it["blendMode"]?.jsonPrimitive?.content
                     val blendMode = when (blendModeStr) {
                         "SrcOver" -> BlendMode.SrcOver
                         "DstOver" -> BlendMode.DstOver
@@ -97,9 +102,7 @@ class SDCImage(
 
                 "colorMatrix" -> {
                     val matrix = it["matrix"]?.let { matrixJson ->
-                        val nums =
-                            matrixJson.toString().removePrefix("[").removeSuffix("]").split(",")
-                                .mapNotNull { numStr -> numStr.trim().toFloatOrNull() }
+                        val nums = matrixJson.jsonArray.map { value -> value.jsonPrimitive.float }
                         if (nums.size == 20) nums.toFloatArray() else null
                     }
                     if (matrix != null) {
@@ -110,8 +113,8 @@ class SDCImage(
                 }
 
                 "lighting" -> {
-                    val mul = it["mul"].toString().toColor()
-                    val add = it["add"].toString().toColor()
+                    val mul = it["mul"]!!.jsonPrimitive.content.toColor()
+                    val add = it["add"]!!.jsonPrimitive.content.toColor()
                     ColorFilter.lighting(mul, add)
                 }
 
@@ -129,7 +132,6 @@ class SDCImage(
             else -> null
         }
     } ?: DefaultFilterQuality
-    private val clipToBounds: Boolean = node.property("alpha")?.toBooleanStrictOrNull() ?: true
 
     @Composable
     override fun Content() {

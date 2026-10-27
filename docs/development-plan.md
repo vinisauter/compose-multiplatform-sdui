@@ -324,3 +324,9 @@ A sequência começa por T00, sem alteração estrutural preventiva: inventariar
 - Dependências: T14, T17, T32.
 - Trabalho: reordenar views nas bordas de linhas e reparentear no centro de containers; marca e slot explícitos, autoscroll, cancelamento e um comando por release. Compartilhar UI entre criador e Studio.
 - Aceite: arraste real na árvore para Button e entre irmãos, undo/redo, Escape/fora/ciclo/stale sem mutação; slots derivados do schema, seleção e ações preservadas.
+
+## T36 — propriedades e modificadores no Inspector
+
+- Dependências: T09, T27, T35.
+- Trabalho: tornar todo o schema descobrível, separar propriedades do componente/Modifier/slots, permitir busca e documentar campos preservados sem suporte autoral. Completar modificadores declarativos de tamanho, posicionamento e aparência com validação no contrato puro e aplicação real no renderer.
+- Aceite: testes de schema, Inspector, edição/undo/exportação e medidas do renderer; compilar os targets disponíveis. APIs Compose que exigem callbacks, receivers ou objetos de plataforma precisam de adapters próprios, sem campos fictícios.

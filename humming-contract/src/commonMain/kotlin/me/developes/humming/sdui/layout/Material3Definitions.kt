@@ -107,7 +107,7 @@ object LegacyMaterial3Definitions {
             PropertyDefinition("alignment", PropertyKind.ENUM, enumValues = setOf("TopStart", "TopCenter", "TopEnd", "CenterStart", "Center", "CenterEnd", "BottomStart", "BottomCenter", "BottomEnd")),
             PropertyDefinition("contentScale", PropertyKind.ENUM, enumValues = setOf("Fit", "Crop", "Inside", "FillBounds", "FillHeight", "FillWidth", "None")),
             PropertyDefinition("filterQuality", PropertyKind.ENUM, enumValues = setOf("None", "Low", "Medium", "High")),
-            PropertyDefinition("colorFilter", PropertyKind.OPAQUE, editable = false))),
+            PropertyDefinition("colorFilter", PropertyKind.COLOR_FILTER, defaultDescription = "JSON: tint(color, blendMode), lighting(mul, add), colorMatrix(matrix of 20 numbers)"))),
         component("style", listOf("primary", "onPrimary", "primaryContainer", "onPrimaryContainer", "inversePrimary", "secondary", "onSecondary", "secondaryContainer", "onSecondaryContainer", "tertiary", "onTertiary", "tertiaryContainer", "onTertiaryContainer", "background", "onBackground", "surface", "onSurface", "surfaceVariant", "onSurfaceVariant", "surfaceTint", "inverseSurface", "inverseOnSurface", "error", "onError", "errorContainer", "onErrorContainer", "outline", "outlineVariant", "scrim", "surfaceBright", "surfaceContainer", "surfaceContainerHigh", "surfaceContainerHighest", "surfaceContainerLow", "surfaceContainerLowest", "surfaceDim").map { PropertyDefinition(it, PropertyKind.COLOR) }, true),
     ) }
 }

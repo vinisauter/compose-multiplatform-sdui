@@ -415,3 +415,7 @@ LocalWorkspace.availableMethods é cópia do conjunto dado pelo host. Exportar u
 ## Slots visuais do Scaffold
 
 O adapter Scaffold consome topBar e bottomBar com propertyNodes, conforme o schema NODES/COMPONENT: um nó ou uma lista ordenada. Isso permite inserir mais filhos no slot sem INVALID_SLOT_CARDINALITY. Payloads existentes com um único nó mantêm comportamento. O editor deriva slots de schema; não converte eventos/ações em filhos visuais.
+
+## Extensão declarativa de Modifier
+
+Os schemas visuais compartilham os campos opcionais descritos em [Propriedades e Modifier](modifiers.md). GRADIENT e COLOR_FILTER validam JSON limitado com tipos/campos finitos; o Inspector não aceita código. PropertyDefinition declara maximum e minimumProperty para limites e ordem numérica; ranges fracionários inválidos são rejeitados em autoria/runtime. Novos campos exigem cliente atualizado; o mapa atual de capabilities não negocia cada propriedade opcional. O nome modifierAlpha evita colisão com Image.alpha. As cores antigas antes inativas de TextField e a interpretação de filtros Image foram corrigidas; payloads válidos passam a apresentar esses efeitos.

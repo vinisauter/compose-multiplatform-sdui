@@ -285,3 +285,7 @@ Quem renderiza fornece o fluxo conhecido de seus filhos, evitando inferir o eixo
 ## Arraste estrutural compartilhado
 
 A árvore usa o documento e seus comandos, sem inferir hierarquia dos bounds do canvas. Planos puros calculam slots/gaps e verificam revisão no commit. A captura de ponteiro fica na LazyColumn, permitindo autoscroll mesmo após a linha de origem sair da composição. Marcas são desenhadas sem mudar a altura das linhas e a dica tem altura reservada para evitar instabilidade geométrica. Ações/raízes não se tornam views reparentáveis.
+
+## Inspector orientado pelo schema e modificadores declarativos
+
+Listar todo o schema evita esconder recursos ausentes no nó. Slots/eventos permanecem relações, enquanto brushes/filtros recebem tipos validados. ModifierProperties é uma superfície declarativa finita; callbacks, receivers e objetos de plataforma não viram código de payload. modifierAlpha preserva o alpha específico de Image. Novos campos opcionais não reescrevem documentos; seu uso requer host atualizado. Mapping/precedência em modifiers.md.
