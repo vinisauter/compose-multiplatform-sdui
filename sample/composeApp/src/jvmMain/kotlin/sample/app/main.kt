@@ -6,7 +6,7 @@ import androidx.lifecycle.SavedStateHandle
 import sample.app.App
 import sample.app.DesktopRemoteStudio
 import sample.app.DesktopCatalog
-import sample.app.AppBuilder
+import me.developes.humming.builder.ui.AppBuilder
 import sample.app.DesktopStudioFiles
 import java.awt.Dimension
 

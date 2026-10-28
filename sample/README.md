@@ -229,7 +229,7 @@ O source set JS preserva o App legado e oferece ?catalog sem adapter de arquivos
 
 ```powershell
 .\gradlew.bat :humming-contract:jvmTest :humming-studio-model:jvmTest :sample:composeApp:jvmTest
-.\gradlew.bat :sample:composeApp:jvmTest --tests sample.app.OfficialCatalogTest
+.\gradlew.bat :humming-studio-ui:jvmTest --tests me.developes.humming.builder.ui.OfficialCatalogTest
 .\gradlew.bat :sample:composeApp:compileKotlinWasmJs :sample:composeApp:compileDebugKotlinAndroid
 .\scripts\verify-postgres.ps1 -PublishedClient
 ```

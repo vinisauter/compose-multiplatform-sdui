@@ -336,3 +336,75 @@ A sequência começa por T00, sem alteração estrutural preventiva: inventariar
 - Dependências: T09, T29, T36.
 - Trabalho: configuração light/dark/sistema, papéis de cores, tipografia, shapes e espaçamentos; geração local documentada, edição, preview SDUI real e persistência/exportação versionada. Preservar projetos/pacotes v1 sem tema.
 - Aceite: codecs/migração/rejeição, troca de tema e aplicação real nos componentes, arquivo reaberto/pacote consumido com tema, cancelamento de rascunho e builds disponíveis. Sem prometer algoritmo HCT/dynamic color nativo.
+
+## T38 — HummingUI-Builder oficial a partir do Stitch
+
+- Dependências: T17–T19, T27–T37.
+- Escopo: host próprio desktop/Wasm, UI compartilhada com sample, shell Screens/Library/Flows/Logic/Sheets, tema, sandbox de estado e exemplo local conforme referência Stitch 2399743288518543485.
+- Arquivos: HummingUI-Builder, humming-studio-ui, settings, build/hosts do sample e documentos responsáveis.
+- Aceite: criação/edição/histórico/preview/fluxos/importação/exportação preservados, tabela ligada ao runtime local real, testes JVM do editor e compilação Wasm, observação visual. Deploy, multiusuário e fontes financeiras reais requerem recortes próprios; não representar esses serviços como ativos.
+
+## Versões do Builder orientadas pelos HTMLs Stitch
+
+Esta sequência define escopo e dependências, sem status concorrente. Origem e limites dos controles em [referência Stitch](stitch-reference.md). Funcionalidades do runtime/servidor já entregues devem ser integradas, sem reiniciar sua implementação.
+
+### T39 — v0.2: fidelidade das três superfícies
+
+- Dependências: T38 e HTMLs fornecidos pelo usuário.
+- Escopo: Inter/JetBrains Mono locais com licença; header 52 px/rail 60 px; biblioteca em grade e árvore; canvas e escala do telefone; Inspector compacto por seções; Flows sem biblioteca com toolbar inferior; State Manager em tabela com preview separado. Preservar edição/schema, drag, undo, arquivos e execução real.
+- Arquivos: shell e widgets em humming-studio-ui, fontes, exemplos/prints e DESIGN.md do Builder.
+- Aceite: comparação lado a lado na mesma dimensão com cada HTML, sem campos sobrepostos; desktop/Wasm compilados e observados; regressões de edição, navegação, estado/reset e viewport. Diferenças por ausência de capacidade real devem aparecer no inventário, sem indicadores remotos fictícios.
+
+### T40 — v0.3: autoria contextual e composições
+
+- Dependências: T39, T14/T18/T35/T36.
+- Escopo: toolbar sobre seleção com reorder, remover e duplicação de subárvore transacional; remapear IDs/chaves/relações internas, impedir referências inválidas e preservar ações. Auto Layout/alinhamento, espaçamentos e presets tipográficos aplicados pelo schema; favoritos e composições reutilizáveis sobre fragments existentes.
+- Aceite: duplicar/remover/reordenar por mouse e teclado, desfazer/refazer integralmente, salvar/reabrir e compilar; nenhum comando parcial em falha; preview real com bindings independentes quando exigido.
+
+### T41 — v0.3: escopos, variáveis e computed values
+
+- Dependências: T39, T07–T09 e T13/T37.
+- Escopo: autoria de variáveis por tela/inputs/estado/resposta, tipos/defaults, busca/filtros, referências e unlink; computed/getters pela linguagem limitada. Reutilizar estado tipado e ActionValues, sem copiar valores personalizados para snapshot publicado.
+- Aceite: variáveis novas/referenciadas/removidas, conflitos de nomes/tipos e dependências inválidas diagnosticados; tabela/preview/JSON concordam; persistência versionada e compatibilidade de projetos anteriores; isolamento entre entradas e sessões.
+
+### T42 — v0.3: construtor visual de regras reativas
+
+- Dependências: T41 e avaliador limitado T08/T09.
+- Escopo: WHEN/operador/valor/THEN para validação, visibilidade, habilitação e ações conhecidas; badges de condição avaliada e origem dos diagnósticos; seleção de expressões e fallback. Não executar scripts do HTML nem adotar regex arbitrária sem limites.
+- Aceite: reproduzir a regra de saldo do protótipo com inputs locais reais, erro/CTA atualizados nos dois sentidos, defaults/reset/undo/arquivo; tipos, budget, cancelamento, ciclos e fallback testados. Lookup remoto é capacidade T43, não sucesso simulado.
+
+### T43 — v0.4: nós de API/branch e mapeamento de parâmetros
+
+- Dependências: T40–T42, T10/T19/T23.
+- Escopo: projetar e editar ações network registradas, branch, portas success/error e feedback; mapa tipado origem→destino, timeout/retry limitado/idempotência quando suportada pelo host. Catálogo de endpoints do host; payload não contém URL/headers/credenciais arbitrários.
+- Aceite: grafo e documento têm uma autoridade; cenários de HTTP local real sucesso/erro/timeout/cancelamento, sequência aguardada e recursos fechados; undo/round trip; rejeitar endpoint/mapeamento desconhecido e retry não seguro. Exemplo Pix continua demonstrador sem transação real.
+
+### T44 — v0.4: transições e entrega da jornada
+
+- Dependências: T43, navegação/cache T11.
+- Escopo: Inspector de conexão com transições suportadas pelo host, EAGER/LAZY/PREFETCH, parâmetros e política explícita de atualização otimista/rollback. Não prometer latência nula nem persistir opções que o cliente ignora.
+- Aceite: teste real por host anunciado, navegação/retorno/cancelamento, pin de versão e rollback apenas de efeitos definidos; política serializada e validada contra capacidades do cliente, com migração de contrato quando necessária.
+
+### T45 — v0.4: debugger de estado e execução
+
+- Dependências: T41–T43.
+- Escopo: snapshot/diff real, linha de eventos com nó/caminho/operação, filtros por owner, inspeção de action results, reset e replay limitado de sandbox. Histórico/time travel é evolução adicional ao JSON do protótipo.
+- Aceite: limites de memória/retenção, exportação sem segredos, ordenação causal e descarte; divergências demonstradas por alterações reais; nenhuma repetição de efeito externo ao inspecionar/reproduzir estado.
+
+### T46 — v0.5: publicação no host oficial
+
+- Dependências: T39, T21–T24, alinhamento de metadata para distribuição quando necessário.
+- Escopo: conectar o shell oficial a rascunhos/publicações/validador de capacidades existentes; preview da versão, exportar/publicar/rollback e recuperação de arquivo. Deploy de infraestrutura/credenciais continua ação separada com autorização específica.
+- Aceite: integração local HTTP/PostgreSQL real, erro/retry/revisão e snapshot imutável demonstrados; ação final identifica destino/versão; nenhum botão anuncia deploy sem capacidade e autenticação instaladas.
+
+### T47 — v0.5: colaboração e fontes do projeto
+
+- Dependências: T46 e colaboração T25.
+- Escopo: presença/avatares reais, revisão confirmada, outbox/conflitos/undo remoto e heartbeat; definir sincronização do envelope AppProject/Design System antes de anunciá-la. Biblioteca de assets/fontes do host com proveniência e capacidades explícitas.
+- Aceite: dois editores/autores autorizados, isolamento por tenant, falhas/reconexão/recuperação e undo conservador; nenhuma identidade/latência/contagem fixa como indicador real; saída fecha recursos e expiração remove presença.
+
+### T48 — base de distribuição e metadata multiplataforma
+
+- Dependências: T39 e investigação registrada no estado atual.
+- Escopo: alinhar o grafo Compose/AndroidX e seus wrappers para metadata comum e consumo publicado, sem forçar classes AndroidX duplicadas nos targets web nem atualizar dependências por tentativa. Manter a matriz de hosts que já executam localmente.
+- Aceite: metadata comum da UI e consumidores, JVM, JS/Wasm e Android compilados e testados; Apple em host compatível quando anunciado; classpaths sem colisões de runtime e consumidores reais do artefato. Empacotamento/assinatura/publicação/distribuição continuam ações explícitas próprias, não validação local automática.

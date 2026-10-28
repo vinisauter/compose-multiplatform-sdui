@@ -33,9 +33,11 @@ jobs:
           :humming-actions:jvmTest :humming-studio-model:jvmTest
           :humming-network:jvmTest :humming-navigation:jvmTest
           :humming-server-application:jvmTest :humming-server-host:jvmTest
-          :humming-server-postgres:jvmTest :sample:composeApp:jvmTest --console=plain
+          :humming-server-postgres:jvmTest :humming-studio-ui:jvmTest
+          :sample:composeApp:jvmTest :HummingUI-Builder:compileKotlinJvm --console=plain
       - name: Shared metadata and browser compilation
         run: >-
           .\gradlew.bat :humming-studio-model:compileCommonMainKotlinMetadata
           :humming-studio-model:compileKotlinWasmJs
-          :sample:composeApp:compileKotlinWasmJs --console=plain
+          :sample:composeApp:compileKotlinWasmJs
+          :HummingUI-Builder:compileKotlinWasmJs --console=plain

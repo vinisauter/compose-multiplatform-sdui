@@ -1,0 +1,891 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>HummingUI — Server-Driven UI &amp; State Manager</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            humming: {
+              50: '#eff6ff',
+              100: '#dbeafe',
+              500: '#2563eb',
+              600: '#1d4ed8',
+              700: '#1e40af'
+            }
+          },
+          fontFamily: {
+            sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+            mono: ['JetBrains Mono', 'Menlo', 'monospace']
+          }
+        }
+      }
+    }
+  </script>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+    /* Dot grid pattern for preview canvas */
+    .dot-grid {
+      background-color: #f8fafc;
+      background-image: radial-gradient(#cbd5e1 1.1px, transparent 1.1px);
+      background-size: 16px 16px;
+    }
+    /* Custom thin scrollbar */
+    ::-webkit-scrollbar {
+      width: 5px;
+      height: 5px;
+    }
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #E2E8F0;
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #CBD5E1;
+    }
+  </style>
+<meta content="web_dashboard" name="shell-type"/>
+</head>
+<body class="bg-[#F8F9FA] text-[#111827] font-sans antialiased h-screen w-screen overflow-hidden flex flex-col select-none">
+<!-- Top Floating Header Bar (52px) -->
+<header class="h-[52px] bg-white border-b border-[#E5E7EB] px-3.5 flex items-center justify-between shrink-0 z-30 shadow-[0_1px_2px_rgba(0,0,0,0.03)]">
+<!-- Left: App Brand & Breadcrumb -->
+<div class="flex items-center gap-3">
+<div class="flex items-center gap-2 pr-3 border-r border-[#E5E7EB]">
+<!-- Hummingbird UI Logo Mark -->
+<div class="w-7 h-7 rounded-lg bg-gradient-to-tr from-blue-600 via-indigo-600 to-sky-400 flex items-center justify-center text-white shadow-sm shadow-blue-500/20">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.3" viewbox="0 0 24 24">
+<path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path>
+</svg>
+</div>
+<span class="font-bold text-[14px] tracking-tight bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">Humming<span class="text-blue-600 font-extrabold">UI</span></span>
+<span class="text-[10px] font-semibold uppercase px-1.5 py-0.5 rounded bg-blue-50 text-blue-600 border border-blue-100">SDUI v2.4</span>
+</div>
+<!-- Breadcrumbs -->
+<nav class="flex items-center gap-1.5 text-xs text-[#6B7280]">
+<span class="hover:text-gray-900 cursor-pointer font-medium">FinTech App</span>
+<svg class="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M9 5l7 7-7 7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+<span class="text-gray-900 font-semibold px-2 py-0.5 rounded bg-gray-100/70 border border-gray-200/60">Pix Transfer</span>
+<span class="inline-flex items-center gap-1 text-[11px] text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+          Live Sync
+        </span>
+</nav>
+</div>
+<!-- Center: Viewport Controls & Zoom Pill -->
+<div class="flex items-center gap-2">
+<!-- Device Selector Pill -->
+<div class="flex items-center bg-[#F3F4F6] hover:bg-[#E5E7EB] transition-colors rounded-full px-3 py-1 text-xs font-medium text-gray-700 cursor-pointer gap-2 border border-gray-200/80">
+<svg class="w-3.5 h-3.5 text-gray-500" fill="none" stroke="currentColor" viewbox="0 0 24 24"><rect height="20" rx="2" stroke-width="2" width="14" x="5" y="2"></rect><path d="M12 18h.01" stroke-width="2"></path></svg>
+<span>iPhone 16 Pro • 393×852</span>
+<svg class="w-3 h-3 text-gray-400" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M19 9l-7 7-7 7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+</div>
+<!-- Zoom Level Pill -->
+<div class="flex items-center bg-[#F3F4F6] rounded-full px-2.5 py-1 text-xs font-medium text-gray-700 gap-1 border border-gray-200/80">
+<button class="hover:text-black px-1 font-bold">-</button>
+<span class="px-1 text-gray-800">100%</span>
+<button class="hover:text-black px-1 font-bold">+</button>
+</div>
+</div>
+<!-- Right: Collab, JSON Inspector & Publish Button -->
+<div class="flex items-center gap-3">
+<!-- Collaborators -->
+<div class="flex items-center -space-x-1.5">
+<img alt="Avatar" class="w-6 h-6 rounded-full ring-2 ring-white object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCp4O4v5bJh-VaYPCDHXlwO1o8AtvnbypxOqYPxY_GCj3VOnT8Hm3b279CTVPwDmR5t1-AJoyo7GFqk9v4yI4uM_1uoM0VDTlJWhvyLAZJG1Vh8UDeROe36o9VZXhN9oaD0suumCWRCFv7FFtZg8vE5-p9gK7-dPQwznhA-4-FrWEYOMLbibj2WsP6LCjoDvAfZq0nfLG32FLhFT6LVBPnsibnEPEE8BvYZPhnYTDI"/>
+<img alt="Avatar" class="w-6 h-6 rounded-full ring-2 ring-white object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCnzdmUniN7ZUDJLfoB4E5DoptxaY8vookc7C66eI7x5dJI5B9b44XLD4n86GnpnIN9CtFTGthgsnLnqULDVCBwiLsBbrJvyrXd-7M3qRGPbl6hz8Eij62oQ6p9UO6sfNSpJB6LnJ2xQZw9KVgAfD9kYtEPCN0nCQd8Oq7HodTP17jY3G5_I2ZcwZ-y7h0SgQR3Bw48wW7igdhp4l3zhYZYVpLTlTHjtxBcMWA3y5E"/>
+<span class="w-6 h-6 rounded-full bg-blue-100 text-blue-700 ring-2 ring-white text-[10px] font-semibold flex items-center justify-center">+3</span>
+</div>
+<!-- Server Payload / JSON Icon Pill -->
+<button class="flex items-center gap-1.5 text-xs text-gray-600 hover:text-gray-900 px-2.5 py-1.5 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors" title="View Server-Driven JSON Schema">
+<svg class="w-3.5 h-3.5 text-purple-600" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" x2="8" y1="13" y2="13"></line><line x1="16" x2="8" y1="17" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+<span class="font-mono text-[11px] font-medium">schema.json</span>
+</button>
+<!-- Preview Button -->
+<button class="p-1.5 rounded-lg text-gray-600 hover:text-gray-900 border border-gray-200 hover:bg-gray-50">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" viewbox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3" stroke-linejoin="round" stroke-width="2"></polygon></svg>
+</button>
+<!-- Publish Action -->
+<button class="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 active:scale-98 transition text-white px-3.5 py-1.5 rounded-full text-xs font-semibold shadow-sm shadow-blue-500/30">
+<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24"><path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"></path><path d="M12 12v9"></path><path d="m16 16-4-4-4 4"></path></svg>
+<span>Deploy SDUI</span>
+</button>
+</div>
+</header>
+<!-- Workspace Body with Clear Columnar Structure -->
+<div class="flex-1 flex overflow-hidden">
+<!-- 1. Far-Left Icon Rail (60px) -->
+<aside class="w-[60px] bg-white border-r border-[#E5E7EB] flex flex-col items-center justify-between py-3 z-20 shrink-0">
+<div class="flex flex-col items-center gap-2 w-full">
+<!-- Screens -->
+<button class="w-12 h-12 rounded-xl flex flex-col items-center justify-center text-gray-500 hover:text-gray-900 hover:bg-gray-100 transition-colors group">
+<svg class="w-5 h-5 group-hover:scale-105 transition-transform" fill="none" stroke="currentColor" viewbox="0 0 24 24"><rect height="18" rx="2" stroke-width="1.8" width="18" x="3" y="3"></rect><path d="M3 9h18M9 21V9" stroke-width="1.8"></path></svg>
+<span class="text-[9px] font-medium tracking-tight mt-0.5">Screens</span>
+</button>
+<!-- Library / Components -->
+<button class="w-12 h-12 rounded-xl flex flex-col items-center justify-center text-gray-500 hover:text-gray-900 hover:bg-gray-100 transition-colors group">
+<svg class="w-5 h-5 group-hover:scale-105 transition-transform" fill="none" stroke="currentColor" viewbox="0 0 24 24"><rect height="8" rx="1.5" stroke-width="1.8" width="8" x="2" y="2"></rect><rect height="8" rx="1.5" stroke-width="1.8" width="8" x="14" y="2"></rect><rect height="8" rx="1.5" stroke-width="1.8" width="8" x="2" y="14"></rect><rect height="8" rx="1.5" stroke-width="1.8" width="8" x="14" y="14"></rect></svg>
+<span class="text-[9px] font-medium tracking-tight mt-0.5">Library</span>
+</button>
+<!-- Flows -->
+<button class="w-12 h-12 rounded-xl flex flex-col items-center justify-center text-gray-500 hover:text-gray-900 hover:bg-gray-100 transition-colors group">
+<svg class="w-5 h-5 group-hover:scale-105 transition-transform" fill="none" stroke="currentColor" viewbox="0 0 24 24"><circle cx="6" cy="6" r="3" stroke-width="1.8"></circle><circle cx="18" cy="18" r="3" stroke-width="1.8"></circle><path d="M6 9v3a6 6 0 0 0 6 6h3" stroke-width="1.8"></path></svg>
+<span class="text-[9px] font-medium tracking-tight mt-0.5">Flows</span>
+</button>
+<!-- Logic -->
+<button class="w-12 h-12 rounded-xl flex flex-col items-center justify-center text-gray-500 hover:text-gray-900 hover:bg-gray-100 transition-colors group">
+<svg class="w-5 h-5 group-hover:scale-105 transition-transform" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="m13 2-2 2.5V8l2 2-2 2.5V17l2 2-2 3" stroke-width="1.8"></path><circle cx="18" cy="6" r="2" stroke-width="1.8"></circle><circle cx="18" cy="18" r="2" stroke-width="1.8"></circle></svg>
+<span class="text-[9px] font-medium tracking-tight mt-0.5">Logic</span>
+</button>
+<!-- Sheets / State Manager (ACTIVE) -->
+<button class="w-12 h-12 rounded-xl flex flex-col items-center justify-center text-blue-600 bg-blue-50/80 border border-blue-200/60 shadow-sm relative group">
+<span class="absolute left-0 top-3 bottom-3 w-1 bg-blue-600 rounded-r-full"></span>
+<svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M12 3v18M3 9h18M3 15h18" stroke-width="1.8"></path><rect height="18" rx="2" stroke-width="1.8" width="18" x="3" y="3"></rect></svg>
+<span class="text-[9px] font-semibold tracking-tight mt-0.5">Sheets</span>
+</button>
+</div>
+<!-- Bottom Theme Toggle & Settings -->
+<div class="flex flex-col items-center gap-2">
+<button class="w-9 h-9 rounded-lg flex items-center justify-center text-gray-500 hover:text-amber-600 hover:bg-amber-50 transition-colors" title="Toggle Light / Dark Mode">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" viewbox="0 0 24 24"><circle cx="12" cy="12" r="4" stroke-width="1.8"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41" stroke-width="1.8"></path></svg>
+</button>
+<button class="w-9 h-9 rounded-lg flex items-center justify-center text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" viewbox="0 0 24 24"><circle cx="12" cy="12" r="3" stroke-width="1.8"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" stroke-width="1.8"></path></svg>
+</button>
+</div>
+</aside>
+<!-- 2. Column 1: State Collections & Scopes Sidebar (250px) -->
+<aside class="w-[250px] bg-white border-r border-[#E5E7EB] shrink-0 flex flex-col justify-between z-10">
+<div class="flex flex-col h-full overflow-y-auto">
+<!-- Header & Search -->
+<div class="p-3 border-b border-[#E5E7EB]">
+<div class="flex items-center justify-between mb-2">
+<span class="text-[11px] font-bold text-gray-500 uppercase tracking-wider">State Collections</span>
+<span class="px-1.5 py-0.5 rounded-full bg-blue-50 text-blue-600 font-mono text-[10px] font-semibold">14 Vars</span>
+</div>
+<div class="relative flex items-center">
+<span class="material-symbols-outlined absolute left-2 text-gray-400 text-[16px] pointer-events-none">search</span>
+<input class="w-full bg-gray-50 text-gray-800 placeholder:text-gray-400 text-xs pl-7 pr-2.5 py-1.5 rounded-md border border-gray-200 outline-none transition focus:bg-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500" placeholder="Filter scopes (⌘K)..." type="text"/>
+</div>
+</div>
+<!-- Scopes Navigation -->
+<div class="p-2 space-y-1 border-b border-[#E5E7EB]">
+<div class="px-2 py-1 text-[10px] font-bold text-gray-400 uppercase tracking-wider">Sources</div>
+<!-- Scope 1: Screen Inputs -->
+<div class="flex items-center justify-between px-2.5 py-1.5 rounded-lg cursor-pointer hover:bg-gray-50 text-gray-700 transition group">
+<div class="flex items-center gap-2 truncate">
+<span class="w-2 h-2 rounded-full bg-blue-500 shrink-0"></span>
+<span class="text-xs font-medium truncate group-hover:text-blue-600">Screen Inputs</span>
+</div>
+<span class="px-1.5 py-0.5 rounded bg-gray-100 font-mono text-[10px] text-gray-500">3</span>
+</div>
+<!-- Scope 2: Interactive Form (ACTIVE) -->
+<div class="flex items-center justify-between px-2.5 py-1.5 rounded-lg cursor-pointer bg-blue-50 text-blue-700 font-semibold border border-blue-200 shadow-2xs transition group">
+<div class="flex items-center gap-2 truncate">
+<span class="w-2 h-2 rounded-full bg-blue-600 shrink-0 ring-2 ring-blue-300"></span>
+<span class="text-xs truncate">Interactive State (Form)</span>
+</div>
+<span class="px-1.5 py-0.5 rounded-full bg-blue-600 text-white font-mono text-[10px]">5</span>
+</div>
+<!-- Scope 3: Remote Data -->
+<div class="flex items-center justify-between px-2.5 py-1.5 rounded-lg cursor-pointer hover:bg-gray-50 text-gray-700 transition group">
+<div class="flex items-center gap-2 truncate">
+<span class="w-2 h-2 rounded-full bg-emerald-500 shrink-0"></span>
+<span class="text-xs font-medium truncate group-hover:text-emerald-700">Remote Data (Server)</span>
+</div>
+<span class="px-1.5 py-0.5 rounded bg-gray-100 font-mono text-[10px] text-gray-500">4</span>
+</div>
+<!-- Scope 4: API Responses -->
+<div class="flex items-center justify-between px-2.5 py-1.5 rounded-lg cursor-pointer hover:bg-gray-50 text-gray-700 transition group">
+<div class="flex items-center gap-2 truncate">
+<span class="w-2 h-2 rounded-full bg-amber-500 shrink-0"></span>
+<span class="text-xs font-medium truncate group-hover:text-amber-700">API Responses</span>
+</div>
+<span class="px-1.5 py-0.5 rounded bg-gray-100 font-mono text-[10px] text-gray-500">2</span>
+</div>
+</div>
+<!-- Computed & Getters Section -->
+<div class="p-2 space-y-1">
+<div class="flex items-center justify-between px-2 py-1">
+<span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Computed &amp; Getters</span>
+<span class="material-symbols-outlined text-[14px] text-gray-400 cursor-pointer hover:text-gray-700">functions</span>
+</div>
+<div class="flex items-center justify-between px-2.5 py-1.5 rounded-lg hover:bg-gray-50 cursor-pointer text-gray-700 transition">
+<div class="flex items-center gap-2 truncate">
+<span class="font-mono text-xs text-blue-600 font-bold">fx</span>
+<span class="font-mono text-[11px] truncate">is_form_valid</span>
+</div>
+<span class="text-[9px] font-bold uppercase px-1 py-0.5 rounded bg-red-50 text-red-700 border border-red-100">Bool</span>
+</div>
+<div class="flex items-center justify-between px-2.5 py-1.5 rounded-lg hover:bg-gray-50 cursor-pointer text-gray-700 transition">
+<div class="flex items-center gap-2 truncate">
+<span class="font-mono text-xs text-blue-600 font-bold">fx</span>
+<span class="font-mono text-[11px] truncate">fee_calculated</span>
+</div>
+<span class="text-[9px] font-bold uppercase px-1 py-0.5 rounded bg-gray-100 text-gray-600 border border-gray-200">Num</span>
+</div>
+</div>
+<!-- New Scope Action -->
+<div class="p-3 mt-auto border-t border-[#E5E7EB]">
+<button class="w-full flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-lg border border-dashed border-gray-300 hover:border-blue-500 hover:bg-blue-50 text-gray-700 hover:text-blue-700 text-xs font-medium transition shadow-2xs">
+<span class="material-symbols-outlined text-[15px] text-blue-600">add_circle</span>
+<span>New State Scope</span>
+</button>
+</div>
+</div>
+</aside>
+<!-- 3. Column 2: Center Main View (Notion/Airtable Grid + Rules + JSON Debugger) -->
+<main class="flex-1 flex flex-col h-full overflow-y-auto bg-[#F8F9FA] p-5 space-y-5 border-r border-[#E5E7EB]">
+<!-- Title & Utility Header -->
+<section class="flex flex-col md:flex-row md:items-center justify-between gap-3 bg-white p-4 rounded-xl border border-[#E5E7EB] shadow-xs">
+<div>
+<div class="flex items-center gap-2">
+<h1 class="text-base font-bold text-gray-900 tracking-tight">Variables &amp; Live State — Pix Transfer</h1>
+<span class="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 font-medium text-[11px] border border-emerald-200 flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+              Reactive Sync
+            </span>
+</div>
+<p class="text-xs text-gray-500 mt-0.5">
+            Local interactive state bound to mobile screen widgets in real time. Manipulate preview inputs to stress-test UI rules.
+          </p>
+</div>
+<!-- Actions Strip -->
+<div class="flex items-center flex-wrap gap-2">
+<button class="flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 text-gray-700 text-xs font-medium transition shadow-2xs">
+<span class="material-symbols-outlined text-[15px] text-gray-500">tune</span>
+<span>Filter</span>
+</button>
+<button class="flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 text-gray-700 text-xs font-medium transition shadow-2xs">
+<span class="material-symbols-outlined text-[15px] text-gray-500">file_upload</span>
+<span>Schema</span>
+</button>
+<button class="flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 text-gray-700 text-xs font-medium transition shadow-2xs" id="btnResetDefaults">
+<span class="material-symbols-outlined text-[15px] text-gray-500">restart_alt</span>
+<span>Reset</span>
+</button>
+<button class="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold transition shadow-xs">
+<span class="material-symbols-outlined text-[15px]">add</span>
+<span>New Variable</span>
+</button>
+</div>
+</section>
+<!-- Airtable / Notion-Inspired State Table -->
+<section class="bg-white rounded-xl border border-[#E5E7EB] shadow-xs overflow-hidden flex flex-col">
+<div class="px-4 py-2.5 bg-gray-50 border-b border-[#E5E7EB] flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="text-xs font-bold text-gray-800">Active Scope Variables</span>
+<span class="text-gray-500 font-mono text-[10px] bg-white border border-gray-200 px-2 py-0.5 rounded">Scope: Interactive State (Form)</span>
+</div>
+<span class="text-[11px] text-gray-400">5 active properties</span>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full border-collapse text-left">
+<thead>
+<tr class="bg-gray-50/70 border-b border-[#E5E7EB] text-gray-500 text-[10px] uppercase font-bold tracking-wider">
+<th class="py-2.5 px-4">Variable</th>
+<th class="py-2.5 px-3">Type</th>
+<th class="py-2.5 px-3">Default</th>
+<th class="py-2.5 px-3 min-w-[200px]">Live Sandbox Value</th>
+<th class="py-2.5 px-3">Target Widget</th>
+<th class="py-2.5 px-3 text-right">Action</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-gray-100 text-xs">
+<!-- ROW 1: Amount Value (Active Warning State) -->
+<tr class="hover:bg-red-50/40 bg-red-50/20 transition group">
+<td class="py-2.5 px-4">
+<div class="flex items-center gap-1.5">
+<span class="text-red-600 font-bold text-sm">⚡</span>
+<span class="font-mono font-semibold text-gray-900">amount_value</span>
+</div>
+</td>
+<td class="py-2.5 px-3">
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200 font-mono text-[10px] font-semibold">
+<span class="material-symbols-outlined text-[12px]">payments</span>
+                    Currency (BRL)
+                  </span>
+</td>
+<td class="py-2.5 px-3 font-mono text-gray-400">R$ 0,00</td>
+<td class="py-2.5 px-3">
+<div class="flex items-center gap-2">
+<input class="w-32 bg-white text-red-600 font-mono text-xs font-bold px-2 py-1 rounded border-2 border-red-500 outline-none focus:ring-1 focus:ring-red-500 shadow-2xs" id="inputAmount" type="text" value="15200.00"/>
+<span class="material-symbols-outlined text-red-500 text-[16px] animate-bounce" title="Current value exceeds balance limit!">error</span>
+<span class="text-[10px] text-red-600 font-bold uppercase tracking-wider">Exceeds Limit</span>
+</div>
+</td>
+<td class="py-2.5 px-3 font-mono text-blue-600 text-[11px]">
+<span class="px-1.5 py-0.5 rounded bg-blue-50 border border-blue-100 font-mono">#input_amount_box</span>
+</td>
+<td class="py-2.5 px-3 text-right">
+<button class="text-gray-400 hover:text-gray-700 p-1 rounded hover:bg-gray-100 transition">
+<span class="material-symbols-outlined text-[16px]">more_vert</span>
+</button>
+</td>
+</tr>
+<!-- ROW 2: Pix Key -->
+<tr class="hover:bg-gray-50/80 transition group">
+<td class="py-2.5 px-4">
+<div class="flex items-center gap-1.5">
+<span class="text-blue-600 font-bold text-sm">⚡</span>
+<span class="font-mono font-semibold text-gray-900">pix_key</span>
+</div>
+</td>
+<td class="py-2.5 px-3">
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-blue-50 text-blue-700 border border-blue-200 font-mono text-[10px] font-semibold">
+<span class="material-symbols-outlined text-[12px]">alternate_email</span>
+                    String (CPF/Mail)
+                  </span>
+</td>
+<td class="py-2.5 px-3 font-mono text-gray-400">""</td>
+<td class="py-2.5 px-3">
+<input class="w-48 bg-white text-gray-800 font-mono text-xs px-2 py-1 rounded border border-gray-200 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 shadow-2xs" id="inputPixKey" type="text" value="jane.doe@fintech.io"/>
+</td>
+<td class="py-2.5 px-3 font-mono text-blue-600 text-[11px]">
+<span class="px-1.5 py-0.5 rounded bg-gray-100 border border-gray-200 font-mono">#txt_recipient_key</span>
+</td>
+<td class="py-2.5 px-3 text-right">
+<button class="text-gray-400 hover:text-gray-700 p-1 rounded hover:bg-gray-100 transition">
+<span class="material-symbols-outlined text-[16px]">more_vert</span>
+</button>
+</td>
+</tr>
+<!-- ROW 3: Recipient Name -->
+<tr class="hover:bg-gray-50/80 transition group">
+<td class="py-2.5 px-4">
+<div class="flex items-center gap-1.5">
+<span class="text-blue-600 font-bold text-sm">⚡</span>
+<span class="font-mono font-semibold text-gray-900">recipient_name</span>
+</div>
+</td>
+<td class="py-2.5 px-3">
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-purple-50 text-purple-700 border border-purple-200 font-mono text-[10px] font-semibold">
+<span class="material-symbols-outlined text-[12px]">badge</span>
+                    String
+                  </span>
+</td>
+<td class="py-2.5 px-3 font-mono text-gray-400">null</td>
+<td class="py-2.5 px-3">
+<input class="w-56 bg-white text-gray-800 font-mono text-xs px-2 py-1 rounded border border-gray-200 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 shadow-2xs" type="text" value="Jane Doe (CPF: ***.419.002-**)"/>
+</td>
+<td class="py-2.5 px-3 font-mono text-blue-600 text-[11px]">
+<span class="px-1.5 py-0.5 rounded bg-gray-100 border border-gray-200 font-mono">#card_dest_name</span>
+</td>
+<td class="py-2.5 px-3 text-right">
+<button class="text-gray-400 hover:text-gray-700 p-1 rounded hover:bg-gray-100 transition">
+<span class="material-symbols-outlined text-[16px]">more_vert</span>
+</button>
+</td>
+</tr>
+<!-- ROW 4: Instant Transfer Switch -->
+<tr class="hover:bg-gray-50/80 transition group">
+<td class="py-2.5 px-4">
+<div class="flex items-center gap-1.5">
+<span class="text-blue-600 font-bold text-sm">⚡</span>
+<span class="font-mono font-semibold text-gray-900">is_instant</span>
+</div>
+</td>
+<td class="py-2.5 px-3">
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-sky-50 text-sky-700 border border-sky-200 font-mono text-[10px] font-semibold">
+<span class="material-symbols-outlined text-[12px]">toggle_on</span>
+                    Boolean
+                  </span>
+</td>
+<td class="py-2.5 px-3 font-mono text-gray-400">true</td>
+<td class="py-2.5 px-3">
+<div class="flex items-center gap-2">
+<button class="w-8 h-4.5 bg-blue-600 rounded-full relative p-0.5 transition-colors cursor-pointer" id="toggleInstant">
+<span class="block w-3.5 h-3.5 rounded-full bg-white shadow-xs transform translate-x-3.5 transition-transform"></span>
+</button>
+<span class="text-xs text-gray-700 font-medium">Enabled (0s fee)</span>
+</div>
+</td>
+<td class="py-2.5 px-3 font-mono text-blue-600 text-[11px]">
+<span class="px-1.5 py-0.5 rounded bg-gray-100 border border-gray-200 font-mono">#switch_instant_pix</span>
+</td>
+<td class="py-2.5 px-3 text-right">
+<button class="text-gray-400 hover:text-gray-700 p-1 rounded hover:bg-gray-100 transition">
+<span class="material-symbols-outlined text-[16px]">more_vert</span>
+</button>
+</td>
+</tr>
+<!-- ROW 5: Daily Limit -->
+<tr class="hover:bg-gray-50/80 transition group">
+<td class="py-2.5 px-4">
+<div class="flex items-center gap-1.5">
+<span class="text-blue-600 font-bold text-sm">⚡</span>
+<span class="font-mono font-semibold text-gray-900">daily_limit</span>
+</div>
+</td>
+<td class="py-2.5 px-3">
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200 font-mono text-[10px] font-semibold">
+<span class="material-symbols-outlined text-[12px]">payments</span>
+                    Currency (BRL)
+                  </span>
+</td>
+<td class="py-2.5 px-3 font-mono text-gray-400">R$ 10.000,00</td>
+<td class="py-2.5 px-3">
+<input class="w-32 bg-white text-gray-800 font-mono text-xs px-2 py-1 rounded border border-gray-200 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 shadow-2xs" type="text" value="10000.00"/>
+</td>
+<td class="py-2.5 px-3 font-mono text-blue-600 text-[11px]">
+<span class="px-1.5 py-0.5 rounded bg-gray-100 border border-gray-200 font-mono">#lbl_limit_badge</span>
+</td>
+<td class="py-2.5 px-3 text-right">
+<button class="text-gray-400 hover:text-gray-700 p-1 rounded hover:bg-gray-100 transition">
+<span class="material-symbols-outlined text-[16px]">more_vert</span>
+</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<!-- Reactive Validation Rules Builder -->
+<section class="bg-white rounded-xl border border-[#E5E7EB] shadow-xs p-4 space-y-3">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-blue-600 text-[20px]">bolt</span>
+<div>
+<h2 class="text-xs font-bold text-gray-900">Reactive Validation &amp; State Rules</h2>
+<p class="text-[11px] text-gray-500">Deterministic conditions that orchestrate component UI behavior across the layout tree.</p>
+</div>
+</div>
+<button class="flex items-center gap-1 px-2.5 py-1 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 text-gray-700 text-xs font-medium transition shadow-2xs">
+<span class="material-symbols-outlined text-[15px] text-blue-600">add</span>
+<span>Add Rule</span>
+</button>
+</div>
+<div class="space-y-2.5">
+<!-- Rule Card 1: Insufficient Balance (ACTIVE TRIGGERED STATE) -->
+<div class="p-3 rounded-lg bg-red-50/40 border border-red-200 shadow-2xs transition">
+<div class="flex items-center justify-between mb-2">
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-red-500 animate-ping"></span>
+<span class="text-xs text-red-700 font-bold">Rule #1: Balance Limit Guard</span>
+<span class="px-1.5 py-0.5 rounded-full bg-red-600 text-white text-[9px] font-bold uppercase tracking-wider">Condition Triggered</span>
+</div>
+<span class="font-mono text-[10px] text-gray-500">Exec: Client-side Micro-engine</span>
+</div>
+<!-- Natural Language Logic Chips -->
+<div class="space-y-1.5">
+<div class="flex items-center flex-wrap gap-1.5 text-xs text-gray-800">
+<span class="px-1.5 py-0.5 rounded bg-gray-200 text-gray-700 font-semibold uppercase text-[9px]">WHEN</span>
+<span class="px-2 py-0.5 rounded bg-white font-mono text-red-600 font-bold border border-red-200 shadow-2xs">⚡ amount_value (15.200,00)</span>
+<span class="px-1.5 py-0.5 rounded bg-gray-100 text-gray-600 font-medium text-[11px]">IS GREATER THAN</span>
+<span class="px-2 py-0.5 rounded bg-white font-mono text-gray-800 font-bold border border-gray-200 shadow-2xs">⚡ available_balance (R$ 14.850,20)</span>
+</div>
+<div class="flex items-center flex-wrap gap-1.5 text-xs text-gray-800 pl-2">
+<span class="px-1.5 py-0.5 rounded bg-red-600 text-white font-semibold uppercase text-[9px]">THEN →</span>
+<span class="px-2 py-0.5 rounded bg-white text-red-600 border border-red-200 font-medium shadow-2xs flex items-center gap-1">
+<span class="material-symbols-outlined text-[13px]">report</span>
+                  Set Field Error on <strong class="font-mono text-[11px]">#input_amount_box</strong>: "Insufficient balance"
+                </span>
+<span class="px-1.5 py-0.5 rounded bg-gray-200 text-gray-700 font-semibold uppercase text-[9px]">AND →</span>
+<span class="px-2 py-0.5 rounded bg-white text-gray-700 border border-gray-200 font-medium shadow-2xs flex items-center gap-1">
+<span class="material-symbols-outlined text-[13px]">block</span>
+                  Disable Widget <strong class="font-mono text-[11px]">#btn_confirm_transfer</strong> (Opacity: 40%)
+                </span>
+</div>
+</div>
+</div>
+<!-- Rule Card 2: Pix Key Regex Match -->
+<div class="p-3 rounded-lg bg-gray-50 border border-gray-200 shadow-2xs">
+<div class="flex items-center justify-between mb-2">
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+<span class="text-xs text-gray-800 font-semibold">Rule #2: Instant Key Resolution</span>
+<span class="px-1.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[9px] font-bold uppercase tracking-wider">Passed</span>
+</div>
+<span class="font-mono text-[10px] text-gray-500">Sync: Remote Lookups</span>
+</div>
+<div class="space-y-1.5">
+<div class="flex items-center flex-wrap gap-1.5 text-xs text-gray-800">
+<span class="px-1.5 py-0.5 rounded bg-gray-200 text-gray-700 font-semibold uppercase text-[9px]">WHEN</span>
+<span class="px-2 py-0.5 rounded bg-white font-mono text-blue-600 font-bold border border-gray-200 shadow-2xs">⚡ pix_key</span>
+<span class="px-1.5 py-0.5 rounded bg-gray-100 text-gray-600 font-medium text-[11px]">MATCHES REGEX</span>
+<span class="px-2 py-0.5 rounded bg-white font-mono text-gray-700 border border-gray-200 shadow-2xs">Valid_Email_Or_CPF</span>
+</div>
+<div class="flex items-center flex-wrap gap-1.5 text-xs text-gray-800 pl-2">
+<span class="px-1.5 py-0.5 rounded bg-emerald-600 text-white font-semibold uppercase text-[9px]">THEN →</span>
+<span class="px-2 py-0.5 rounded bg-white text-gray-700 border border-gray-200 font-medium shadow-2xs flex items-center gap-1">
+<span class="material-symbols-outlined text-[13px] text-emerald-600">check_circle</span>
+                  Enable Widget <strong class="font-mono text-[11px]">#btn_verify_identity</strong>
+</span>
+<span class="px-1.5 py-0.5 rounded bg-gray-200 text-gray-700 font-semibold uppercase text-[9px]">AND →</span>
+<span class="px-2 py-0.5 rounded bg-white text-gray-700 border border-gray-200 font-medium shadow-2xs flex items-center gap-1">
+<span class="material-symbols-outlined text-[13px] text-blue-600">cloud_sync</span>
+                  Fetch API: <strong class="font-mono text-[11px]">/pix/recipient-lookup</strong>
+</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Bottom State Diff Debugger -->
+<section class="bg-white rounded-xl border border-[#E5E7EB] shadow-xs p-4">
+<div class="flex items-center justify-between mb-2">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-purple-600 text-[18px]">terminal</span>
+<span class="font-mono text-xs text-gray-800 font-bold uppercase tracking-wider">State Diff Debugger</span>
+</div>
+<span class="font-mono text-[10px] text-purple-600 bg-purple-50 border border-purple-200 px-2 py-0.5 rounded font-semibold">JSON Reactive Output</span>
+</div>
+<pre class="p-3 rounded-lg bg-gray-900 font-mono text-[11px] text-emerald-400 overflow-x-auto leading-relaxed border border-gray-800" id="stateDiffView">{
+  "amount_value": 15200.00,
+  "pix_key": "jane.doe@fintech.io",
+  "is_instant": true,
+  "isValid": false,
+  "rule_triggered": "RULE_BALANCE_EXCEEDED"
+}</pre>
+</section>
+</main>
+<!-- 4. Column 3: Live Mobile Preview Dedicated Pane (360px) -->
+<aside class="w-[360px] bg-white shrink-0 flex flex-col justify-between border-r border-[#E5E7EB] z-10">
+<!-- Mockup Header -->
+<div class="p-3 bg-gray-50 border-b border-[#E5E7EB] flex items-center justify-between shrink-0">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-blue-600 text-[18px]">smartphone</span>
+<span class="text-xs font-bold text-gray-800">Live Mobile Preview</span>
+</div>
+<div class="flex items-center gap-1.5">
+<span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+<span class="text-[10px] text-gray-500 font-semibold uppercase">Reactive Canvas</span>
+</div>
+</div>
+<!-- Phone Canvas Canvas Dot Grid Wrapper -->
+<div class="flex-1 dot-grid flex items-center justify-center p-4 overflow-y-auto">
+<!-- Mock Phone Body (iPhone 16 Pro styling) -->
+<div class="w-[300px] bg-white rounded-[38px] p-3 shadow-2xl border-[7px] border-gray-900 flex flex-col aspect-[9/19] max-h-[640px] relative select-none">
+<!-- Dynamic Island Notch -->
+<div class="w-24 h-4.5 bg-black rounded-full mx-auto mb-2 shrink-0 flex items-center justify-end px-2">
+<span class="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></span>
+</div>
+<!-- Active Triggered Rule Floating Warning Banner -->
+<div class="bg-red-600 text-white px-2.5 py-1 rounded-lg text-center font-sans text-[10px] font-bold shadow-sm mb-2.5 flex items-center justify-center gap-1 animate-pulse" id="ruleToast">
+<span class="material-symbols-outlined text-[13px]">warning</span>
+            Rule #1 Active: Limit Exceeded
+          </div>
+<!-- Screen Mobile Content -->
+<div class="flex-1 flex flex-col justify-between overflow-y-auto px-1 space-y-2">
+<div>
+<!-- Top Bar In-App -->
+<div class="flex items-center justify-between text-gray-500 mb-2.5 px-0.5">
+<span class="material-symbols-outlined text-[18px] cursor-pointer hover:text-gray-900">arrow_back</span>
+<span class="text-xs font-bold text-gray-900">Pix Transfer</span>
+<span class="material-symbols-outlined text-[18px] cursor-pointer hover:text-gray-900">help_outline</span>
+</div>
+<!-- Available Balance Hero Widget -->
+<div class="bg-gray-50 p-2.5 rounded-xl border border-gray-200/80 mb-2.5">
+<span class="text-[10px] text-gray-500 block font-medium">Available Account Balance</span>
+<span class="text-base font-bold text-gray-900 block mt-0.5">R$ 14.850,20</span>
+<div class="flex items-center gap-1 mt-1">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+<span class="font-mono text-[9px] text-emerald-700 font-semibold">Limit: R$ 10.000,00 / day</span>
+</div>
+</div>
+<!-- Transfer Amount Input (Reactive to table!) -->
+<div class="space-y-1 mb-2.5">
+<div class="flex items-center justify-between text-[10px] font-semibold text-gray-700">
+<span>Transfer Amount</span>
+<span class="text-red-600 font-mono text-[9px]" id="phoneStatusBadge">Error: Limit</span>
+</div>
+<!-- Field with Red Warning ring -->
+<div class="p-2 rounded-xl bg-white ring-2 ring-red-500 shadow-2xs transition" id="phoneAmountContainer">
+<span class="text-[9px] text-gray-400 block font-medium">Value (BRL)</span>
+<span class="text-base font-bold text-red-600 block mt-0.5" id="phoneAmountDisplay">R$ 15.200,00</span>
+</div>
+<!-- Error message pill -->
+<div class="flex items-center gap-1 text-red-600 text-[10px] font-semibold pt-0.5" id="phoneErrorMessage">
+<span class="material-symbols-outlined text-[13px]">error</span>
+<span>Insufficient balance (Max: R$ 14.850,20)</span>
+</div>
+</div>
+<!-- Recipient Card -->
+<div class="p-2.5 rounded-xl bg-gray-50 border border-gray-200/80 space-y-1 mb-2.5">
+<span class="text-[9px] font-medium text-gray-400 block">Recipient Verified</span>
+<div class="flex items-center gap-2">
+<div class="w-7 h-7 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-[11px]">JD</div>
+<div class="truncate">
+<span class="text-xs font-bold text-gray-800 block truncate">Jane Doe</span>
+<span class="font-mono text-[10px] text-gray-500 block truncate" id="phonePixKey">jane.doe@fintech.io</span>
+</div>
+</div>
+</div>
+<!-- Instant Toggle Card -->
+<div class="flex items-center justify-between p-2.5 rounded-xl bg-gray-50 border border-gray-200/80">
+<div>
+<span class="text-[11px] font-semibold text-gray-800 block">Instant Transfer</span>
+<span class="text-[9px] text-gray-400 block">Clears within 10 seconds</span>
+</div>
+<span class="material-symbols-outlined text-blue-600 text-[20px]">check_circle</span>
+</div>
+</div>
+<!-- Bottom CTA Button (DISABLED by Rule #1) -->
+<div class="pt-2 pb-1">
+<button class="w-full py-2.5 rounded-xl bg-blue-600 text-white text-xs font-semibold opacity-40 cursor-not-allowed shadow-none flex items-center justify-center gap-1.5 transition" disabled="" id="phoneCtaButton">
+<span class="material-symbols-outlined text-[15px]" id="phoneCtaIcon">lock</span>
+<span id="phoneCtaLabel">Confirm Transfer</span>
+</button>
+<!-- Home indicator bar -->
+<div class="w-20 h-1 bg-gray-300 rounded-full mx-auto mt-2.5"></div>
+</div>
+</div>
+</div>
+</div>
+<!-- Quick Canvas Info Footnote -->
+<div class="p-2.5 bg-gray-50 border-t border-[#E5E7EB] text-center shrink-0">
+<span class="text-[10px] text-gray-400 font-mono">Render engine: HummingUI Web-SDUI Runtime</span>
+</div>
+</aside>
+<!-- 5. Right Inspector (280px) -->
+<aside class="w-[280px] bg-white flex flex-col shrink-0 z-10 overflow-y-auto">
+<!-- Top Inspector Segmented Tabs -->
+<div class="p-3 border-b border-[#E5E7EB]">
+<div class="bg-[#F3F4F6] p-0.5 rounded-lg flex items-center text-xs font-semibold">
+<button class="flex-1 py-1 text-center rounded-md bg-white text-gray-900 shadow-sm">Design</button>
+<button class="flex-1 py-1 text-center rounded-md text-gray-500 hover:text-gray-900">Interactions</button>
+<button class="flex-1 py-1 text-center rounded-md text-gray-500 hover:text-gray-900">Rules</button>
+</div>
+<!-- Component Meta Header -->
+<div class="mt-3 flex items-center justify-between">
+<div class="flex items-center gap-1.5">
+<span class="w-2 h-2 rounded-full bg-blue-600"></span>
+<span class="text-xs font-bold text-gray-900">TextInputPrimitive</span>
+</div>
+<span class="text-[10px] font-mono text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded">ID: #txt_recip_01</span>
+</div>
+</div>
+<!-- Inspector Section 1: Auto Layout & Spacing -->
+<div class="p-3.5 border-b border-[#E5E7EB]">
+<div class="flex items-center justify-between mb-2.5">
+<span class="text-xs font-bold text-gray-800 tracking-tight uppercase">Auto Layout &amp; Spacing</span>
+<span class="text-[10px] text-blue-600 font-semibold cursor-pointer">Flexbox</span>
+</div>
+<!-- Visual Direction Buttons & Alignment Matrix -->
+<div class="grid grid-cols-2 gap-2 mb-3">
+<!-- Direction Buttons -->
+<div class="bg-gray-50 p-1.5 rounded-lg border border-gray-200">
+<span class="text-[10px] text-gray-500 font-medium block mb-1">Direction</span>
+<div class="flex gap-1">
+<button class="flex-1 py-1 bg-white border border-gray-200 shadow-xs rounded flex items-center justify-center text-gray-800 font-bold text-xs" title="Vertical Stack">↓</button>
+<button class="flex-1 py-1 hover:bg-white rounded flex items-center justify-center text-gray-400 hover:text-gray-800 text-xs" title="Horizontal Row">→</button>
+</div>
+</div>
+<!-- 3x3 Alignment Matrix -->
+<div class="bg-gray-50 p-1.5 rounded-lg border border-gray-200 flex flex-col items-center">
+<span class="text-[10px] text-gray-500 font-medium block w-full text-left mb-1">Align &amp; Pack</span>
+<div class="grid grid-cols-3 gap-1 w-14">
+<div class="w-3.5 h-3.5 rounded-xs bg-gray-200 hover:bg-blue-200 cursor-pointer"></div>
+<div class="w-3.5 h-3.5 rounded-xs bg-gray-200 hover:bg-blue-200 cursor-pointer"></div>
+<div class="w-3.5 h-3.5 rounded-xs bg-gray-200 hover:bg-blue-200 cursor-pointer"></div>
+<div class="w-3.5 h-3.5 rounded-xs bg-gray-200 hover:bg-blue-200 cursor-pointer"></div>
+<!-- Center Active -->
+<div class="w-3.5 h-3.5 rounded-xs bg-blue-600 shadow-xs"></div>
+<div class="w-3.5 h-3.5 rounded-xs bg-gray-200 hover:bg-blue-200 cursor-pointer"></div>
+<div class="w-3.5 h-3.5 rounded-xs bg-gray-200 hover:bg-blue-200 cursor-pointer"></div>
+<div class="w-3.5 h-3.5 rounded-xs bg-gray-200 hover:bg-blue-200 cursor-pointer"></div>
+<div class="w-3.5 h-3.5 rounded-xs bg-gray-200 hover:bg-blue-200 cursor-pointer"></div>
+</div>
+</div>
+</div>
+<!-- Padding Box Selector with Design System Token Pills -->
+<div class="space-y-1.5">
+<div class="flex items-center justify-between text-[11px] text-gray-600">
+<span>Padding Tokens</span>
+<span class="font-mono text-[10px] text-gray-400">inset: 12px</span>
+</div>
+<div class="grid grid-cols-4 gap-1">
+<button class="py-1 text-[10px] font-medium rounded border border-gray-200 hover:border-gray-300 text-gray-500 bg-white">None</button>
+<button class="py-1 text-[10px] font-medium rounded border border-gray-200 hover:border-gray-300 text-gray-500 bg-white">Sm • 8</button>
+<button class="py-1 text-[10px] font-bold rounded border border-blue-500 bg-blue-50 text-blue-600 shadow-xs">Md • 16</button>
+<button class="py-1 text-[10px] font-medium rounded border border-gray-200 hover:border-gray-300 text-gray-500 bg-white">Lg • 24</button>
+</div>
+</div>
+</div>
+<!-- Inspector Section 2: Appearance & Typography -->
+<div class="p-3.5 border-b border-[#E5E7EB]">
+<div class="flex items-center justify-between mb-2.5">
+<span class="text-xs font-bold text-gray-800 tracking-tight uppercase">Appearance &amp; Typography</span>
+<span class="text-[10px] text-gray-400">Tokens</span>
+</div>
+<!-- Typography Token Cards -->
+<div class="space-y-1.5 mb-3">
+<span class="text-[10px] text-gray-500 font-medium">Text Style Token</span>
+<div class="grid grid-cols-3 gap-1.5">
+<div class="p-1.5 border border-gray-200 rounded-lg hover:border-blue-400 cursor-pointer bg-white text-center">
+<span class="block text-xs font-bold text-gray-800">Title</span>
+<span class="text-[9px] text-gray-400">20 / Bold</span>
+</div>
+<div class="p-1.5 border border-gray-200 rounded-lg hover:border-blue-400 cursor-pointer bg-white text-center">
+<span class="block text-xs font-medium text-gray-700">Subtitle</span>
+<span class="text-[9px] text-gray-400">14 / Med</span>
+</div>
+<div class="p-1.5 border border-blue-500 bg-blue-50/70 rounded-lg cursor-pointer text-center">
+<span class="block text-xs font-semibold text-blue-700">Body</span>
+<span class="text-[9px] text-blue-500">12 / Reg</span>
+</div>
+</div>
+</div>
+<!-- Color Token Swatches with Semantic Names -->
+<div class="space-y-1.5">
+<span class="text-[10px] text-gray-500 font-medium">Semantic Color Token</span>
+<div class="space-y-1">
+<div class="flex items-center justify-between p-1.5 bg-gray-50 rounded-md border border-gray-200">
+<div class="flex items-center gap-2">
+<span class="w-4 h-4 rounded-full bg-blue-600 ring-1 ring-black/10"></span>
+<span class="text-xs font-medium text-gray-800">Brand Accent</span>
+</div>
+<span class="text-[10px] font-mono text-gray-400">#2563EB</span>
+</div>
+<div class="flex items-center justify-between p-1.5 bg-gray-50 rounded-md border border-gray-200">
+<div class="flex items-center gap-2">
+<span class="w-4 h-4 rounded-full bg-[#111827] ring-1 ring-black/10"></span>
+<span class="text-xs font-medium text-gray-800">Text Primary</span>
+</div>
+<span class="text-[10px] font-mono text-gray-400">#111827</span>
+</div>
+<div class="flex items-center justify-between p-1.5 bg-gray-50 rounded-md border border-gray-200">
+<div class="flex items-center gap-2">
+<span class="w-4 h-4 rounded-full bg-white border border-gray-300"></span>
+<span class="text-xs font-medium text-gray-800">Surface Card</span>
+</div>
+<span class="text-[10px] font-mono text-gray-400">#FFFFFF</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Inspector Section 3: Data Binding (Server Driven UI Core) -->
+<div class="p-3.5">
+<div class="flex items-center justify-between mb-2">
+<div class="flex items-center gap-1.5">
+<svg class="w-3.5 h-3.5 text-purple-600" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M13 10V3L4 14h7v7l9-11h-7z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+<span class="text-xs font-bold text-gray-800 tracking-tight uppercase">Server Data Binding</span>
+</div>
+<span class="text-[10px] bg-purple-50 text-purple-700 px-1.5 py-0.5 rounded font-mono font-bold">Dynamic</span>
+</div>
+<p class="text-[11px] text-gray-500 mb-2.5">
+          Map this widget's value to backend payload state keys in real time.
+        </p>
+<!-- Connected Variable Purple Chip with One-Click Unlink -->
+<div class="bg-purple-50/80 border border-purple-200 rounded-lg p-2.5 mb-2.5">
+<div class="flex items-center justify-between mb-1.5">
+<span class="text-[10px] font-semibold text-purple-800 uppercase tracking-wide">Bound State Variable</span>
+<!-- One-Click Unlink Button -->
+<button class="text-[10px] text-purple-600 hover:text-red-600 font-medium flex items-center gap-0.5 transition" title="Unlink variable">
+<svg class="w-3 h-3" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M18.36 6.64a9 9 0 1 1-12.73 0"></path><line x1="12" x2="12" y1="2" y2="12"></line></svg>
+<span>Unlink</span>
+</button>
+</div>
+<!-- Sleek Purple Chip -->
+<div class="flex items-center justify-between bg-white border border-purple-200/90 rounded-md px-2.5 py-1.5 shadow-2xs">
+<div class="flex items-center gap-1.5">
+<span class="text-purple-600 text-xs">⚡</span>
+<span class="font-mono text-xs font-semibold text-purple-900">state.recipient_name</span>
+</div>
+<span class="text-[9px] bg-purple-100 text-purple-700 px-1 rounded font-mono">string</span>
+</div>
+</div>
+<!-- Transform / Fallback Value -->
+<div class="space-y-1 text-xs">
+<label class="text-[10px] text-gray-500 font-medium">Default Server Fallback</label>
+<input class="w-full bg-gray-50 border border-gray-200 rounded px-2.5 py-1 text-xs text-gray-700 font-mono" type="text" value="Jane Doe (CPF: 123...)"/>
+</div>
+<!-- Server Event Trigger -->
+<div class="mt-3 pt-3 border-t border-gray-100">
+<div class="flex items-center justify-between text-xs mb-1">
+<span class="font-medium text-gray-700">On Change Trigger</span>
+<span class="text-blue-600 font-mono text-[10px]">POST /pix/verify</span>
+</div>
+<div class="text-[10px] text-gray-400">Server re-renders nested child tree upon keystroke validation.</div>
+</div>
+</div>
+</aside>
+</div>
+<!-- Client-side Interactive Synchronization Logic -->
+<script>
+    (function initHummingUIStateManager() {
+      const inputAmount = document.getElementById('inputAmount');
+      const inputPixKey = document.getElementById('inputPixKey');
+      const toggleInstant = document.getElementById('toggleInstant');
+      const btnResetDefaults = document.getElementById('btnResetDefaults');
+
+      const phoneAmountDisplay = document.getElementById('phoneAmountDisplay');
+      const phoneAmountContainer = document.getElementById('phoneAmountContainer');
+      const phoneErrorMessage = document.getElementById('phoneErrorMessage');
+      const phoneStatusBadge = document.getElementById('phoneStatusBadge');
+      const phonePixKey = document.getElementById('phonePixKey');
+      const phoneCtaButton = document.getElementById('phoneCtaButton');
+      const phoneCtaIcon = document.getElementById('phoneCtaIcon');
+      const phoneCtaLabel = document.getElementById('phoneCtaLabel');
+      const ruleToast = document.getElementById('ruleToast');
+      const stateDiffView = document.getElementById('stateDiffView');
+
+      const BALANCE_LIMIT = 14850.20;
+
+      function updateState() {
+        const rawAmount = parseFloat(inputAmount.value) || 0;
+        const key = inputPixKey.value;
+        const isOverLimit = rawAmount > BALANCE_LIMIT;
+
+        // Sync Amount to phone preview
+        phoneAmountDisplay.textContent = 'R$ ' + rawAmount.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        phonePixKey.textContent = key || 'No key provided';
+
+        if (isOverLimit) {
+          phoneAmountContainer.className = 'p-2 rounded-xl bg-white ring-2 ring-red-500 shadow-2xs transition';
+          phoneAmountDisplay.className = 'text-base font-bold text-red-600 block mt-0.5';
+          phoneStatusBadge.textContent = 'Error: Limit';
+          phoneStatusBadge.className = 'text-red-600 font-mono text-[9px]';
+          phoneErrorMessage.style.display = 'flex';
+          ruleToast.style.display = 'flex';
+          phoneCtaButton.setAttribute('disabled', 'true');
+          phoneCtaButton.className = 'w-full py-2.5 rounded-xl bg-blue-600 text-white text-xs font-semibold opacity-40 cursor-not-allowed shadow-none flex items-center justify-center gap-1.5 transition';
+          phoneCtaIcon.textContent = 'lock';
+          phoneCtaLabel.textContent = 'Confirm Transfer';
+        } else {
+          phoneAmountContainer.className = 'p-2 rounded-xl bg-white ring-1 ring-gray-200 shadow-2xs transition';
+          phoneAmountDisplay.className = 'text-base font-bold text-gray-900 block mt-0.5';
+          phoneStatusBadge.textContent = 'Valid';
+          phoneStatusBadge.className = 'text-emerald-600 font-mono text-[9px]';
+          phoneErrorMessage.style.display = 'none';
+          ruleToast.style.display = 'none';
+          phoneCtaButton.removeAttribute('disabled');
+          phoneCtaButton.className = 'w-full py-2.5 rounded-xl bg-blue-600 text-white text-xs font-semibold shadow-md hover:bg-blue-700 transition cursor-pointer flex items-center justify-center gap-1.5 active:scale-98';
+          phoneCtaIcon.textContent = 'send';
+          phoneCtaLabel.textContent = 'Confirm Transfer';
+        }
+
+        // Update JSON Debugger
+        const payload = {
+          amount_value: rawAmount,
+          pix_key: key,
+          is_instant: true,
+          isValid: !isOverLimit,
+          rule_triggered: isOverLimit ? "RULE_BALANCE_EXCEEDED" : null
+        };
+        stateDiffView.textContent = JSON.stringify(payload, null, 2);
+      }
+
+      inputAmount.addEventListener('input', updateState);
+      inputPixKey.addEventListener('input', updateState);
+
+      btnResetDefaults.addEventListener('click', function() {
+        inputAmount.value = '500.00';
+        inputPixKey.value = 'jane.doe@fintech.io';
+        updateState();
+      });
+
+      // Run on initial load
+      updateState();
+    })();
+  </script>
+</body></html>

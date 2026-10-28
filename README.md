@@ -1,5 +1,7 @@
 # HummingUI
 
+O app oficial de autoria possui entrada própria: [HummingUI Builder](HummingUI-Builder/README.md), com host desktop e browser. O sample permanece separado e consome a mesma UI compartilhada.
+
 POC de um cliente de Server-Driven UI em Kotlin Multiplatform e Compose Multiplatform. O cliente interpreta uma árvore JSON e resolve componentes e ações registrados por namespace.
 
 O repositório contém contrato puro, modelo autoral/compilador, runtime, bibliotecas, transporte HTTP opt-in e sample. O Studio local integra árvore/Inspector, arraste, canvas de interações e formulário reativo. Consulte o estado atual para evidências e limites por plataforma. Há também aplicação/host HTTP local opt-in com autorização por documento e adapter PostgreSQL. Publicações imutáveis e compatibilidade por capacidades são separadas dos dados de sessão. O Studio desktop tem conexão remota explícita, recuperação em arquivo, acompanhamento por journal, presença e undo conservador. O navegador permanece editor local; consulte a matriz de qualificação antes de anunciar suporte.

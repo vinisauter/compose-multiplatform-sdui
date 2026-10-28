@@ -27,6 +27,9 @@ O [README do projeto](../README.md) é a apresentação resumida. `AGENTS.md` é
 
 ## Catálogos especializados
 
+- [HummingUI Builder](../HummingUI-Builder/README.md): app oficial desktop/browser, executável separado do sample, baseado no projeto visual Stitch.
+- [Referência Stitch](stitch-reference.md): inventário dos HTMLs fornecidos, medidas visuais, interações reais do protótipo e correspondência com tarefas futuras.
+
 - [Design System](design-system.md): configuração light/dark/sistema, cores, tipografia, formas, espaçamento e arquivos versionados.
 
 - [Propriedades e Modifier](modifiers.md): campos do Inspector, mapping Compose, validação e limites de extensão.

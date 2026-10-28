@@ -1,5 +1,11 @@
 # Arquitetura e evolução
 
+## Hosts de autoria e UI compartilhada
+
+`HummingUI-Builder` é o app de autoria com entradas desktop JVM e Wasm. Depende de `humming-studio-ui`, que contém shell, árvore, paleta, Inspector, canvas, catálogo de composições e adapters remotos opt-in. O sample também consome essa biblioteca; o Builder não depende do sample. As classes extraídas usam `me.developes.humming.builder.ui`. Testes do editor acompanham o módulo; smoke tests e integração de publicação do sample permanecem no sample. O catálogo de composições sustenta a paleta compartilhada, sem duplicar handlers.
+
+`LocalWorkspace`, `EditSession`, schema, compilador e renderer continuam como autoridades existentes. A tabela de estados deriva referências `stateKey`/`onChangeUpdateState` do documento e observa um owner real em sandbox próprio. Alterar valor no sandbox não edita o documento; aplicar como default usa `putProperty` e undo. O sandbox compartilha estado entre entradas somente dentro dessa sessão de inspeção; a execução normal conserva `ISOLATED_ENTRIES`. Ele não registra rede, fontes financeiras, deploy ou colaboração implicitamente.
+
 O [estado atual](current-state.md) registra evidências e limites do código existente. As fronteiras abaixo descrevem cliente, autoria local, catálogo e serviços opcionais; propostas de evolução não substituem essa evidência.
 
 ## Limites do produto

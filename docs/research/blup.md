@@ -66,7 +66,7 @@ A documentação antiga de outubro já não descreve o checkout atual. `settings
 | Execução | `ActionExecution.kt`: executor suspenso, limites, política de falha | Observação correlacionada com nós/arestas e Inspector de estado |
 | Persistência | Arquivos locais e recuperação remota opt-in documentados separadamente | Autosave do envelope local completo, sem confundir download solicitado com gravação confirmada |
 
-Pontos de extensão: [modelo](../../humming-studio-model/src/commonMain/kotlin/me/developes/humming/sdui/studio/AppProject.kt), [Inspector](../../sample/composeApp/src/commonMain/kotlin/sample/app/LocalStudio.kt), [canvas](../../sample/composeApp/src/commonMain/kotlin/sample/app/InteractionCanvas.kt), [projeção](../../humming-studio-model/src/commonMain/kotlin/me/developes/humming/sdui/studio/InteractionProjection.kt), [executor](../../humming-core/src/commonMain/kotlin/me/developes/humming/sdui/common/ActionExecution.kt).
+Pontos de extensão: [modelo](../../humming-studio-model/src/commonMain/kotlin/me/developes/humming/sdui/studio/AppProject.kt), [Inspector](../../humming-studio-ui/src/commonMain/kotlin/me/developes/humming/builder/ui/LocalStudio.kt), [canvas](../../humming-studio-ui/src/commonMain/kotlin/me/developes/humming/builder/ui/InteractionCanvas.kt), [projeção](../../humming-studio-model/src/commonMain/kotlin/me/developes/humming/sdui/studio/InteractionProjection.kt), [executor](../../humming-core/src/commonMain/kotlin/me/developes/humming/sdui/common/ActionExecution.kt).
 
 ## Funcionalidades recomendadas e aceite sugerido
 

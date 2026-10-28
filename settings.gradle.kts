@@ -28,3 +28,6 @@ include(":humming-server-postgres")
 
 include(":sample:composeApp")
 include(":sample:iosApp")
+
+include(":humming-studio-ui")
+include(":HummingUI-Builder")

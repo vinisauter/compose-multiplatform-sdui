@@ -3,12 +3,12 @@ import androidx.compose.ui.window.ComposeViewport
 import kotlinx.browser.document
 import kotlinx.browser.window
 import sample.app.LocalPreview
-import sample.app.LocalStudio
+import me.developes.humming.builder.ui.LocalStudio
 import sample.app.BrowserStudioFiles
-import sample.app.VersionedJourneyExample
-import sample.app.NativeCapabilityExample
-import sample.app.OfficialCatalogApp
-import sample.app.AppBuilder
+import me.developes.humming.builder.ui.VersionedJourneyExample
+import me.developes.humming.builder.ui.NativeCapabilityExample
+import me.developes.humming.builder.ui.OfficialCatalogApp
+import me.developes.humming.builder.ui.AppBuilder
 import me.developes.humming.sdui.common.NativeBridge
 import androidx.compose.runtime.remember
 

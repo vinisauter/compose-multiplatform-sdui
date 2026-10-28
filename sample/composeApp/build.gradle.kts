@@ -34,6 +34,7 @@ kotlin {
 
     sourceSets {
         commonMain.dependencies {
+            implementation(project(":humming-studio-ui"))
             implementation(compose.runtime)
             implementation(compose.ui)
             implementation(compose.foundation)

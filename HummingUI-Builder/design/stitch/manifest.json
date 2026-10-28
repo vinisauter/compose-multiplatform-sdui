@@ -1,0 +1,21 @@
+{
+  "source": "HTMLs fornecidos pelo usuario em 2026-10-27",
+  "project": "2399743288518543485",
+  "files": [
+    {
+      "file": "flows.html",
+      "sha256": "669c0566e52458fbfd710607e4c997ad2bc77534387dee3df9b73132f74c3906",
+      "bytes": 41269
+    },
+    {
+      "file": "state.html",
+      "sha256": "f20cf00b15720ea7e57b1fbda3d1f9a4e3a5b1dc612fa3ab12775eb86d2926bd",
+      "bytes": 52972
+    },
+    {
+      "file": "workspace.html",
+      "sha256": "2ec1977e92f1ba2dd4c8b0ce8d5eaa797b46a575591c8805e8e42a2701966371",
+      "bytes": 43405
+    }
+  ]
+}

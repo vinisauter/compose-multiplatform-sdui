@@ -15,3 +15,5 @@ Pods/
 *.jks
 *.gpg
 *yarn.lock
+# Local Builder validation and desktop launch logs.
+/build-builder-*.log

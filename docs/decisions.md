@@ -1,5 +1,21 @@
 # Decisões técnicas
 
+## 2026-10-28 — T39: HTMLs como referência visual e comandos como autoridade
+
+Os três HTMLs fornecidos são preservados com hash, separados do código executável. O shell usa as medidas observadas, Inter/JetBrains Mono incorporadas com OFL, biblioteca compacta, seleção contextual, Inspector por seções e tabela de estado. Os controles publicam comandos no mesmo LocalWorkspace; expansão de árvore e posição dos painéis são somente apresentação. Alinhamento de dois eixos é uma transação, sem estado paralelo de layout.
+
+O State Manager observa o owner real do preview isolado; valores live não alteram defaults até Apply. O JSON é chamado snapshot, sem prometer diff/time travel. Abaixo de 1500 dp o Inspector de estado abre em diálogo para manter tabela e preview utilizáveis. Fontes são assets locais, sem dependência de CDN em execução. O inventário do protótipo diferencia handlers observados de elementos estáticos e orienta T40–T48, preservando as capacidades existentes do runtime.
+
+## 2026-10-27 — T38: app oficial com editor compartilhado
+
+O pedido de app oficial baseado no projeto Stitch 2399743288518543485 cria `HummingUI-Builder` como host Compose Multiplatform desktop/Wasm. A extração para `humming-studio-ui` evita dependência do produto no sample e preserva comandos, schemas, fixtures de composição e preview existentes. O sample passa a consumir essa UI; o core não ganha dependência do editor nem Material 3.
+
+As três telas fornecidas orientam o shell e os painéis. Indicadores de colaboração, rede financeira, deploy e latência da referência não são evidência de serviços instalados e não são reproduzidos como ativos. O exemplo Pix é identificado como demonstração local. Logic/Sheets reutilizam o painel de estados/ações; um editor visual específico de regras e fontes remotas exige recorte adicional. O tema do editor é independente do Design System do projeto. A tipografia usa sans local, sem baixar fontes implicitamente.
+
+A regressão extraída expôs `NoClassDefFoundError: kotlinx/datetime/Instant` no DatePicker: Material 3 1.8.2 usa a ABI anterior, removida do artefato comum datetime 0.8.0. O catálogo fixa estritamente `0.8.0-0.6.x-compat`, variante oficial da mesma versão, conforme a [orientação de compatibilidade do kotlinx-datetime](https://github.com/Kotlin/kotlinx-datetime#deprecation-of-instant). Não houve upgrade de Compose. O smoke test controla o relógio por frame e usa datas/progresso determinados; cleanup desmonta antes de aguardar idle, para não esconder erros de renderização atrás de animações.
+
+`dependencyInsight` do metadata resolveu JetBrains runtime 1.9.3 e AndroidX runtime 1.9.4. O primeiro contém somente pacote raiz no commonMain, sem os tipos Compose. Uma declaração direta do segundo foi investigada, mas colidiu com o runtime no lowering JS e foi removida. Os builds de targets concretos usam a resolução existente; alinhar os wrappers e o metadata comum exige revisão própria de dependências, sem forçar um runtime AndroidX nos targets web.
+
 Atualizado em 2026-10-23, incluindo decisões de T00/T01. Este registro distingue padrões de planejamento de escolhas tomadas durante a implementação. Evidência de execução fica em validação; status e retomada pertencem ao [estado atual](current-state.md), e dependências/critérios ao [plano de desenvolvimento](development-plan.md).
 
 ## Como decidir e registrar

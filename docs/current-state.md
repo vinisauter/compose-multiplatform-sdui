@@ -10,17 +10,50 @@ Este é o ponto de entrada para **continuar o desenvolvimento**. Reúne o estado
 
 Atualizado após T37 (2026-10-27): configuração de Design System light/dark/sistema, 36 cores por modo, 15 estilos, formas/espaçamentos e previews SDUI reais; projeto/pacote v2 com tema, v1 preservado sem tema. 387 casos JVM regulares aprovados; metadata, JS, Android e Wasm compilados. Captura Compose/JVM inspecionada; sem nova observação manual Wasm. Sem push/deploy.
 
+## HummingUI-Builder — recorte oficial Stitch (2026-10-27/28)
+
+T39 — fidelidade das três superfícies concluída no recorte local em 2026-10-28. Os HTMLs fornecidos foram preservados com SHA-256 em [design/stitch](../HummingUI-Builder/design/stitch/manifest.json); medidas e auditoria em [referência Stitch](stitch-reference.md). Shell com header 52 dp/rail 60 dp/biblioteca 260 dp/Inspector 300 dp, Inter e JetBrains Mono locais com OFL, grade de componentes e árvore compacta, seleção com reorder/inspeção/remoção, Inspector por seções e menu da marca com arquivos/rename/histórico. Flows usa conexões e comandos reais, sem biblioteca lateral; State Manager separa tabela, snapshot JSON e preview real. Abaixo de 1500 dp o Inspector de estado abre em diálogo.
+
+Evidência final de T39, Windows, 2026-10-28:
+
+- `:humming-studio-ui:jvmTest :sample:composeApp:jvmTest :HummingUI-Builder:compileKotlinJvm :HummingUI-Builder:wasmJsBrowserDevelopmentWebpack :humming-studio-ui:compileKotlinJs :sample:composeApp:compileDebugKotlinAndroid`, exit 0 (`BUILD SUCCESSFUL in 1m 7s`): **88 testes do editor + 2 do sample**, zero falhas/erros/ignorados. Inclui persistência/rename/undo no menu oficial, edição compacta de padding, estado/reset/navegação e restauração de viewport. Teste de posição impede sobreposição dos rótulos de escopo.
+- Comparação visual dos três HTMLs com o bundle final em 1280×720. Workspace conserva medidas, tipografia, cores, árvore, seleção e propriedades; Flows conserva canvas pontilhado/frames/conectores/toolbar/Inspector; State Manager conserva escopos/tabela/regras/snapshot/telefone. Documentos diferentes produzem frames e contagens diferentes: o Builder mostra os nós e ações reais. Campos do preview mantêm os widgets registrados do renderer. Não há alegação de reprodução pixel a pixel.
+- Wasm observado: `amount` 250,00 → 700,00 atualizou campo do preview e snapshot; Reset retornou a 250,00; Play executou a jornada e o botão navegou para “Fluxo concluído no sandbox local”. Retorno à autoria observado; capturas finais em [Workspace](../HummingUI-Builder/docs/images/wasm-workspace.png), [Flows](../HummingUI-Builder/docs/images/wasm-flows.png), [State](../HummingUI-Builder/docs/images/wasm-state.png) e [resultado](../HummingUI-Builder/docs/images/wasm-run.png). Testes Compose/JVM também geraram capturas 1024×768.
+- A comparação encontrou sobreposição na barra de escopos: seus elementos agora pertencem a uma Column rolável. Compilação também encontrou receiver implícito de maxWidth em escopos aninhados; largura capturada explicitamente. Ambos corrigidos antes da rodada final acima.
+- `:HummingUI-Builder:run` iniciou a janela desktop final em Windows; Workspace observado com fontes, biblioteca, canvas e Inspector atualizados. [Captura nativa](../HummingUI-Builder/docs/images/desktop-workspace.png). A observação não substitui a qualificação manual de todos os gestos/arquivos, cobertos parcialmente pelos testes Compose/JVM.
+- Recursos adicionais do protótipo estão inventariados em T40–T48: duplicação/composições, variáveis/computed, regras, API/branch, transições, debugger, publicação, colaboração/assets e metadata. O JavaScript original implementa somente parte do estado; avatares/sync/deploy e nós remotos são estáticos. Essas versões não estão entregues.
+
+Próxima ação do Builder: T40, duplicação transacional e composições/contexto sobre o modelo existente, com testes de IDs/chaves/relações, undo e round trip. O bloqueio de metadata comum continua separado em T48; a matriz de targets concretos acima passa. Sem push, deploy, distribuição ou chamada financeira.
+
+T38 — host oficial e shell funcional de autoria local. Projeto Stitch 2399743288518543485 acessado em sessão autenticada: Builder Workspace, Flows & Logic Canvas e Data & State Manager. Base inicial Git limpa. `HummingUI-Builder` possui entradas próprias desktop JVM e Wasm; `humming-studio-ui` concentra a implementação extraída, no pacote `me.developes.humming.builder.ui`, consumida também pelo sample. Uma autoridade de documento/comandos/undo, sem dependência do Builder no sample. [Guia e capturas reais](../HummingUI-Builder/README.md).
+
+Evidência executada em Windows em 2026-10-27:
+
+- Descoberta: `:HummingUI-Builder:tasks --all`, `:humming-studio-ui:tasks --all` e `:sample:composeApp:tasks --all`, exit 0.
+- `:humming-studio-ui:jvmTest :sample:composeApp:jvmTest :HummingUI-Builder:compileKotlinJvm :HummingUI-Builder:compileKotlinWasmJs :sample:composeApp:compileKotlinWasmJs`, exit 0: 87 testes do editor e 2 smoke tests do sample, zero falhas/erros/ignorados. Relatórios em `humming-studio-ui/build/test-results/jvmTest` e no diretório correspondente do sample. Não reexecutada a integração PostgreSQL opcional do sample.
+- `:humming-studio-ui:compileKotlinJs :sample:composeApp:compileDebugKotlinAndroid :HummingUI-Builder:wasmJsBrowserDevelopmentWebpack`, exit 0: JS da UI, integração Android do sample e bundle Wasm executável gerado. Build Android não comprova toque; nenhum app Builder Android/Apple foi criado.
+- Testes novos verificam schema do exemplo Pix, round trip do projeto, default/undo, sandbox real e reset, troca de tema e navegação. A inspeção browser encontrou pan desatualizado ao retornar da execução para Design; o efeito agora considera a área medida, com regressão da posição inicial/restaurada. Confirmação final de testes/build e reobservação do bundle registradas em T39 acima.
+- Janela nativa **HummingUI Builder** aberta e visualmente observada. Interação manual adicional não foi continuada após detecção de entrada do usuário na janela. Os fluxos automatizados Compose/JVM foram executados separadamente.
+- Bundle servido somente em `127.0.0.1:8099`, navegador 1280×720: inicialização/renderização, Flows, sandbox `amount` 250,00 → 700,00 com atualização real do preview, reset e execução até a segunda tela observados. [Estado no browser](../HummingUI-Builder/docs/images/wasm-state.png) e [navegação](../HummingUI-Builder/docs/images/wasm-run.png). Não houve publicação, deploy, push ou chamada financeira.
+- Inspeção de conteúdo, links locais e `git diff --check` executada. A atualização do workflow somente inclui módulos/tarefas locais correspondentes; não comprova execução no GitHub.
+
+Correções de integração: `outlinedTextField` usa `text`, conforme schema, sem inventar `value`; DatePicker exigiu a variante oficial datetime `0.8.0-0.6.x-compat`, fixada estritamente após `NoClassDefFoundError: kotlinx/datetime/Instant`. Smoke Material controla frames/datas/progresso e desmonta antes de aguardar idle; 11 testes Material incluídos no conjunto aprovado. Não foi atualizado Compose para contornar erros.
+
+Limite conhecido: `:humming-studio-ui:compileCommonMainKotlinMetadata` falhou com referências Compose runtime ausentes. `dependencyInsight --dependency compose.runtime --configuration commonMainResolvableDependenciesMetadata` confirmou wrapper JetBrains 1.9.3 vazio no commonMain e runtime AndroidX 1.9.4. Declaração direta do segundo foi investigada, colidiu no lowering JS e foi removida; targets concretos voltaram a passar. Metadata comum/publicação da biblioteca precisa de alinhamento próprio de dependências. Permanecem warnings preexistentes de KLIBs duplicados/namespaces Android/deprecações; não qualificam Apple.
+
+Limite histórico de T38, refinado por T39 acima: layout e navegação das três superfícies usam a referência Stitch, com controles do editor existente. Inspector continua orientado pelo schema. Logic/Sheets compartilham inspeção de estados/ações, sem um novo editor visual completo de regras. Colaboradores, latência/sync, API Pix e Deploy da referência não são exibidos como serviços ativos. Não há autosave; salvar/reabrir continua sendo a forma de preservar trabalho. Próxima ação: alinhar metadata em recorte específico e ampliar qualificação de arquivos/gestos por plataforma; refinamentos de fidelidade e regras devem ter aceite próprio no plano.
+
 ## Ponto de retomada
 
 | Campo | Registro atual |
 | --- | --- |
-| Última atualização | 2026-10-27; T36 28d5ed0; base recebida inclui 817f6a6 e 61fcf0d; T37 neste entregável, commit local sem push |
-| Última entrega | T37 — configuração de Design System, provider visual e persistência/exportação versionada |
-| Tarefa de implementação em execução | Nenhuma; T37 concluída no recorte documentado |
-| Próxima tarefa | T26 — qualificação adicional por plataforma; geração HCT/fontes remotas/sincronização de tema exigem recorte próprio |
-| Próxima ação concreta | Salvar o projeto aberto e qualificar configuração/gestos no navegador quando disponível; validar SYSTEM com mudança real de preferência e toque/arquivos Android separadamente |
-| Critério para avançar | Registrar plataforma/fluxo e preferência do sistema; builds não comprovam interação por toque ou troca nativa de modo |
-| Bloqueio de implementação conhecido | Nenhum para código/testes locais; inspeção adicional no navegador bloqueada por limite de uso do revisor automático. Apple exige host compatível |
+| Última atualização | 2026-10-28; T38/T39 validadas localmente, sem push |
+| Última entrega | T39 — shell fiel aos três HTMLs, controles compactos e estado reativo; base oficial T38 |
+| Tarefa de implementação em execução | Nenhuma; T39 encerrada neste recorte |
+| Próxima tarefa | T40 — autoria contextual e composições; T26 mantém qualificação por plataforma e T48 metadata |
+| Próxima ação concreta | Implementar duplicação transacional de subárvore com remapeamento de IDs/chaves/relações, histórico e round trip |
+| Critério para avançar | Demonstrar comandos atômicos, undo/redo, arquivo reaberto e preview; preservar limites de validação por plataforma |
+| Bloqueio de implementação conhecido | Metadata comum de humming-studio-ui: resolução mista de wrappers Compose; hosts concretos JVM/JS/Wasm/Android compilados. Apple exige host compatível |
 | Limite do próximo recorte | Qualificação/adaptação de UI, sem push/deploy; não anunciar HCT, extração de imagem, sincronização remota de tema ou todas as extensões Compose |
 
 ### Protocolo quando o pedido for “continue o desenvolvimento”
@@ -77,6 +110,11 @@ Estados: **pronta**, **pendente**, **em execução**, **bloqueada**, **concluíd
 | T35 | Drag-and-drop na árvore | concluída | 367 regulares; dois hosts, reparenting/ordem/undo/redo/Escape/fora/autoscroll; detalhes abaixo |
 | T36 | Inspector completo do schema e Modifier declarativo | concluída | 378 casos regulares; 59 campos, ranges, medidas/pixels/undo/arquivo; builds e limites abaixo |
 | T37 | Design System do projeto | concluída | 387 regulares; configuração/cancelamento/arquivo v1-v2/pacote com tema, pixels/fontes/shapes/padding; evidência e limites abaixo |
+| T38 | HummingUI-Builder oficial e UI compartilhada | concluída | Hosts JVM/Wasm, UI extraída e consumida pelo sample; testes e builds concretos aprovados. Metadata comum separada em T48; evidência acima |
+| T39 | Fidelidade aos três HTMLs Stitch | concluída | 88 testes editor + 2 sample, JVM/JS/Wasm/Android compilados, comparação 1280×720 e estado/reset/navegação Wasm observados; evidência acima |
+| T40 | Autoria contextual e composições | pronta | Duplicação transacional, remapeamento e composições conforme plano; reorder/remoção/Inspector compacto já disponíveis |
+| T41–T47 | Variáveis, regras, API, transições, debugger, publicação e colaboração | pendente | Escopo/dependências/aceite no plano; somente capacidades existentes do runtime podem ser integradas |
+| T48 | Metadata e distribuição multiplataforma | bloqueada | Wrapper Compose commonMain sem tipos runtime; investigação acima. Targets concretos passam; não anunciar biblioteca publicada |
 
 Os requisitos completos e a ordem das dependências estão no [plano](development-plan.md). A numeração identifica tarefas; não significa executar T07–T12 antes de T13–T19. A prioridade inicial é base → schemas/fronteira → autoria local → manipulação visual; capacidades adicionais do cliente podem avançar em paralelo quando elegíveis.
 

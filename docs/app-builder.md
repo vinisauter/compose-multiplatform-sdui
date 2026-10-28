@@ -1,5 +1,7 @@
 # Criador visual de apps
 
+O app oficial possui host próprio em [HummingUI-Builder](../HummingUI-Builder/README.md). Editor e catálogo de composições foram extraídos para `humming-studio-ui`, no pacote `me.developes.humming.builder.ui`; o criador do sample continua disponível como consumidor da mesma implementação. O shell oficial segue a referência Stitch e oferece Screens, Library, Flows e sandbox de estados em Logic/Sheets. As etapas descritas abaixo continuam disponíveis no shell do sample.
+
 O criador reúne projeto, telas, componentes, edição, ações, teste e exportação sobre o documento SDUI do Studio. O [estado atual](current-state.md) registra a qualificação por plataforma. O [guia do app](../sample/README.md) explica como executar cada parte.
 
 ## Jornada
